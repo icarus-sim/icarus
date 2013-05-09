@@ -1,0 +1,12 @@
+# Ignore binaries and temp files
+*.pyc
+__pycache__
+*~ 
+
+# Ignore all files starting with . (e.g. .classpath, .*project) but not .gitignore
+.*
+!.gitignore
+
+# Ignore content of logs but not logs dir
+logs/*
+
