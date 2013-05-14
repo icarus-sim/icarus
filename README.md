@@ -5,7 +5,7 @@ caches in Information Centric Networks (ICN).
 
 This document explains how to configure and run the simulator. 
 
-## Intall
+## Install
 To use the simulator, you need:
 
 * Python (v 2.6 onwards, 2.7 preferred): you can either download it from the
