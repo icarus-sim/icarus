@@ -7,6 +7,4 @@ __pycache__
 .*
 !.gitignore
 
-# Ignore content of logs but not logs dir
-logs/*
 

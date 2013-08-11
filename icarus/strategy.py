@@ -438,7 +438,6 @@ class HashrouteHybridSymmMCast(BaseStrategy):
     def close(self):
         super(HashrouteHybridSymmMCast, self).close()
         mcast_ratio = float(self.mcast_count) / (self.mcast_count + self.symm_count)
-        print('[HYB MC-SYM]: %s: MCAST: %s, SYM: %s' % (self.scenario_id, str(mcast_ratio), str(1 - mcast_ratio)))
         self.stretch_logger.close()
 
 

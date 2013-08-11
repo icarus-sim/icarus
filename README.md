@@ -19,7 +19,14 @@ the PYTHONPATH environment variable.
 
 After all these things are taken care you should be able to use it.
 
-# Run
+# Reproduce results of SIGCOMM ICN '13
+To reproduce results, run the script:
+
+`./reproduce_sigcomm_icn_13_results.sh`
+
+This will do everything automatically.
+
+# Run with modified parameters
 To use this simulator for gathering results about caching performance, you need to carry out three tasks:
 
 1. Generate the scenarios, i.e. generate the topology and, possibly, event schedule files for all the

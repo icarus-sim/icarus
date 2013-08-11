@@ -8,13 +8,14 @@ from numpy import arange
 # Directory config
 LOG_DIR = path.abspath(path.join(path.dirname(__file__), path.pardir, 'logs'))
 SCENARIOS_DIR = path.abspath(path.join(path.dirname(__file__), path.pardir, 'scenarios'))
+GRAPHS_DIR = path.abspath(path.join(path.dirname(__file__), path.pardir, 'graphs'))
 
 # Naming config
 TOPO_PREFIX = 'TOPO_'
 ES_PREFIX = 'ES_'
 
 ######################## PARAMETERS OF THE EXPERIMENTS ########################
-ALPHA = arange(0.6, 2.01, 0.1) # from 0.6 to 1.1 (included) with 0.1 steps
+ALPHA = arange(0.6, 1.11, 0.1) # from 0.6 to 1.1 (included) with 0.1 steps
 NET_CACHE = [0.0004, 0.002, 0.01, 0.05]
 N_CONTENTS = 300000
 
