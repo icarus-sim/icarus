@@ -165,9 +165,42 @@ class CacheDataAnalyzer(object):
         return cache_hit_ratio
     
 
+class DelatAnalyzer(object):
+    """
+    Object to manipulate data from delay logs
+    """
+    
+    def __init__(self, delay_log_file):
+        """
+        Save data into instance array which can be later accessed for processing
+        """
+        self.data = genfromtxt(delay_log_file, dtype=None, delimiter='\t', names=True)
+        self.time = self.data['Time']
+        self.receiver = self.data['Receiver']
+        self.source = self.data['Source']
+        self.content = self.data['Content']
+        self.req_delay = self.data['ReqDelay']
+        self.resp_delay = self.data['RespDelay']
+        self.total_delay = self.data['TotalDelay']
+
+
+    def cdf(self):
+        """Return empirical CDF of RTT
+        """
+        freq_dict = Counter(self.stretch) 
+        sorted_unique_data = sort(freq_dict.keys())
+        freqs = zeros(len(sorted_unique_data))
+        for i in range(len(sorted_unique_data)):
+            freqs[i] = freq_dict[sorted_unique_data[i]]
+        cdf = cumsum(freqs)
+        cdf = cdf / float(cdf[len(cdf) - 1]) # normalize
+        return sorted_unique_data, cdf
+
+
+
 class PathStretchAnalyzer(object):
     """
-    Object to manipulate data from cache logs
+    Object to manipulate data from path stretch logs
     """
     
     def __init__(self, stretch_log_file):

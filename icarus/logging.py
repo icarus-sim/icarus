@@ -147,6 +147,40 @@ class CacheLogger(BaseLogger):
         return 0 if self.cache_hit_count == 0 else float(self.cache_hit_count) / (self.cache_hit_count + self.server_hit_count)
         
 
+class DelayLogger(BaseLogger):
+    """
+    Logger for RTT of request/response pairs
+    """
+    
+    def __init__(self, file_name):
+        """
+        Constructor
+        """
+        super(DelayLogger, self).__init__(file_name=file_name)
+        self.append_push('Time\tReceiver\tSource\tContent\tReqDelay\tRespDelay\tTotalDelay')
+        self.event_count = 0
+        self.rtt = 0
+
+    def log_delay_info(self, time, receiver, source, content, req_delay, resp_delay):
+        """
+        Log delay of requests and responses
+        """
+        # Analysis on logged data
+        curr_rtt = req_delay + resp_delay
+        self.event_count += 1
+        self.rtt += curr_rtt
+        self.append('%s\t%s\t%s\t%s\t%s\t%s\t%s' 
+                    % (str(time), str(receiver), str(source),
+                       str(content), str(req_delay), str(resp_delay), str(curr_rtt)))
+
+    def rtt(self):
+        """
+        Return average RTT over simulation scenario
+        """
+        return 0 if self.event_count == 0 else float(self.rtt) / (self.event_count)
+
+
+
 class StretchLogger(BaseLogger):
     """
     Logger for stretch of paths

@@ -32,6 +32,10 @@ STRATEGIES = [
      'NoCache',
              ]
 
+NET_CACHE = [0.002]
+ALPHA = [0.8]
+TOPOLOGIES = ['GEANT']
+STRATEGIES = ['CEE+LRU', 'NoCache']
 # If True, generate new scenario files before running the simulation
 GEN_SCENARIOS = True
 
@@ -40,7 +44,7 @@ GEN_SCENARIOS = True
 # postprocess simulation results in ways you don't know at the time of running
 # the simulation, but notice that for long simulations, files are likely to become
 # extremely large
-LOG_EVERYTHING = False
+LOG_EVERYTHING = True #False
 
 # add to the cache hit ratio summary file, analytical results of optimal cache hits
 CALC_OPTIMAL_CACHE_HIT_RATIO = True

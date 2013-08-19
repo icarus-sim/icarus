@@ -7,7 +7,7 @@ from os import path
 from fnss import get_stack
 from icarus.cache import Cache
 from icarus.algorithm import assign_caches
-from icarus.logging import LinkLogger, CacheLogger, StretchLogger, \
+from icarus.logging import LinkLogger, CacheLogger, DelayLogger, StretchLogger, \
     NetworkLoadSummary, CacheHitRatioSummary, \
     PACKET_TYPE_INTEREST, PACKET_TYPE_DATA, \
     EVENT_CACHE_HIT, EVENT_SERVER_HIT
@@ -33,6 +33,7 @@ class BaseStrategy(object):
         self.scenario_id = scenario_id
         self.link_logger = LinkLogger(path.join(log_dir, 'RESULTS_%s_LINK.txt' % scenario_id))
         self.cache_logger = CacheLogger(path.join(log_dir, 'RESULTS_%s_CACHE.txt' % scenario_id))
+        self.delay_logger = DelayLogger(path.join(log_dir, 'RESULTS_%s_DELAY.txt' % scenario_id))
         self.topology = topology
         # calc shortest paths
         self.shortest_path = nx.all_pairs_dijkstra_path(topology, weight='weight')
@@ -84,7 +85,7 @@ class BaseStrategy(object):
         # Copy files back in my home folder before exiting
         self.link_logger.close()
         self.cache_logger.close()
-
+        self.delay_logger.close()
 
 class NoCache(BaseStrategy):
     """Strategy without any caching
@@ -102,8 +103,28 @@ class NoCache(BaseStrategy):
         log = event['log']
         
         source = self.content_location[content]
-        if log: self.log_transfer(time, receiver, source, PACKET_TYPE_INTEREST, content)
-        if log: self.log_transfer(time, source, receiver, PACKET_TYPE_DATA, content)
+        if log:
+            req_delay = 0
+            resp_delay = 0
+            
+            # Log request path
+            path = self.shortest_path[receiver][source]
+            for hop in range(1, len(path)):
+                u = path[hop - 1]
+                v = path[hop]
+                req_delay += self.topology.edge[u][v]['delay']
+            self.link_logger.log_link_info(time, u, v, PACKET_TYPE_INTEREST, content, self.link_type[(u,v)])
+            
+            # Log response path
+            path = self.shortest_path[source][receiver]
+            for hop in range(1, len(path)):
+                u = path[hop - 1]
+                v = path[hop]
+                resp_delay += self.topology.edge[u][v]['delay']
+            self.link_logger.log_link_info(time, u, v, PACKET_TYPE_DATA, content, self.link_type[(u,v)])
+
+            # Log delay of request and response
+            self.delay_logger.log_delay_info(time, receiver, source, content, req_delay, resp_delay)
 
 
 
@@ -437,7 +458,6 @@ class HashrouteHybridSymmMCast(BaseStrategy):
 
     def close(self):
         super(HashrouteHybridSymmMCast, self).close()
-        mcast_ratio = float(self.mcast_count) / (self.mcast_count + self.symm_count)
         self.stretch_logger.close()
 
 
@@ -463,11 +483,15 @@ class CeeLru(BaseStrategy):
         log = event['log']
         source = self.content_location[content]
         path = self.shortest_path[receiver][source]
-        # handle (and log if required) actual request 
+        # handle (and log if required) actual request
+        req_delay = 0
+        resp_delay = 0
         for hop in range(1, len(path)):
             u = path[hop - 1]
             v = path[hop]
-            if log: self.link_logger.log_link_info(time, u, v, PACKET_TYPE_INTEREST, content, self.link_type[(u,v)])
+            if log:
+                self.link_logger.log_link_info(time, u, v, PACKET_TYPE_INTEREST, content, self.link_type[(u,v)])
+                req_delay += self.topology.edge[u][v]['delay']
             if v == source:
                 if log: self.cache_logger.log_cache_info(time, EVENT_SERVER_HIT, content, receiver, 'N/A', source)
                 serving_node = v
@@ -481,10 +505,13 @@ class CeeLru(BaseStrategy):
         for hop in range(1, len(path)):
             u = path[hop - 1]
             v = path[hop]
-            if log: self.link_logger.log_link_info(time, u, v, PACKET_TYPE_DATA, content, self.link_type[(u,v)])
+            if log:
+                self.link_logger.log_link_info(time, u, v, PACKET_TYPE_DATA, content, self.link_type[(u,v)])
+                resp_delay += self.topology.edge[u][v]['delay']
             if v != receiver and get_stack(self.topology, v)[0] == 'cache':
                 self.caches[v].store(content) # insert content
-
+        if log:
+            self.delay_logger.log_delay_info(time, receiver, source, content, req_delay, resp_delay)
 
 
 
