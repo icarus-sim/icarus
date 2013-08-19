@@ -30,7 +30,7 @@ file is located to the PYTHONPATH environment variable.
 
 After all these things are taken care of you will be able to use Icarus.
 
-# Reproduce results of hash-routing paper (ACM SIGCOMM ICN '13)
+## Reproduce results of hash-routing paper (ACM SIGCOMM ICN '13)
 This section explain how to reproduce the results and plot the graphs presented
 in the paper:
 
@@ -59,7 +59,7 @@ parameters tested, the number of CPU cores used and so on, please look at the
 file `icarus/config.py`. It contains all the configuration parameters and it is
 well commented.
 
-# Run with customized parameters
+## Run with customized parameters
 To use this simulator for gathering results about caching performance wuthout
 using the script provided, you need to carry out three tasks:
 
@@ -102,7 +102,7 @@ contain one line per scenario run. If this variable is set to True, then each
 event of the simulation (cache and link events) will be saved.
 These file may become very large, in the order of hundreds of GB.
 
-# Log file specifications
+## Log file specifications
 For each single scenario run, if `logging.LOG_EVERYTHING` configuration
 variable is set to `True`, the the simulator generates four log files:
 
@@ -119,7 +119,7 @@ simulator generates two summary files:
 
 Each single experiment appends a line to each of these two files.
 
-# Contacts
+## Contacts
 For further information about the Icarus simulator, please contact
 [Lorenzo Saino](http://www.ee.ucl.ac.uk/~lsaino)
 
