@@ -22,8 +22,8 @@ running the following command from your command shell:
 `git clone https://github.com/lorenzosaino/icarus.git`
 
 or download the archive file of the repository and unpack it on your machine:
-[zip](https://github.com/lorenzosaino/icarus/archive/master.zip) 
-[tar.gz](https://github.com/lorenzosaino/icarus/archive/master.tar.gz)
+[\[zip\]](https://github.com/lorenzosaino/icarus/archive/master.zip) 
+[\[tar.gz\]](https://github.com/lorenzosaino/icarus/archive/master.tar.gz)
 
 Before being able to use it, you need to add the directory where this README
 file is located to the PYTHONPATH environment variable.
