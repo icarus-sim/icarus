@@ -7,7 +7,7 @@ echo "ADDING ICARUS TO PYTHON PATH"
 export PYTHONPATH=$PYTHONPATH:`pwd`
 cd icarus
 echo "EXECUTING SIMULATIONS"
-python exec.py
+python run.py
 echo "PLOTTING RESULTS"
 python plot.py
 echo "DONE"
