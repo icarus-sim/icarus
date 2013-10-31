@@ -50,4 +50,6 @@ class ZipfDistribution(object):
         Get rand value from the distribution
         """
         rand_val = random()
-        return searchsorted(self.cdf, rand_val) + 1 # this may return int64
+        # This operation performs binary search over the CDF to return the
+        # random value. Worst case time complexity is O(log2(n))
+        return int(searchsorted(self.cdf, rand_val) + 1)
