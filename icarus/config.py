@@ -32,12 +32,6 @@ STRATEGIES = [
      'NoCache',
              ]
 
-TOPOLOGIES = ['GEANT']
-ALPHA = [0.8] * 4 
-NET_CACHE = [0.002]
-N_CONTENTS = 300000
-STRATEGIES = ['CEE+LRU']
-
 # If True, generate new scenario files before running the simulation
 GEN_SCENARIOS = True
 
@@ -49,7 +43,7 @@ GEN_SCENARIOS = True
 LOG_EVERYTHING = False
 
 # add to the cache hit ratio summary file, analytical results of optimal cache hits
-CALC_OPTIMAL_CACHE_HIT_RATIO = False # True
+CALC_OPTIMAL_CACHE_HIT_RATIO = True
 
 # if True events will be read from the event schedule file. If used in conjuction
 # with generate_scenario = True, when a topology is created, an event schedule
@@ -66,16 +60,3 @@ PARALLEL_EXEC = True
 # Number of processes used to run simulations in parallel.
 # This option is ignored if PARALLEL_EXEC == False
 N_PROCESSES = cpu_count() - 1
-
-###############################################################################
-
-### TEST ONLY ###
-# Uncomment the following values for testing purposes only
-#NET_CACHE = [0+.002]
-#ALPHA = [0.8]
-#TOPOLOGIES = ['GEANT']
-#STRATEGIES = ['CEE+LRU', 'NoCache']
-#LOG_EVERYTHING = True
-#PARALLEL_EXEC = False
-
-
