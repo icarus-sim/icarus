@@ -6,7 +6,6 @@ import random
 from os import path
 from fnss import get_stack
 from icarus.cache import Cache
-from icarus.algorithm import assign_caches
 from icarus.logging import LinkLogger, CacheLogger, DelayLogger, StretchLogger, \
     NetworkLoadSummary, CacheHitRatioSummary, \
     PACKET_TYPE_INTEREST, PACKET_TYPE_DATA, \
@@ -77,6 +76,19 @@ class BaseStrategy(object):
             return hash_code
         else:
             return n_caches - hash_code - 1
+    
+    
+    def assign_caches(self, topology, cache_size, replicas, **kwargs):
+        """
+        Algorithm that decides how to allocate intervals of hash
+        space to various caches.
+        
+        It returns a dictionary of lists keyed by hash interval ID. Each list is
+        the list of the caches that are authorized to store the content. A list is
+        returned also in the case the number of replicas is 1.
+        """
+        cache_nodes = list(cache_size.keys())
+        return dict([(i, cache_nodes[i]) for i in range(len(cache_size))])
         
     def close(self):
         # Add entry to summary log file
@@ -86,6 +98,7 @@ class BaseStrategy(object):
         self.link_logger.close()
         self.cache_logger.close()
         self.delay_logger.close()
+
 
 class NoCache(BaseStrategy):
     """Strategy without any caching
@@ -138,7 +151,7 @@ class HashrouteSymmetric(BaseStrategy):
         '''
         super(HashrouteSymmetric, self).__init__(topology, log_dir, scenario_id)
         # map id of content to node with cache responsibility
-        self.cache_assignment = assign_caches(topology, self.cache_size, replicas=1)
+        self.cache_assignment = self.assign_caches(topology, self.cache_size, replicas=1)
         self.stretch_logger = StretchLogger(path.join(log_dir, 'RESULTS_%s_STRETCH.txt' % scenario_id))
     
     def handle_event(self, time, event):
@@ -181,7 +194,7 @@ class HashrouteAsymmetric(BaseStrategy):
         '''
         super(HashrouteAsymmetric, self).__init__(topology, log_dir, scenario_id)
         # map id of content to node with cache responsibility
-        self.cache_assignment = assign_caches(topology, self.cache_size, replicas=1)
+        self.cache_assignment = self.assign_caches(topology, self.cache_size, replicas=1)
         
     
     def handle_event(self, time, event):
@@ -230,7 +243,7 @@ class HashrouteMulticast(BaseStrategy):
         '''
         super(HashrouteMulticast, self).__init__(topology, log_dir, scenario_id)
         # map id of content to node with cache responsibility
-        self.cache_assignment = assign_caches(topology, self.cache_size, replicas=1)
+        self.cache_assignment = self.assign_caches(topology, self.cache_size, replicas=1)
         self.stretch_logger = StretchLogger(path.join(log_dir, 'RESULTS_%s_STRETCH.txt' % scenario_id))
 
     
@@ -307,7 +320,7 @@ class HashrouteHybridStretch(BaseStrategy):
         super(HashrouteHybridStretch, self).__init__(topology, log_dir, scenario_id)
         # map id of content to node with cache responsibility
         params = {'max_stretch': 0.2}
-        self.cache_assignment = assign_caches(topology, self.cache_size, replicas=1)
+        self.cache_assignment = self.assign_caches(topology, self.cache_size, replicas=1)
         self.max_stretch = nx.diameter(topology) * params['max_stretch']
         self.stretch_logger = StretchLogger(path.join(log_dir, 'RESULTS_%s_STRETCH.txt' % scenario_id))
 
@@ -388,7 +401,7 @@ class HashrouteHybridSymmMCast(BaseStrategy):
         '''
         super(HashrouteHybridSymmMCast, self).__init__(topology, log_dir, scenario_id)
         # map id of content to node with cache responsibility
-        self.cache_assignment = assign_caches(topology, self.cache_size, replicas=1)
+        self.cache_assignment = self.assign_caches(topology, self.cache_size, replicas=1)
         self.stretch_logger = StretchLogger(path.join(log_dir, 'RESULTS_%s_STRETCH.txt' % scenario_id))
         self.scenario_id = scenario_id
         self.symm_count = 0
