@@ -53,7 +53,6 @@ class LinkDataAnalyzer(object):
         self.content = self.data['ContentId']
         self.link_type= self.data['LinkType']
     
-    
     def per_link_load(self, link_type='internal', data_interest_size_ratio=10):
         """
         Return a dictionary of link loads keyed by link ID. Link ID is a tuple
@@ -106,7 +105,6 @@ class LinkDataAnalyzer(object):
             network_load[i] = float((interest_size*n_interest) + (data_size*n_data)) * (float(time_unit)/granularity)
         return network_load
 
-    
     
 class CacheDataAnalyzer(object):
     """
@@ -165,7 +163,7 @@ class CacheDataAnalyzer(object):
         return cache_hit_ratio
     
 
-class DelatAnalyzer(object):
+class DelayAnalyzer(object):
     """
     Object to manipulate data from delay logs
     """
@@ -182,7 +180,6 @@ class DelatAnalyzer(object):
         self.req_delay = self.data['ReqDelay']
         self.resp_delay = self.data['RespDelay']
         self.total_delay = self.data['TotalDelay']
-
 
     def cdf(self):
         """Return empirical CDF of RTT
@@ -215,7 +212,6 @@ class PathStretchAnalyzer(object):
         self.optimal_path_length = self.data['OptimalPathLength']
         self.actual_path_length = self.data['ActualDataPathLength']
         self.stretch = self.data['Stretch']
-
 
     def cdf(self):
         """Return empirical CDF of path stretch
