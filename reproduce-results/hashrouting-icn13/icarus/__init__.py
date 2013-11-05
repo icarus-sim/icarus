@@ -9,7 +9,7 @@ del sys
 __author__ = 'Lorenzo Saino, Ioannis Psaras'
 
 # Version information
-__version__ = '0.1'
+__version__ = '0.1-icn13'
 
 # License information
 ___license___ = 'GNU GPLv2'
