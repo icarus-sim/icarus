@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from os import path
 from collections import defaultdict 
+from numpy import arange, zeros, asarray
 from icarus.analysis import SummaryAnalyzer
 import icarus.config as config
 
@@ -123,7 +124,10 @@ def plot_chr_alpha_sensitivity():
             S = SummaryAnalyzer(path.join(SUMMARY_LOG_DIR, 'SUMMARY_CACHE_HIT_RATIO.txt'))
             for strategy in CACHE_STRATEGIES:
                 cond = (S.param['T'] == t) &  (S.param['C'] == c) &  (S.param['S'] == strategy)
-                plt.plot(S.param['A'][cond], S.data['CacheHitRatio'][cond], style_dict[strategy])
+                x = S.param['A'][cond]
+                y = S.data['CacheHitRatio'][cond]
+                x, y = _sort_xy(x, y)
+                plt.plot(x, y, style_dict[strategy])
             plt.xlim((0.6,1.1))
             plt.legend(tuple(cache_legend_list), loc='upper left', prop={'size': LEGEND_SIZE})
             plt.savefig(path.join(GRAPHS_DIR, 'geant-cache-hit-alpha.pdf'), bbox_inches='tight')
@@ -146,7 +150,10 @@ def plot_netload_alpha_sensitivity():
                 S = SummaryAnalyzer(path.join(SUMMARY_LOG_DIR, 'SUMMARY_NETWORK_LOAD.txt'))
                 for strategy in NETLOAD_STRATEGIES:
                     cond = (S.param['T'] == t) &  (S.param['C'] == c) &  (S.param['S'] == strategy) & (S.data['LinkType'] == lt)
-                    plt.plot(S.param['A'][cond], S.data['NetworkLoad'][cond], style_dict[strategy])
+                    x = S.param['A'][cond]
+                    y = S.data['NetworkLoad'][cond]
+                    x, y = _sort_xy(x, y)
+                    plt.plot(x, y, style_dict[strategy])
                 plt.xlim((0.6,1.1))
                 plt.legend(tuple(netload_legend_list), loc='upper right', prop={'size': LEGEND_SIZE})
                 plt.savefig(path.join(GRAPHS_DIR, 'geant-netload-alpha.pdf'), bbox_inches='tight')
@@ -169,7 +176,10 @@ def plot_chr_cache_size_sensitivity():
             S = SummaryAnalyzer(path.join(SUMMARY_LOG_DIR, 'SUMMARY_CACHE_HIT_RATIO.txt'))
             for strategy in CACHE_STRATEGIES:
                 cond = (S.param['T'] == t) &  (S.param['A'] == a) &  (S.param['S'] == strategy)
-                plt.plot(S.param['C'][cond], S.data['CacheHitRatio'][cond], style_dict[strategy])
+                x = S.param['C'][cond]
+                y = S.data['CacheHitRatio'][cond]
+                x, y = _sort_xy(x, y)
+                plt.plot(x, y, style_dict[strategy])
             plt.xlim((0.0004, 0.05))
             plt.legend(tuple(cache_legend_list), loc='upper left', prop={'size': LEGEND_SIZE})
             plt.savefig(path.join(GRAPHS_DIR, 'geant-cache-hit-c.pdf'), bbox_inches='tight')
@@ -194,7 +204,10 @@ def plot_netload_cache_size_sensitivity():
                 S = SummaryAnalyzer(path.join(SUMMARY_LOG_DIR, 'SUMMARY_NETWORK_LOAD.txt'))
                 for strategy in NETLOAD_STRATEGIES:
                     cond = (S.param['T'] == t) &  (S.param['A'] == a) &  (S.param['S'] == strategy) & (S.data['LinkType'] == lt)
-                    plt.plot(S.param['C'][cond], S.data['NetworkLoad'][cond], style_dict[strategy])
+                    x = S.param['C'][cond]
+                    y = S.data['NetworkLoad'][cond]
+                    x, y = _sort_xy(x, y)
+                    plt.plot(x, y, style_dict[strategy])
                 plt.xlim((0.0004, 0.05))
                 plt.legend(tuple(netload_legend_list), loc='upper right', prop={'size': LEGEND_SIZE})
                 plt.savefig(path.join(GRAPHS_DIR, 'geant-netload-c.pdf'), bbox_inches='tight')
@@ -287,6 +300,14 @@ def plot_bar_graph_netload():
         plt.savefig(path.join(GRAPHS_DIR, 'bar-netload.pdf'), bbox_inches='tight')
 
 
+def _sort_xy(x , y):
+    if len(x) != len(y):
+        raise ValueError('x and y array must have the same size')
+    argsort = asarray(x).argsort()
+    xs = asarray([x[i] for i in argsort])
+    ys = asarray([y[i] for i in argsort])
+    return xs, ys
+    
 if __name__ == '__main__':
     main()
 
