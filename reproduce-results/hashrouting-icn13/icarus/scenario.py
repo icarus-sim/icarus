@@ -100,31 +100,6 @@ def req_generator(topology, n_contents, alpha, rate=12.0, duration_warmup=9000, 
     raise StopIteration()
 
 
-def scenario_simple_test():
-    """
-    Makes simple scenario for test puropses
-    """
-    def gen_event(receivers, contents):
-        return {'receiver': choice(receivers), 'content': choice(contents)}
-    contents = {5: [1, 2, 3, 4], 7: [5, 6, 7, 8]}
-    n_caches = 4
-    size = 5
-    topology = fnss.ring_topology(n_caches)
-    for u in range(n_caches):
-        v = u + n_caches
-        topology.add_edge(u, v)
-        fnss.add_stack(topology, u, 'cache', {'size': size})
-        if u % 2 == 0:
-            fnss.add_stack(topology, v, 'receiver', {})
-        else:
-            fnss.add_stack(topology, v, 'source', {'contents': contents[v]})
-    
-    event_schedule = fnss.poisson_process_event_schedule(20, 0, 300, 'ms', 
-                                                gen_event, [4, 6], range(1, 9))
-    fnss.write_topology(topology, path.join(scenarios_dir, 'TOPO_TEST.xml'))
-    fnss.write_event_schedule(event_schedule, path.join(scenarios_dir, 'ES_TEST.xml'))
-    
-
 @register_scenario_generator('GEANT')
 def scenario_geant(net_cache=[0.05], n_contents=100000, alpha=[0.6, 0.8, 1.0]):
     """
