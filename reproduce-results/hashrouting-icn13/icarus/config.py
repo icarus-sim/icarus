@@ -15,11 +15,16 @@ TOPO_PREFIX = 'TOPO_'
 ES_PREFIX = 'ES_'
 
 ######################## PARAMETERS OF THE EXPERIMENTS ########################
-ALPHA = arange(0.6, 1.11, 0.1) # from 0.6 to 1.1 (included) with 0.1 steps
-NET_CACHE = [0.0004, 0.002, 0.01, 0.05]
+ALPHA_RANGE = arange(0.6, 1.11, 0.1) # from 0.6 to 1.1 (included) with 0.1 steps
+NET_CACHE_RANGE = [0.0004, 0.002, 0.01, 0.05]
+TOPOLOGY_RANGE = ['GEANT', 'WIDE', 'TISCALI', 'GARR']
+
+ALPHA_FIX = 0.8
+NET_CACHE_FIX = 0.002
+TOPOLOGY_FIX = 'GEANT'
+
 N_CONTENTS = 300000
 
-TOPOLOGIES = ['GEANT', 'WIDE', 'TISCALI', 'GARR']
 STRATEGIES = [
      'CEE+LRU',
      'HrSymm',
@@ -52,11 +57,10 @@ CALC_OPTIMAL_CACHE_HIT_RATIO = True
 # of events schedule creation.
 USE_EVENTS_FILE = False
 
-
-DISTRIBUTED_EXEC = False
-
 # If True, executes simulations in parallel
-PARALLEL_EXEC = True
+PARALLEL_EXEC = False
 # Number of processes used to run simulations in parallel.
 # This option is ignored if PARALLEL_EXEC == False
 N_PROCESSES = cpu_count() - 1
+
+

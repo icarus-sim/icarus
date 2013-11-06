@@ -8,6 +8,7 @@ from os import path, mkdir
 from sys import exit
 from time import gmtime, strftime, sleep
 from multiprocessing import Pool
+from collections import deque
 from fnss import read_event_schedule, read_topology
 import icarus.logging as logging
 import icarus.config as config
@@ -62,12 +63,15 @@ def main():
     Main function, called from command line. It actually runs all the experiments
     """
     # Get all parameters from configuration file
-    topologies = config.TOPOLOGIES
+    topology_range = config.TOPOLOGY_RANGE
+    alpha_range = config.ALPHA_RANGE
+    net_cache_range = config.NET_CACHE_RANGE
+    topology_fix = config.TOPOLOGY_FIX
+    alpha_fix = config.ALPHA_FIX
+    net_cache_fix = config.NET_CACHE_FIX    
+    strategies = config.STRATEGIES
     use_events_file = config.USE_EVENTS_FILE
     n_contents = config.N_CONTENTS
-    alpha = config.ALPHA
-    net_cache = config.NET_CACHE
-    strategies = config.STRATEGIES
     calc_optimal_cache_hit = config.CALC_OPTIMAL_CACHE_HIT_RATIO
     
     log_dir = config.LOG_DIR
@@ -79,26 +83,34 @@ def main():
         pool = Pool(n_processes)
     
     # Generate scenarios before running simulation
-    alpha_schedule = config.ALPHA if use_events_file else []
+    alpha_schedule = config.ALPHA_RANGE if use_events_file else []
     if config.GEN_SCENARIOS:
         print ('[START SCENARIO GENERATION] Time: %s'
                % strftime("%H:%M:%S %Y-%m-%d", gmtime()))
-        for t in topologies:
-            scenario_generator[t](net_cache=net_cache, n_contents=n_contents, alpha=alpha_schedule)
+        for t in topology_range:
+            scenario_generator[t](net_cache=net_cache_range, n_contents=n_contents, alpha=alpha_schedule)
         print ('[END SCENARIO GENERATION] Time: %s'
                % strftime("%H:%M:%S %Y-%m-%d", gmtime()))
     
     # Run actual simulations
     print ('[START ALL SIMULATIONS] Time: %s'
            % strftime("%H:%M:%S %Y-%m-%d", gmtime()))
-    for t in topologies:
-        for a in alpha:
-            for c in net_cache:
-                for s in strategies:
-                    if parallel_exec:
-                        last_job = pool.apply_async(run_simulation_scenario, args=(t, a, c, s))
-                    else:
-                        run_simulation_scenario(t, a, c, s)
+    params = deque()
+    for t in topology_range:
+        for s in strategies:
+            params.append((t, alpha_fix, net_cache_fix, s))
+    for c in net_cache_range:
+        for s in strategies:
+            params.append((topology_fix, alpha_fix, c, s))
+    for a in alpha_range:
+        for s in strategies:
+            params.append((topology_fix, a, net_cache_fix, s))
+    print ('[SUMMARY] The simulations comprise %d experiments' % len(params))  
+    for t, a, c, s in params:
+        if parallel_exec:
+            last_job = pool.apply_async(run_simulation_scenario, args=(t, a, c, s))
+        else:
+            run_simulation_scenario(t, a, c, s)
 
     # If parallel execution, wait for all processes to terminate
     if parallel_exec:
@@ -123,7 +135,7 @@ def main():
         pool.join()
 
     if calc_optimal_cache_hit:
-        logging.CacheHitRatioSummary(log_dir).append_optimal_cache_hit(topologies, alpha, net_cache, n_contents)
+        logging.CacheHitRatioSummary(log_dir).append_optimal_cache_hit(topology_range, alpha_range, net_cache_range, n_contents)
     
     print ('[END ALL SIMULATIONS] Time: %s'
            % strftime("%H:%M:%S %Y-%m-%d", gmtime()))

@@ -35,4 +35,3 @@ class Cache(object):
         except ValueError:
             return False
         return True
-
