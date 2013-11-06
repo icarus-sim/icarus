@@ -4,14 +4,37 @@ This is a script to execute various simulation scenarios, possibly, in parallel
 
 It orchestrates the whole execution of experiments and collection of logs.
 """
-from os import path
+from os import path, mkdir
+from sys import exit
 from time import gmtime, strftime, sleep
 from multiprocessing import Pool
 from fnss import read_event_schedule, read_topology
 import icarus.logging as logging
 import icarus.config as config
-from icarus.engine import run
 from icarus.scenario import scenario_generator, req_generator
+from icarus.strategy import strategy_impl
+
+
+def exec_experiment(topology, event_schedule, scenario_id, strategy_id, strategy_params=None):
+    """
+    Run the simulation of a specific scenario
+    """
+    if strategy_id not in strategy_impl:
+        print('[ERROR] Strategy not recognized')
+        exit(-1)
+    # set up directory for logs
+    log_dir = config.LOG_DIR
+    if not path.exists(log_dir):
+        mkdir(log_dir)
+    strategy = strategy_impl[strategy_id](topology, log_dir, scenario_id, strategy_params)
+    print('[%s][START SIMULATION] Scenario: %s' % (strftime("%H:%M:%S %Y-%m-%d", gmtime()), scenario_id))
+    # run simulation
+    for time, event in event_schedule:
+        strategy.handle_event(time, event)
+    # Closes all log files
+    strategy.close()
+    print('[%s][END SIMULATION] Scenario: %s' % (strftime("%H:%M:%S %Y-%m-%d", gmtime()), scenario_id))
+
 
 def run_simulation_scenario(t, a, c, s):
     """Run a single simulation scenario with given topology, alpha, cache size
@@ -31,7 +54,7 @@ def run_simulation_scenario(t, a, c, s):
         es = read_event_schedule(es_file)
     else:
         es = req_generator(topo, n_contents, a)
-    run(topo, es, scenario_id, s) 
+    exec_experiment(topo, es, scenario_id, s) 
 
 
 def main():
