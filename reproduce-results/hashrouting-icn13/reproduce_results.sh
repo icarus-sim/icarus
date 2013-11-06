@@ -4,10 +4,13 @@
 #
 
 echo "ADDING ICARUS TO PYTHON PATH"
-export PYTHONPATH=$PYTHONPATH:`pwd`
+export PYTHONPATH=`pwd`:$PYTHONPATH
+echo "CREATING DIRECTORIES FOR GRAPHS AND LOGS"
+mkdir -p logs
+mkdir -p graphs
 cd icarus
 echo "EXECUTING SIMULATIONS"
-python run.py
+#python run.py
 echo "PLOTTING RESULTS"
 python plot.py
 echo "DONE"
