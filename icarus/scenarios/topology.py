@@ -29,7 +29,7 @@ EXTERNAL_LINK_DELAY = 3 * 34
 
 TOPOLOGY_RESOURCES_DIR = path.abspath(path.join(path.dirname(__file__), 
                                                 path.pardir, path.pardir, 
-                                                'scenarios', 'resources'))
+                                                'resources', 'topologies'))
 
 @register_topology_factory('GEANT')
 def topology_geant(network_cache=0.05, n_contents=100000, seed=None):
