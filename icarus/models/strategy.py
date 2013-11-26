@@ -22,6 +22,7 @@ __all__ = [
        'LeaveCopyEverywhere',
        'LeaveCopyDown',
        'CacheLessForMore',
+       'RandomBernoulli',
            ]
 
 #TODO: Implement BaseOnPath to reduce redundant code
@@ -646,3 +647,47 @@ class CacheLessForMore(Strategy):
         self.controller.end_session()  
         
         
+
+@register_strategy('RAND_BERNOULLI')
+class RandomBernoulli(Strategy):
+    """Bernoulli random cache insertion.
+    
+    In this strategy, a content is randomly inserted in a cache on the path
+    from serving node to receiver with probability *p*.
+    """
+
+    @inheritdoc(Strategy)
+    def __init__(self, view, controller, symm_paths=True, p=0.2):
+        super(RandomBernoulli, self).__init__(view, controller)
+        self.symm_paths = symm_paths
+        self.p = p
+    
+    @inheritdoc(Strategy)
+    def process_event(self, time, receiver, content, log):
+        # get all required data
+        source = self.view.content_source(content)
+        path = self.view.shortest_path(receiver, source)
+        # Route requests to original source and queries caches on the path
+        self.controller.start_session(time, receiver, content, log)
+        for hop in range(1, len(path)):
+            u = path[hop - 1]
+            v = path[hop]
+            self.controller.forward_request_hop(u, v)
+            if v in self.view.caches():
+                if self.controller.get_content(v):
+                    serving_node = v
+                    break
+            # No cache hits, get content from source
+            self.controller.get_content(v)
+            serving_node = v
+        # Return content
+        path = list(reversed(path[:hop + 1])) if self.symm_paths \
+                        else self.view.shortest_path(serving_node, receiver)
+        for hop in range(1, len(path)):
+            u = path[hop - 1]
+            v = path[hop]
+            self.controller.forward_content_hop(u, v)
+            if v != receiver and v not in self.view.caches():
+                if random.random() < self.p:
+                    self.controller.put_content(v)
+        self.controller.end_session()
