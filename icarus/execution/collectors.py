@@ -14,6 +14,7 @@ __all__ = [
     'CacheHitRatioCollector',
     'LinkLoadCollector',
     'LatencyCollector',
+    'PathStretchCollector'
            ]
 
 
@@ -350,3 +351,79 @@ class CacheHitRatioCollector(DataCollector):
                             for i in cont_set)
             results['PER_CONTENT'] = cont_hits
         return results
+
+
+@register_data_collector('PATH_STRETCH')
+class PathStretchCollector(DataCollector):
+    """Collector measuring the path stretch, i.e. the ratio between the actual
+    path length and the shortest path length.
+    """
+    
+    def __init__(self, view, cdf=False):
+        """Constructor
+        
+        Parameters
+        ----------
+        view : NetworkView
+            The network view instance
+        cdf : bool, optional
+            If *True*, also collects a cdf of the path stretch
+        """
+        self.view = view
+        self.cdf = cdf
+        self.req_path_len = collections.defaultdict(int)
+        self.cont_path_len = collections.defaultdict(int)
+        self.sess_count = 0
+        self.mean_req_stretch = 0.0
+        self.mean_cont_stretch = 0.0
+        self.mean_stretch = 0.0
+        if self.cdf:
+            self.req_stretch_data = collections.deque()
+            self.cont_stretch_data = collections.deque()
+            self.stretch_data = collections.deque()
+    
+    @inheritdoc(DataCollector)
+    def start_session(self, timestamp, receiver, content):
+        self.receiver = receiver
+        self.source = self.view.content_source(content)
+        self.req_path_len = 0
+        self.cont_path_len = 0
+        self.sess_count += 1
+
+    @inheritdoc(DataCollector)
+    def request_hop(self, u, v):
+        self.req_path_len += 1
+    
+    @inheritdoc(DataCollector)
+    def content_hop(self, u, v):
+        self.cont_path_len += 1
+    
+    @inheritdoc(DataCollector)
+    def end_session(self, success=True):
+        if not success:
+            return
+        req_sp_len = len(self.view.shortest_path(self.receiver, self.source))
+        cont_sp_len = len(self.view.shortest_path(self.source, self.receiver))
+        req_stretch = self.req_path_len/req_sp_len
+        cont_stretch = self.cont_path_len/cont_sp_len
+        stretch = (self.req_path_len + self.cont_path_len)/(req_sp_len + cont_sp_len)
+        self.mean_req_stretch += req_stretch
+        self.mean_cont_stretch += cont_stretch
+        self.mean_stretch += stretch
+        if self.cdf:
+            self.req_stretch_data.append(req_stretch)
+            self.cont_stretch_data.append(cont_stretch)
+            self.stretch_data.append(stretch)
+            
+    @inheritdoc(DataCollector)
+    def results(self):
+        results = {'MEAN': self.mean_stretch/self.sess_count,
+                   'MEAN_REQUEST': self.mean_req_stretch/self.sess_count,
+                   'MEAN_CONTENT': self.mean_cont_stretch/self.sess_count}
+        if self.cdf:
+            results['CDF'] = cdf(self.stretch_data)
+            results['CDF_REQUEST'] = cdf(self.req_stretch_data)
+            results['CDF_CONTENT'] = cdf(self.cont_stretch_data)
+        return results
+    
+    
