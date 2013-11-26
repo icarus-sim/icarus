@@ -72,6 +72,7 @@ STRATEGIES = [
      'HR_HYBRID_SM',    # Hybrid Symm-Multicast hash-routing
      'CL4M',            # Cache less for more
      'PROB_CACHE',      # ProbCache
+     'LCD',             # Leave Copy Down
              ]
 
 # Cache replacement policy used by the network caches.

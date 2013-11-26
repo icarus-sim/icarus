@@ -20,6 +20,7 @@ __all__ = [
        'HashroutingHybridSM',
        'NoCache',
        'LeaveCopyEverywhere',
+       'LeaveCopyDown',
        'CacheLessForMore',
            ]
 
@@ -470,7 +471,61 @@ class LeaveCopyEverywhere(Strategy):
                 # insert content
                 self.controller.put_content(v)
         self.controller.end_session()
-        
+
+
+@register_strategy('LCD')
+class LeaveCopyDown(Strategy):
+    """Leave Copy Down (LCD) strategy.
+    
+    According to this strategy, one copy of a content is replicated only in
+    the caching node you hop away from the serving node in the direction of
+    the receiver. This strategy is described in [2]_.
+    
+    Rereferences
+    ------------
+    ..[2] N. Laoutaris, H. Che, i. Stavrakakis, The LCD interconnection of LRU
+          caches and its analysis. 
+          Available: http://cs-people.bu.edu/nlaout/analysis_PEVA.pdf 
+    """
+
+    @inheritdoc(Strategy)
+    def __init__(self, view, controller, symm_paths=True):
+        super(LeaveCopyDown, self).__init__(view, controller)
+        self.symm_paths = symm_paths
+
+    @inheritdoc(Strategy)
+    def process_event(self, time, receiver, content, log):
+        # get all required data
+        source = self.view.content_source(content)
+        path = self.view.shortest_path(receiver, source)
+        # Route requests to original source and queries caches on the path
+        self.controller.start_session(time, receiver, content, log)
+        for hop in range(1, len(path)):
+            u = path[hop - 1]
+            v = path[hop]
+            self.controller.forward_request_hop(u, v)
+            if v in self.view.caches():
+                if self.controller.get_content(v):
+                    serving_node = v
+                    break
+            # No cache hits, get content from source
+            self.controller.get_content(v)
+            serving_node = v
+        # Return content
+        path = list(reversed(path[:hop + 1])) if self.symm_paths \
+                        else self.view.shortest_path(serving_node, receiver)
+        # Leave a copy of the content only in the cache one level down the hit
+        # caching node
+        copied = False
+        for hop in range(1, len(path)):
+            u = path[hop - 1]
+            v = path[hop]
+            self.controller.forward_content_hop(u, v)
+            if not copied and v != receiver and v in self.view.caches():
+                self.controller.put_content(v)
+                copied = True
+        self.controller.end_session()
+
 
 @register_strategy('PROB_CACHE')
 class ProbCache(Strategy):
