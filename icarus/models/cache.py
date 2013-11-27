@@ -17,7 +17,10 @@ __all__ = [
         'Node',
         'Cache',
         'NullCache',
-        'LruCache'
+        'LruCache',
+        'LfuCache',
+        'FifoCache',
+        'RandCache',
            ]
 
 
@@ -417,3 +420,213 @@ class LruCache(Cache):
         self._cache.clear()
         self.bottom = None
         self.top = None
+
+
+            
+
+@register_cache_policy('LFU')
+class LfuCache(Cache):
+    """Least Frequently Used (LFU) cache implementation
+    
+    The LFU replacement policy keeps a counter associated each item. Such
+    counters are increased when the associated item is requested. Upon
+    insertion of a new item, the cache evicts the one which was requested the
+    least times in the past, i.e. the one whose associated value has the
+    smallest value.
+    
+    In contrast to LRU, LFU has been shown to perform optimally under IRM
+    demands. However, its implementation is computationally expensive since it
+    cannot be implemented in such a way that both search and replacement tasks
+    can be executed in constant time. This makes it particularly unfit for
+    large caches and line speed operations.
+    """
+    
+    @inheritdoc(Cache)
+    def __init__(self, maxlen):
+        self._cache = {}
+        self.t = 0
+        self._maxlen = int(maxlen)
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+    
+    @property
+    @inheritdoc(Cache)
+    def maxlen(self):
+        return self._maxlen
+    
+    @inheritdoc(Cache)
+    def dump(self):
+        return sorted(self._cache, key=lambda x: self._cache[x], reverse=True) 
+
+    @inheritdoc(Cache)
+    def has(self, k):
+        return k in self._cache
+
+    @inheritdoc(Cache)
+    def get(self, k):
+        if self.has(k):
+            freq, t = self._cache[k]
+            self._cache[k] = freq+1, t 
+            return True
+        else:
+            return False
+
+    @inheritdoc(Cache)
+    def put(self, k):
+        if not self.has(k):
+            self.t += 1
+            self._cache[k] = (1, self.t)
+            if len(self._cache) > self._maxlen:
+                evicted = min(self._cache, key=lambda x: self._cache[x])
+                del self._cache[evicted]
+                return evicted
+        return None
+        
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()
+
+
+
+@register_cache_policy('FIFO')
+class FifoCache(Cache):
+    """First In First Out (FIFO) cache implementation.
+    
+    According to the FIFO policy, when a new item is inserted, the evicted item
+    is the first one inserted in the cache. The behavior of this policy differs
+    from LRU only when an item already present in the cache is requested.
+    In fact, while in LRU this item would be pushed to the top of the cache, in
+    FIFO no movement is performed. The FIFO policy has a slightly simpler
+    implementation in comparison to the LRU policy but yields worse performance.
+    """
+    
+    @inheritdoc(Cache)
+    def __init__(self, maxlen):
+        self._cache = set()
+        self._maxlen = int(maxlen)
+        self.d = deque()
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+    
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+
+    @property
+    @inheritdoc(Cache)
+    def maxlen(self):
+        return self._maxlen
+    
+    @inheritdoc(Cache)
+    def dump(self):
+        return list(self.d)
+
+    @inheritdoc(Cache)
+    def has(self, k):
+        return k in self._cache
+
+    def position(self, k):
+        """Return the current position of an item in the cache. Position *0*
+        refers to the head of cache (i.e. most recently inserted item), while
+        position *maxlen - 1* refers to the tail of the cache (i.e. the least
+        recently inserted item).
+        
+        This method does not change the internal state of the cache.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item looked up in the cache
+            
+        Returns
+        -------
+        position : int
+            The current position of the item in the cache
+        """
+        i = 0
+        for c in self.d:
+            if c == k:
+                return i
+            i += 1
+        raise ValueError('The item %s is not in the cache' % str(k))
+                 
+    @inheritdoc(Cache)
+    def get(self, k):
+        return self.has(k)
+             
+    @inheritdoc(Cache)
+    def put(self, k):
+        evicted = None
+        if not self.has(k):
+            self._cache.add(k)
+            self.d.appendleft(k)
+        if len(self._cache) > self.maxlen:
+            evicted = self.d.pop()
+            self._cache.remove(evicted)
+        return evicted
+    
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()
+        self.d.clear()
+
+
+@register_cache_policy('RAND')
+class RandCache(Cache):
+    """Random eviction cache implementation.
+    
+    This class implements a cache whereby the item to evict in case of a full
+    cache is randomly selected. It generally yields poor performance in terms
+    of cache hits but is sometimes used as baseline and for this reason it has
+    been implemented here.
+    """
+    
+    @inheritdoc(Cache)
+    def __init__(self, maxlen):
+        self._cache = set()
+        self.a = np.empty(maxlen, dtype=object)
+        self._maxlen = int(maxlen)
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+
+    @property
+    def maxlen(self):
+        return self._maxlen
+
+    @inheritdoc(Cache)
+    def dump(self):
+        return list(self._cache) 
+
+    @inheritdoc(Cache)
+    def has(self, k):
+        return k in self._cache
+
+    @inheritdoc(Cache)
+    def get(self, k):
+        return self.has(k)
+
+    @inheritdoc(Cache)
+    def put(self, k):
+        evicted = None
+        if not self.has(k):
+            if len(self._cache) == self._maxlen:
+                evicted_index = random.randint(0, self.maxlen-1)
+                evicted = self.a[evicted_index]
+                self.a[evicted_index] = k
+                self._cache.remove(evicted)
+            else:
+                self.a[len(self._cache)] = k
+            self._cache.add(k)
+        return evicted
+    
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()

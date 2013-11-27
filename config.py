@@ -78,7 +78,7 @@ STRATEGIES = [
              ]
 
 # Cache replacement policy used by the network caches.
-# Supported policies are: 'LRU' and 'NULL'
+# Supported policies are: 'LRU', 'LFU', 'FIFO', 'RAND' and 'NULL'
 # Cache policy implmentations are located in ./icarus/models/cache.py
 CACHE_POLICY = 'LRU'
 
