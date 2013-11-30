@@ -61,6 +61,28 @@ class ResultSet(object):
         """
         return self._results[i]
 
+    def __add__(self, resultset):
+        """Merges two resultsets.
+        
+        Parameters
+        ----------
+        resultset : ResultSet
+            The result set to merge
+        
+        Returns
+        -------
+        resultset : ResultSet
+            The resultset containing results from this resultset and the one
+            passed as argument
+        """
+        if self.attr != resultset.attr:
+            raise ValueError('The resultsets cannot be merged because '
+                             'they have different global attributes')
+        rs = copy.deepcopy(self)
+        for i in iter(resultset):
+            rs.add(i)
+        return rs
+
     def add(self, result):
         """Add a result to the result set. This method is thread safe
         
@@ -84,6 +106,7 @@ class ResultSet(object):
             of experiment results.
         """
         return list(self._results)
+
     
     def filter(self, parameters, metrics=None):
         """Return subset of results matching specific conditions
