@@ -5,3 +5,4 @@ Examples include code for importing and analysing traffic traces, modelling the
 behavior of caches and statistical utilities. 
 """
 from .stats import *
+from .cacheperf import *
