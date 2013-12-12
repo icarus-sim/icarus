@@ -6,3 +6,4 @@ behavior of caches and statistical utilities.
 """
 from .stats import *
 from .cacheperf import *
+from .traces import *
