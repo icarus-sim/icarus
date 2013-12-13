@@ -16,6 +16,7 @@ __all__ = [
        'means_confidence_interval',
        'proportions_confidence_interval',
        'cdf',
+       'pdf'
            ]
 
 
@@ -208,3 +209,49 @@ def cdf(data):
     cdf = cdf/norm # normalize
     cdf[-1] = 1.0 # Prevent rounding errors 
     return sorted_unique_data, cdf
+
+
+
+def pdf(data, n_bins):
+    """Return the empirical PDF of a set of 1D data
+        
+    Parameters
+    ----------
+    data : array-like
+        Array of data
+    n_bins : int
+        The number of bins
+    
+    Returns
+    x : array
+        The center point of all bins 
+    pdf : array
+        The PDF of data.
+    """
+    # Validate input parameters
+    if len(data) < 1:
+        raise TypeError("data must have at least one element")
+    if not isinstance(n_bins, int):
+        raise TypeError("intervals parameter must be an integer")
+    if n_bins < 1:
+        raise TypeError("Intervals must be >= 1")
+    # Sort data and divide it in sections
+    data = np.sort(data)
+    data_min = data[0]
+    data_max = data[-1]
+    boundaries = np.linspace(data_min, data_max, n_bins + 1)
+    x = boundaries[:-1] + ((boundaries[1] - boundaries[0]) / 2.0)
+    # Count number of samples in each section
+    pdf = np.zeros(n_bins)
+    section = 0
+    for entry in data:
+        if entry <= boundaries[section + 1]:
+            pdf[section] += 1
+        else:
+            section += 1
+            while entry > boundaries[section + 1]:
+                section += 1
+            pdf[section] += 1
+    # Normalize pdf
+    pdf = (pdf * n_bins) / (np.sum(pdf) * (data_max - data_min))
+    return x, pdf
