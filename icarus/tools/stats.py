@@ -14,6 +14,7 @@ __all__ = [
        'DiscreteDist',
        'TruncatedZipfDist',
        'means_confidence_interval',
+       'proportions_confidence_interval',
        'cdf',
            ]
 
@@ -148,6 +149,33 @@ def means_confidence_interval(data, confidence=0.95):
     s = np.std(data)
     err = ss.norm.interval(confidence)[1]
     return w, err*s/math.sqrt(n)
+
+
+def proportions_confidence_interval(data, confidence):
+    """Computes the confidence interval of a proportion.
+    
+    Parameters
+    ----------
+    data : array-like of bool
+        The sample of data whose proportion of True values needs to be
+        estimated
+    confidence : float, optional
+        The confidence level. It must be a value in the interval (0, 1)
+    
+    References
+    ----------
+    [1] N. Matloff, From Algorithms to Z-Scores: Probabilistic and Statistical
+        Modeling in Computer Science.
+        Available: http://heather.cs.ucdavis.edu/probstatbook
+    """
+    if confidence <= 0 or confidence >= 1:
+        raise ValueError('The confidence parameter must be greater than 0 and '
+                         'smaller than 1')
+    n = float(len(data))
+    m = len((i for i in data if i is True))
+    p = m/n
+    err = ss.norm.interval(confidence)[1]
+    return p, err*math.sqrt(p*(1 - p)/n)
 
 
 def cdf(data):
