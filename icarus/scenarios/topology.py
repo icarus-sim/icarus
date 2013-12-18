@@ -12,6 +12,7 @@ from icarus.registry import register_topology_factory
 
 __all__ = [
         'topology_binary_tree',
+        'topology_path',
         'topology_geant',
         'topology_tiscali',
         'topology_wide',
@@ -81,6 +82,54 @@ def topology_binary_tree(network_cache=0.05, n_contents=100000, seed=None):
         else:
             topology.edge[u][v]['type'] = 'internal'
     return topology
+
+
+@register_topology_factory('PATH')
+def topology_path(network_cache=0.05, n_contents=100000, n=3, seed=None):
+    """
+    Return a scenario based on path topology
+    
+    Parameters
+    ----------
+    network_cache : float
+        Size of network cache (sum of all caches) normalized by size of content
+        population
+    n_contents : int
+        Size of content population
+    seed : int, optional
+        The seed used for random number generation
+        
+    Returns
+    -------
+    topology : fnss.Topology
+        The topology object
+    """
+    # 240 nodes in the main component
+    topology = fnss.line_topology(n)
+    receivers = [0]    
+    caches = range(1, n-1)
+    sources = [n-1]
+    # randomly allocate contents to sources
+    content_placement = uniform_content_placement(topology, range(1, n_contents+1), sources, seed=seed)
+    for v in sources:
+        fnss.add_stack(topology, v, 'source', {'contents': content_placement[v]})
+    for v in receivers:
+        fnss.add_stack(topology, v, 'receiver', {})
+    # set weights and delays on all links
+    fnss.set_weights_constant(topology, 1.0)
+    fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
+    # label links as internal or external
+    for u, v in topology.edges_iter():
+        if u in sources or v in sources:
+            topology.edge[u][v]['type'] = 'external'
+            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms', [(u, v)])
+        else:
+            topology.edge[u][v]['type'] = 'internal'
+    cache_placement = uniform_cache_placement(topology, network_cache*n_contents, caches)
+    for node, size in cache_placement.iteritems():
+        fnss.add_stack(topology, node, 'cache', {'size': size})
+    return topology
+
 
 @register_topology_factory('GEANT')
 def topology_geant(network_cache=0.05, n_contents=100000, seed=None):
