@@ -89,3 +89,46 @@ N_REPLICATIONS = 5
 # List of metrics to be measured in the experiments
 # The implementation of data collectors are located in ./icaurs/execution/collectors.py
 DATA_COLLECTORS = ['CACHE_HIT_RATIO', 'LATENCY', 'LINK_LOAD', 'PATH_STRETCH']
+
+# Queue of experiments
+# To specify what experiment parameters to test, I can set set different values
+# of NETWORK_CACHE, TOPOLOGIES, ALPHA, STRATEGIES and so on. The simulator will
+# created experiment definition for all possible combinations of values and run
+# the experiments. This approach may possibly lead to a very high number of 
+# experiments.
+# To prevent this issue, Icarus allows user to specify their own combination
+# of experiments to run by setting this EXPERIMENT_QUEUE parameter. The
+# EXPERIMENT_QUEUE setting must be an iterable container whereby each element
+# is a dictionary of experiment attributes as shown in the example below.
+# EXPERIMENT_QUEUE is optional. If it is set and it is not None, the settings
+# ALPHA, NETWORK_CACHE, TOPOLOGIES and STRATEGIES will be ignored.
+# 
+# To use EXPERIMENT_QUEUE you can uncomment the code below or write your own
+# implementation
+#
+EXPERIMENT_QUEUE = None
+#EXPERIMENT_QUEUE = deque()
+#for strategy_name in STRATEGIES:
+#    for topology_name in TOPOLOGIES:
+#        network_cache = 0.002
+#        alpha = 0.8
+#        params = dict(alpha=alpha, topology_name=topology_name,
+#                      network_cache=network_cache, strategy_name=strategy_name,
+#                      n_contents=N_CONTENTS, strategy_params={})
+#        EXPERIMENT_QUEUE.append(params)
+#    for alpha in ALPHA:
+#        topology_name = 'GEANT'
+#        network_cache = 0.002
+#        params = dict(alpha=alpha, topology_name=topology_name,
+#                      network_cache=network_cache, strategy_name=strategy_name,
+#                      n_contents=N_CONTENTS, strategy_params={})    
+#        EXPERIMENT_QUEUE.append(params)
+#    for network_cache in NETWORK_CACHE:
+#        for topology_name in TOPOLOGIES:
+#            topology_name = 'GEANT'
+#            alpha = 0.8
+#            params = dict(alpha=alpha, topology_name=topology_name,
+#                      network_cache=network_cache, strategy_name=strategy_name,
+#                      n_contents=N_CONTENTS, strategy_params={})    
+#        EXPERIMENT_QUEUE.append(params)
+

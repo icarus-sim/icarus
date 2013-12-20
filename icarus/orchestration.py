@@ -69,19 +69,22 @@ class Orchestrator(object):
         methods returns only after all experiments are executed.
         """
         # Create queue of experiment configurations
-        queue = collections.deque()
-        n_contents = self.settings.N_CONTENTS
-        for topology_name in self.settings.TOPOLOGIES:
-            for network_cache in self.settings.NETWORK_CACHE:
-                for alpha in self.settings.ALPHA:
-                    for strategy_name in self.settings.STRATEGIES:
-                        params = dict(alpha=alpha,
-                                      topology_name=topology_name,
-                                      network_cache=network_cache,
-                                      strategy_name=strategy_name,
-                                      n_contents=n_contents,
-                                      strategy_params={})
-                        queue.append(params)
+        if 'EXPERIMENT_QUEUE' in self.settings and self.settings.EXPERIMENT_QUEUE:
+            queue = collections.deque(self.settings.EXPERIMENT_QUEUE)
+        else:
+            queue = collections.deque()
+            n_contents = self.settings.N_CONTENTS
+            for topology_name in self.settings.TOPOLOGIES:
+                for network_cache in self.settings.NETWORK_CACHE:
+                    for alpha in self.settings.ALPHA:
+                        for strategy_name in self.settings.STRATEGIES:
+                            params = dict(alpha=alpha,
+                                          topology_name=topology_name,
+                                          network_cache=network_cache,
+                                          strategy_name=strategy_name,
+                                          n_contents=n_contents,
+                                          strategy_params={})
+                            queue.append(params)
         # Calc number of experiments nad number of processes
         self.n_exp = len(queue) * self.settings.N_REPLICATIONS 
         self.n_proc = self.settings.N_PROCESSES \
