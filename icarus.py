@@ -18,10 +18,15 @@ def main():
     parser.add_argument("-r", "--results", dest="results",
                         help='the file on which results will be saved',
                         required=True)
+    parser.add_argument("-p", "--plots", dest="plotsdir",
+                        help='plot results and save them in plotsdir',
+                        required=False)
     parser.add_argument("config",
                         help="configuration file")
     args = parser.parse_args()
     icarus.run.run(args.config, args.results)
+    if args.plotsdir:
+        icarus.results.plot.run(args.config, args.results, args.plotsdir)
 
 if __name__ == "__main__":
     main()
