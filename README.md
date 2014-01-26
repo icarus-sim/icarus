@@ -93,6 +93,20 @@ Networking (ICN), in Proc. of SIMUTOOLS'14, Lisbon, Portugal, March 2014.
 Otherwise, please browse the source code. It is very well documented and easy to
 understand.
 
+### Modelling tools
+In addition. Icarus provides utilities for modelling the performance of caches and
+work with traffic traces. The code for these are included in the `icarus.tools` package.
+These functionalities are described in detail in the paper above. In addition, there are
+some examples in the folder `examples`
+
+### Run tests
+To run the unit test cases you can use the `test.py` script located in the directory of
+this README file.
+
+`python test.py`
+
+To run the test you need to have the Python `nose` package. If you installed all
+dependencies using the Ubuntu script, then it is OK.
 
 ## Citing
 
