@@ -634,9 +634,10 @@ class CacheLessForMore(Strategy):
         # closer to the receiver
         max_betw = -1
         designated_cache = None
-        for v in path:
+        for v in path[1:]:
             if v in self.view.caches():
                 if self.betw[v] >= max_betw:
+                    max_betw = self.betw[v]
                     designated_cache = v
         # Forward content
         for hop in range(1, len(path)):
