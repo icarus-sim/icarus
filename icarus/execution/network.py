@@ -43,7 +43,7 @@ class NetworkView(object):
         nodes : set
             A set of all nodes currently storing the given content
         """
-        loc = set(v for v in self.model.caches if self.caches[v].has(k))
+        loc = set(v for v in self.model.caches if self.model.caches[v].has(k))
         loc.add(self.content_source(k))
         return loc
     
