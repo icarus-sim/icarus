@@ -30,6 +30,9 @@ plt.rcParams['figure.figsize'] = 8, 4.5
 # Size of font in legends
 LEGEND_SIZE = 11
 
+# Plot
+PLOT_EMPTY_GRAPHS = False
+
 # Catalogue of possible bw shades (for bar charts)
 BW_COLOR_CATALOGUE = ['k', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9']
 
@@ -106,6 +109,7 @@ def plot_cache_hits_vs_alpha(resultset, topology, cache_size, alpha_range, strat
     desc['legend_loc'] = 'upper left'
     desc['line_style'] = STRATEGY_STYLE
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     if 'NO_CACHE' in desc['yvals']:
         desc['yvals'].remove('NO_CACHE')
     plot_lines(resultset, desc, 'CACHE_HIT_RATIO_T=%s@C=%s.pdf'
@@ -128,6 +132,7 @@ def plot_cache_hits_vs_cache_size(resultset, topology, alpha, cache_size_range, 
     desc['legend_loc'] = 'upper left'
     desc['line_style'] = STRATEGY_STYLE
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     if 'NO_CACHE' in desc['yvals']:
         desc['yvals'].remove('NO_CACHE')
     plot_lines(resultset, desc,'CACHE_HIT_RATIO_T=%s@A=%s.pdf'
@@ -149,6 +154,7 @@ def plot_link_load_vs_alpha(resultset, topology, cache_size, alpha_range, strate
     desc['legend_loc'] = 'upper right'
     desc['line_style'] = STRATEGY_STYLE
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     plot_lines(resultset, desc, 'LINK_LOAD_INTERNAL_T=%s@C=%s.pdf'
                % (topology, cache_size), plotdir)
 
@@ -169,6 +175,7 @@ def plot_link_load_vs_cache_size(resultset, topology, alpha, cache_size_range, s
     desc['legend_loc'] = 'upper right'
     desc['line_style'] = STRATEGY_STYLE
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     plot_lines(resultset, desc, 'LINK_LOAD_INTERNAL_T=%s@A=%s.pdf'
                % (topology, alpha), plotdir)
     
@@ -188,6 +195,7 @@ def plot_latency_vs_alpha(resultset, topology, cache_size, alpha_range, strategi
     desc['legend_loc'] = 'upper right'
     desc['line_style'] = STRATEGY_STYLE
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     plot_lines(resultset, desc, 'LATENCY_T=%s@C=%s.pdf'
                % (topology, cache_size), plotdir)
 
@@ -208,6 +216,7 @@ def plot_latency_vs_cache_size(resultset, topology, alpha, cache_size_range, str
     desc['legend_loc'] = 'upper right'
     desc['line_style'] = STRATEGY_STYLE
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     plot_lines(resultset, desc, 'LATENCY_T=%s@A=%s.pdf'
                % (topology, alpha), plotdir)
     
@@ -234,6 +243,7 @@ def plot_cache_hits_vs_topology(resultset, alpha, cache_size, topology_range, st
     desc['bar_color'] = STRATEGY_BAR_COLOR
     desc['bar_hatch'] = STRATEGY_BAR_HATCH
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     if 'NO_CACHE' in desc['yvals']:
         desc['yvals'].remove('NO_CACHE')
     plot_bar_graph(resultset, desc, 'CACHE_HIT_RATIO_A=%s_C=%s.pdf'
@@ -262,6 +272,7 @@ def plot_link_load_vs_topology(resultset, alpha, cache_size, topology_range, str
     desc['bar_color'] = STRATEGY_BAR_COLOR
     desc['bar_hatch'] = STRATEGY_BAR_HATCH
     desc['legend'] = STRATEGY_LEGEND
+    desc['plotempty'] = PLOT_EMPTY_GRAPHS
     plot_bar_graph(resultset, desc, 'LINK_LOAD_INTERNAL_A=%s_C=%s.pdf'
                    % (alpha, cache_size), plotdir)
 
@@ -330,6 +341,8 @@ def plot_lines(resultset, desc, filename, plotdir):
          Dictionary mapping each value of yvals with a line style
      * legend : dict, optional
          Dictionary mapping each value of yvals with a legend label
+     * plotempty : bool, optional
+         If *True*, plot and save graph even if empty. Default is *True* 
     """
     plt.figure()
     if 'title' in desc:
@@ -343,6 +356,8 @@ def plot_lines(resultset, desc, filename, plotdir):
     if 'yscale' in desc:
         plt.yscale(desc['yscale'])
     xvals = sorted(desc['xvals'])
+    plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    empty = True
     for l in desc['yvals']:
         means = np.zeros(len(xvals))
         err = np.zeros(len(xvals))
@@ -363,6 +378,9 @@ def plot_lines(resultset, desc, filename, plotdir):
             plt.errorbar([], [], fmt=fmt)
         else:
             plt.errorbar(xvals, means, yerr=yerr, fmt=fmt)
+            empty = False
+    if empty and not plot_empty:
+        return
     plt.xlim(min(xvals), max(xvals))
     legend = [desc['legend'][l] for l in desc['yvals']] if 'legend'in desc \
              else desc['yvals']
@@ -430,6 +448,8 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
          Dictionary mapping each value of yvals with a bar hatch
      * legend : dict, optional
          Dictionary mapping each value of yvals with a legend label
+     * plotempty : bool, optional
+         If *True*, plot and save graph even if empty. Default is *True*
     """
     plt.figure()
     if 'title' in desc:
@@ -440,6 +460,8 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
         plt.xlabel(desc['xlabel'])
     if 'ylabel' in desc:
         plt.ylabel(desc['ylabel'])
+    plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    empty = True
     # Spacing attributes
     GROUP_WIDTH = 0.4                           # width of a group of bars 
     WIDTH = GROUP_WIDTH/len(desc['yvals'])      # width of a single bar
@@ -473,10 +495,14 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
             confidence = desc['confidence'] if 'confidence' in desc else 0.95 
             meanval, err = means_confidence_interval(data, confidence)
             yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
-            elem[l] = plt.bar(left, meanval, WIDTH, color=color[l],
+            if not np.isnan(meanval):
+                empty = False
+            elem[l] = plt.bar(left, meanval, WIDTH, color=color[l], 
                               yerr=yerr, ecolor='k', hatch=hatch[l], label=l)
             left += WIDTH
         left += SEPARATION
+    if empty and not plot_empty:
+        return
     plt.xticks(BORDER + 0.5*(len(desc['yvals'])*WIDTH) + 
                (SEPARATION + len(desc['yvals'])*WIDTH)*np.arange(len(desc['xvals'])),
                desc['xvals'])
