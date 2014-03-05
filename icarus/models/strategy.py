@@ -324,7 +324,7 @@ class HashroutingHybridAM(Hashrouting):
                 else: fork_node = cache
                 self.controller.forward_content_path(source, receiver)
                 # multicast to cache only if stretch is under threshold
-                if (len(self.view.shortest_path(fork_node, cache)) < self.max_stretch):
+                if len(self.view.shortest_path(fork_node, cache)) - 1 < self.max_stretch:
                     self.controller.forward_content_path(fork_node, cache)
                     self.controller.put_content(cache)
         self.controller.end_session()
@@ -389,7 +389,9 @@ class HashroutingHybridSM(Hashrouting):
                                      len(self.view.shortest_path(fork_node, receiver)) - 3
                 
                 self.controller.put_content(cache)
-                if symmetric_path_len < multicast_path_len: # use symmetric delivery
+                # If symmetric and multicast have equal cost, choose symmetric
+                # because of easier packet processing
+                if symmetric_path_len <= multicast_path_len: # use symmetric delivery
                     # Symmetric delivery
                     self.controller.forward_content_path(source, cache)
                     self.controller.forward_content_path(cache, receiver)
