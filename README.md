@@ -125,6 +125,26 @@ or
 
     $ easy_install nose
 
+### Build documentation from source
+To build the documentation you can you the `Makefile` provided in the `doc` folder. This script provides targets for building
+documentation in a number of formats. For example, to build HTML documentation, execute the following commands:
+
+    $ cd <YOUR ICARUS FOLDER>
+    $ cd doc
+    $ make html
+
+The built documentation will be put in the `doc/build` folder. The compiled HTML documentation is also available on the
+[Icarus website](http://icarus-sim.github.io/doc/)
+
+To build the documentation you need [Sphinx](http://sphinx-doc.org/). If you installed all dependencies using the Ubuntu script,
+then you already have it installed. Otherwise you may need to install it using either `pip` or `easy_install`.
+
+    $ pip install sphinx
+
+or
+
+    $ easy_install sphinx
+
 ## Citing
 
 If you use Icarus for your paper, please refer to the following publication:
@@ -140,6 +160,15 @@ If you use Icarus for your paper, please refer to the following publication:
        publisher = {ICST},
        address = {ICST, Brussels, Belgium, Belgium},
     }
+
+## Documentation
+If you desire further information about Icarus, you can find it in the following places:
+
+ * In [this paper](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.pdf), which describes the overall architecture of the Icarus simulator,
+   the motivations for its design, the models implemented and shows some snippets of codes on how to use the modelling tools.
+ * In the [API reference](http://icarus-sim.github.io/doc/), which documents all packages, modules, classes, methods
+   and functions included in the Icarus simulator.
+ * In the [source code](https://www.github.com/icarus-sim/icarus/), which is well organized and throughly documented.
 
 ## Reproduce results of previous papers
 
