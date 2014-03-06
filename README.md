@@ -2,7 +2,7 @@
 Icarus is a Python-based discrete-event simulator for evaluating caching performance
 in Information Centric Networks (ICN).
 
-Icarus is not bound to any specific ICN architecture. Its design allows to implement
+Icarus is not bound to any specific ICN architecture. Its design allows users to implement
 and evalute new caching policies or caching and routing strategy with few lines of code.
 
 This document explains how to configure and run the simulator.
@@ -40,7 +40,7 @@ Icarus dependencies are:
    * **argparse** (only if using Python version 2.6. It is already included the standard
      library starting from Python 2.7)
 
-All these packages can be installed using either [`easy_install`](http://pythonhosted.org/setuptools/easy_install.html) or [pip](http://www.pip-installer.org/en/latest/) utilities.
+All these packages can be installed using either [`easy_install`](http://pythonhosted.org/setuptools/easy_install.html) or [`pip`](http://www.pip-installer.org/en/latest/) utilities.
 
 If you use `pip` run:
 
@@ -48,7 +48,7 @@ If you use `pip` run:
 
 If you use `easy_install` run:
 
-    $ $ easy_install numpy scipy matplotlib networkx fnss`
+    $ easy_install numpy scipy matplotlib networkx fnss`
 
 You may need to run `pip` or `easy_install` as superuser. The installation of these packages, especially `numpy` and `scipy` may also require to install additional libraries.
 
@@ -57,10 +57,11 @@ You can download a stable release in a zip or tar.gz format using the links belo
 
 **Latest version:**
 
- * Version 0.2: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.tar.gz)
+ * Version 0.2.1: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.tar.gz)
 
 **Older versions:**
 
+ * Version 0.2: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.tar.gz)
  * Version 0.1.1: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.1.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.1.1.tar.gz)
  * Version 0.1.0: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.1.tar.gz)
 
@@ -98,7 +99,7 @@ To implement new models, please refer to the description of the simulator
 provided in this paper:
 
 L.Saino, I. Psaras and G. Pavlou, Icarus: a Caching Simulator for Information Centric
-Networking (ICN), in Proc. of SIMUTOOLS'14, Lisbon, Portugal, March 2014.
+Networking (ICN), in *Proc. of SIMUTOOLS'14*, Lisbon, Portugal, March 2014.
 [\[PDF\]](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.pdf),
 [\[BibTex\]](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.bib)
 
