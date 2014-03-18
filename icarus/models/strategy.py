@@ -71,7 +71,7 @@ class Strategy(object):
             Indicates whether the event must be registered by the data
             collectors attached to the network.
         """
-        raise NotImplementedError('The selected control plane must implement '
+        raise NotImplementedError('The selected strategy must implement '
                                   'a process_event method')
 
 
