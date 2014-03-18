@@ -44,11 +44,11 @@ All these packages can be installed using either [`easy_install`](http://pythonh
 
 If you use `pip` run:
 
-    $ pip install numpy scipy matplotlib networkx fnss`
+    $ pip install numpy scipy matplotlib networkx fnss
 
 If you use `easy_install` run:
 
-    $ easy_install numpy scipy matplotlib networkx fnss`
+    $ easy_install numpy scipy matplotlib networkx fnss
 
 You may need to run `pip` or `easy_install` as superuser. The installation of these packages, especially `numpy` and `scipy` may also require to install additional libraries.
 
@@ -67,7 +67,7 @@ You can download a stable release in a zip or tar.gz format using the links belo
 
 You can also get the development branch from the Github repository using Git. Just open a shell, `cd` to the directory where you want to download the simulator and type:
 
-    $ git clone https://github.com/icarus-sim/icarus.git`
+    $ git clone https://github.com/icarus-sim/icarus.git
 
 ## Usage
 
