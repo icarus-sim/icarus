@@ -176,7 +176,7 @@ def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
         discr = y_N**2 - h_2
         if discr > 0:
             r_x = (x_N + cubrt(0.5/a * (-y_N + math.sqrt(discr))) \
-                   + cubrt(0.5/a * (-y_N - math.sqrt(discr))))
+                   + cubrt(0.5/a * (-y_N - math.sqrt(discr))),)
         elif discr == 0:
             delta = math.sqrt(delta_2)
             r1 = r2 = x_N + delta
