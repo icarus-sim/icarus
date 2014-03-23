@@ -17,7 +17,7 @@ from icarus.scenarios import uniform_req_gen
 from icarus.registry import topology_factory_register, cache_policy_register, \
                            strategy_register, data_collector_register
 from icarus.results import ResultSet
-from icarus.util import iround
+from icarus.util import timestr
 
 
 __all__ = ['Orchestrator', 'run_scenario']
@@ -149,16 +149,10 @@ class Orchestrator(object):
             # Compute ETA
             n_cores = min(mp.cpu_count(), self.n_proc)
             mean_duration = sum(self.exp_durations)/len(self.exp_durations)
-            eta = time.gmtime(iround(n_scheduled*mean_duration/n_cores))
-            if eta.tm_yday > 1:
-                fmt_eta = "%dd %dh %dm" % (eta.tm_yday -1, eta.tm_hour, eta.tm_min)
-            elif eta.tm_hour > 0:
-                fmt_eta = "%dh %dm" % (eta.tm_hour, eta.tm_min)
-            else:
-                fmt_eta = "%dm" % eta.tm_min
+            eta = timestr(n_scheduled*mean_duration/n_cores, False)
             # Print summary
             logger.info('SUMMARY | Completed: %d, Scheduled: %d, ETA: %s', 
-                        seq, n_scheduled, fmt_eta)
+                        seq, n_scheduled, eta)
         
 
 class SequenceNumber(object):
@@ -267,8 +261,8 @@ def run_scenario(settings, params, curr_exp, n_exp):
         logger.info('Experiment %d/%d | Start simulation', curr_exp, n_exp)
         results = exec_experiment(topology, events, strategy, collectors)
         duration = time.time() - start_time
-        logger.info('Experiment %d/%d | End simulation | Duration %.1f sec.', 
-                    curr_exp, n_exp, duration)
+        logger.info('Experiment %d/%d | End simulation | Duration %s.', 
+                    curr_exp, n_exp, timestr(duration, True))
         return (params, results, curr_exp, duration)
     except KeyboardInterrupt:
         logger.error('Received keyboard interrupt. Terminating')

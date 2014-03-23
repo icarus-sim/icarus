@@ -1,11 +1,14 @@
 """Utility functions
 """
+import time
 import logging
+import collections
 
 __all__ = [
         'Settings',
         'config_logging',
         'inheritdoc',
+        'timestr',
         'iround'
            ]
 
@@ -215,6 +218,53 @@ def inheritdoc(cls):
         function.__doc__ = eval('sup.%s.__doc__' % name)
         return function
     return _decorator
+
+def timestr(sec, with_seconds=True):
+    """Get a time interval in seconds and returns it formatted in a string.
+    
+    The returned string includes days, hours, minutes and seconds as
+    appropriate.
+    
+    Parameters
+    ----------
+    sec : float
+        The time interval
+    with_seconds : bool
+        If *True* the time string includes seconds, otherwise only minutes
+    Returns
+    -------
+    timestr : str
+        A string expressing the time in days, hours, minutes and seconds
+    """
+    t = time.gmtime(iround(sec))
+    days  = t.tm_yday - 1
+    hours = t.tm_hour
+    mins  = t.tm_min
+    secs  = t.tm_sec
+    units = collections.deque(('d', 'h', 'm', 's'))
+    vals  = collections.deque((days, hours, mins, secs))
+    if not with_seconds:
+        units.pop()
+        vals.pop()
+    if all(x == 0 for x in vals):
+        return "0%s" % units[-1]
+    while vals[0] == 0:
+        vals.popleft()
+        units.popleft()
+    while vals[-1] == 0:
+        vals.pop()
+        units.pop()
+    return "".join("%d%s " % (vals[i], units[i]) for i in range(len(vals)))[:-1]
+#    flag = False
+#    if t.tm_yday > 1:
+#        fmt_t = "%dd %dh %dm" % (t.tm_yday - 1, t.tm_hour, t.tm_min)
+#    elif t.tm_hour > 0:
+#        fmt_t = "%dh %dm" % (t.tm_hour, t.tm_min)
+#    else:
+#        fmt_t = "%dm" % t.tm_min
+#    if show_seconds:
+#        fmt_t += " %ds" % t.tm_sec
+#    return fmt_t
 
 def iround(x):
     """Round float to closest integer
