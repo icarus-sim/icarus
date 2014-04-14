@@ -1,3 +1,4 @@
+from __future__ import division
 import sys
 if sys.version_info[:2] >= (2, 7):
     import unittest
@@ -8,15 +9,17 @@ else:
         raise ImportError("The unittest2 package is needed to run the tests.") 
 del sys
 
-from icarus.tools import TruncatedZipfDist
-import icarus.tools as cacheperf
+import numpy as np
 
+import icarus.tools as cacheperf
+import icarus.models as cache
 
 class TestNumericCacheHitRatio(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.n = 500
+        cls.pdf = np.ones(cls.n)/cls.n
         
     @classmethod
     def tearDownClass(cls):
@@ -29,11 +32,24 @@ class TestNumericCacheHitRatio(unittest.TestCase):
         pass
     
     def test_lru_cache(self):
-        pass
+        r = 0.1
+        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.LruCache(r*self.n))
+        self.assertLess(np.abs(h - r), 0.01)
 
     def test_lfu_cache(self):
-        pass
+        r = 0.1
+        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.LfuCache(r*self.n))
+        self.assertLess(np.abs(h - r), 0.01)
 
+    def test_fifo_cache(self):
+        r = 0.1
+        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.FifoCache(r*self.n))
+        self.assertLess(np.abs(h - r), 0.01)
+        
+    def test_rand_cache(self):
+        r = 0.1
+        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.RandCache(r*self.n))
+        self.assertLess(np.abs(h - r), 0.01)
 
 class TestLaoutarisCacheHitRatio(unittest.TestCase):
     

@@ -134,5 +134,5 @@ class TestRandInsert(unittest.TestCase):
         for i in range(n):
             rc1.put(i)
             rc2.put(i)
-        self.assertTrue(len(rc1) - n*p1 < 100)
-        self.assertTrue(len(rc2) - n*p2 < 100)
+        self.assertLess(len(rc1) - n*p1, 20)
+        self.assertLess(len(rc2) - n*p2, 200)
