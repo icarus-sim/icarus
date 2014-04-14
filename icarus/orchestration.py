@@ -247,13 +247,15 @@ def run_scenario(settings, params, curr_exp, n_exp):
         if any(m not in data_collector_register for m in metrics):
             logger.error('There are no implementations for at least one data collector specified')
             return None
-        
+        # Get user-defined seed, if any
+        seed = settings.SEED if 'SEED' in settings else None
         # Get topology and event generator
-        topology = topology_factory_register[topology_name](network_cache, n_contents)   
+        topology = topology_factory_register[topology_name](network_cache, n_contents, seed=seed)   
         events = uniform_req_gen(topology, n_contents, alpha, 
                                           rate=settings.NETWORK_REQUEST_RATE,
                                           n_warmup=settings.N_WARMUP_REQUESTS,
-                                          n_measured=settings.N_MEASURED_REQUESTS)
+                                          n_measured=settings.N_MEASURED_REQUESTS,
+                                          seed=seed)
         topology.graph['cache_policy'] = cache_policy
     
         collectors = [(m, {}) for m in metrics]
