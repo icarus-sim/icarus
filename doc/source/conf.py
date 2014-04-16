@@ -19,7 +19,7 @@ import sys, os
 #sys.path.insert(0, os.path.abspath('.'))
 
 # This imports the icarus package
-sys.path.insert(0, os.path.abspath(os.path.pardir))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.pardir, os.path.pardir)))
 import icarus
 
 author = icarus.__author__
@@ -35,7 +35,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    # 'sphinx.ext.autosummary',
+    'sphinx.ext.autosummary',
     'numpydoc',
             ]
 
@@ -240,7 +240,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'icarus', u'icarus Documentation',
-   author, 'icarus', 'One line description of project.',
+   author, 'icarus', 'Caching simulator for Information Centric Networking.',
    'Miscellaneous'),
 ]
 
