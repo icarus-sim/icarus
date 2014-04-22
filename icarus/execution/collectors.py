@@ -1,6 +1,7 @@
 """This module contains performance metrics loggers
 """
 from __future__ import division
+import sys
 import collections
 
 from icarus.registry import register_data_collector
@@ -14,7 +15,8 @@ __all__ = [
     'CacheHitRatioCollector',
     'LinkLoadCollector',
     'LatencyCollector',
-    'PathStretchCollector'
+    'PathStretchCollector',
+    'TestCollector'
            ]
 
 
@@ -426,4 +428,57 @@ class PathStretchCollector(DataCollector):
             results['CDF_CONTENT'] = cdf(self.cont_stretch_data)
         return results
     
+
+@register_data_collector('TEST')
+class TestCollector(DataCollector):
+    """Collector used for test cases only.
+    """
+    
+    def __init__(self, view):
+        """Constructor
+        
+        Parameters
+        ----------
+        view : NetworkView
+            The network view instance
+        output : stream
+            Stream on which debug collector writes
+        """
+        self.view = view
+    
+    @inheritdoc(DataCollector)
+    def start_session(self, timestamp, receiver, content):
+        self.session = dict(timestamp=timestamp, receiver=receiver,
+                            content=content, request_hops=[], content_hops=[])
+
+    @inheritdoc(DataCollector)
+    def cache_hit(self, node):
+        self.session['serving_node'] = node
+
+    @inheritdoc(DataCollector)
+    def server_hit(self, node):
+        self.session['serving_node'] = node
+
+    @inheritdoc(DataCollector)
+    def request_hop(self, u, v):
+        self.session['request_hops'].append((u, v))
+    
+    @inheritdoc(DataCollector)
+    def content_hop(self, u, v):
+        self.session['content_hops'].append((u, v))
+    
+    @inheritdoc(DataCollector)
+    def end_session(self, success=True):
+        self.session['success'] = success
+    
+    def session_summary(self):
+        """Return a summary of latest session
+        
+        Returns
+        -------
+        session : dict
+            Summary of session
+        """
+        return self.session
+
     
