@@ -42,7 +42,7 @@ class Node(object):
         Parameters
         ----------
         down : Node
-            Pointer to the.downious node of the list
+            Pointer to the down node of the list
         val : any hashable type
             Object stored by this node
         """
@@ -122,9 +122,11 @@ class Cache(object):
 
     @abc.abstractmethod
     def get(self, k):
-        """Retrieves an item from the cache. Differently from *has(k)*,
-        calling this method may change the internal state of the caching
-        object depending on the specific cache implementation.
+        """Retrieves an item from the cache.
+        
+        Differently from *has(k)*, calling this method may change the internal
+        state of the caching object depending on the specific cache
+        implementation.
         
         Parameters
         ----------
@@ -235,7 +237,7 @@ class NullCache(Cache):
         -------
         v : bool
             Boolean value being *True* if the requested item is in the cache
-            or *False* otherwise. It alwasy returns *False*
+            or *False* otherwise. It always returns *False*
         """
         return False
 
