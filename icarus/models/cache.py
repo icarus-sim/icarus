@@ -6,6 +6,7 @@ provided by Icarus.
 from collections import deque
 import random
 import abc
+import copy
 
 import numpy as np
 
@@ -22,6 +23,7 @@ __all__ = [
         'FifoCache',
         'RandCache',
         'rand_insert_cache',
+        'keyval_cache'
            ]
 
 
@@ -670,3 +672,112 @@ def rand_insert_cache(cache, p, seed=None):
     cache.put.__name__ = 'put'
     cache.put.__doc__ = put.__doc__
     return cache
+
+
+def keyval_cache(cache):
+    """It modifies the instance of a cache object such that items are saved
+    together with a value instead of just a key.
+    
+    This modifies the signature and/or return types of methods *get*, *put* and
+    *dump*. The new format is documented in the docstrings of the modified
+    methods of the cache instance
+
+    Parameters
+    ----------
+    cache : Cache
+        The instance of a cache to be changed to a key-value cache
+        
+    Returns
+    -------
+    cache : Cache
+        The modified cache instance
+    """
+    if not isinstance(cache, Cache):
+        raise TypeError('cache must be an instance of Cache or its subclasses')
+    
+    cache = copy.deepcopy(cache)
+    cache._vals = {}
+    k_put = cache.put
+    k_get = cache.get
+    k_dump = cache.dump 
+    k_clear = cache.clear
+    
+    def kv_put(k, v):
+        """Insert an item in the cache if not already inserted.
+        
+        If the element is already present in the cache with the same value, it
+        will not be inserted again but the internal state of the cache object
+        may change.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The key of item to be inserted
+        v : any hashable type
+            The value of item to be inserted
+            
+        Returns
+        -------
+        evicted : tuple
+            The key, value tuple of the evicted object or *None* if no contents
+            were evicted.
+        """
+        cache._vals[k] = v
+        evicted = k_put(k)
+        if evicted:
+            val = cache._vals[evicted]
+            del cache._vals[evicted]
+            return evicted, val 
+    
+    def kv_get(k):
+        """Retrieve an item from the cache.
+        
+        Differently from *has(k)*, calling this method may change the internal
+        state of the caching object depending on the specific cache
+        implementation.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item looked up in the cache
+
+        Returns
+        -------
+        v : any hashable type
+            The value of the requested object or *None* if it is not in the
+            cache
+        """
+        return cache._vals[k] if k_get(k) else None 
+    
+    def kv_dump():
+        """Return a dump of all the elements currently in the cache possibly
+        sorted according to the eviction policy.
+        
+        Return
+        ------
+        cache_dump : list of tuples
+            The list of items currently stored in the cache represented as
+            key, value pairs
+        """
+        dump = k_dump()
+        return [(k, cache._vals[k]) for k in dump]
+    
+    def kv_clear():
+        k_clear()
+        cache._vals.clear()
+        
+    cache.put = kv_put
+    cache.put.__name__ = 'put'
+    
+    cache.get = kv_get
+    cache.get.__name__ = 'get'
+    
+    cache.dump = kv_dump
+    cache.dump.__name__ = 'dump'
+    
+    cache.clear = kv_clear
+    cache.clear.__name__ = 'clear'
+    cache.clear.__doc__ = k_clear.__doc__
+    
+    return cache
+    

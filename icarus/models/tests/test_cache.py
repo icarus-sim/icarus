@@ -136,3 +136,26 @@ class TestRandInsert(unittest.TestCase):
         self.assertLess(len(rc2) - n*p2, 200)
         self.assertEqual(rc1.put.__name__, 'put')
         self.assertGreater(len(rc1.put.__doc__), 0)
+
+
+class TestKetValCache(unittest.TestCase):
+    
+    def test_key_val_cache(self):
+        c = cache.keyval_cache(cache.FifoCache(3))
+        c.put(1,11)
+        self.assertEqual(c.get(1), 11)
+        c.put(1, 12)
+        self.assertEqual(c.get(1), 12)
+        self.assertEqual(c.dump(), [(1, 12)])
+        c.put(2, 21)
+        self.assertTrue(c.has(1))
+        self.assertTrue(c.has(2))
+        c.put(3, 31)
+        k, v = c.put(4, 41)
+        self.assertEqual((k, v), (1, 12))
+        c.clear()
+        self.assertEqual(len(c), 0)
+        self.assertEqual(c.get.__name__, 'get')
+        self.assertEqual(c.put.__name__, 'put')
+        self.assertEqual(c.dump.__name__, 'dump')
+        self.assertEqual(c.clear.__name__, 'clear')
