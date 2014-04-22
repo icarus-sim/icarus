@@ -92,7 +92,7 @@ class TestRandCache(unittest.TestCase):
 
 class TestLfuCache(unittest.TestCase):
 
-    def test_rand(self):
+    def test_lfu(self):
         c = cache.LfuCache(4)
         self.assertEquals(len(c), 0)
         c.put(1)
@@ -127,12 +127,12 @@ class TestRandInsert(unittest.TestCase):
         n = 100000
         p1 = 0.01
         p2 = 0.1
-        rc1 = cache.LruCache(n)
-        rc2 = cache.LruCache(n)
-        cache.set_rand_insert(rc1, p1)
-        cache.set_rand_insert(rc2, p2)
+        rc1 = cache.rand_insert_cache(cache.LruCache(n), p1)
+        rc2 = cache.rand_insert_cache(cache.LruCache(n), p2)
         for i in range(n):
             rc1.put(i)
             rc2.put(i)
-        self.assertLess(len(rc1) - n*p1, 20)
+        self.assertLess(len(rc1) - n*p1, 200)
         self.assertLess(len(rc2) - n*p2, 200)
+        self.assertEqual(rc1.put.__name__, 'put')
+        self.assertGreater(len(rc1.put.__doc__), 0)

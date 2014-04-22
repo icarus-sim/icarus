@@ -21,7 +21,7 @@ __all__ = [
         'LfuCache',
         'FifoCache',
         'RandCache',
-        'set_rand_insert'
+        'rand_insert_cache',
            ]
 
 
@@ -635,8 +635,8 @@ class RandCache(Cache):
         self._cache.clear()
 
     
-def set_rand_insert(cache, p, seed=None):
-    """It modifies the instance of a cache object such that contents are
+def rand_insert_cache(cache, p, seed=None):
+    """It modifies the instance of a cache object such that items are
     inserted randomly instead of deterministically.
     
     This function modifies the behavior of the *put* method of a given cache
@@ -650,15 +650,23 @@ def set_rand_insert(cache, p, seed=None):
         the insert probability
     seed : any hashable type, optional
         The seed of the random number generator
+        
+    Returns
+    -------
+    cache : Cache
+        The modified cache instance  
     """
     if not isinstance(cache, Cache):
         raise TypeError('cache must be an instance of Cache or its subclasses')
     if p < 0 or p > 1:
         raise ValueError('p must be a value between 0 and 1')
+    cache = copy.deepcopy(cache)
     random.seed(seed)
     put = cache.put
     def rand_put(k):
         if random.random() < p:
             return put(k)
     cache.put = rand_put
+    cache.put.__name__ = 'put'
+    cache.put.__doc__ = put.__doc__
     return cache
