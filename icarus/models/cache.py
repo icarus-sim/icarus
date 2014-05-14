@@ -15,7 +15,7 @@ from icarus.registry import register_cache_policy
 
 
 __all__ = [
-        'Node',
+        'LinkedSet',
         'Cache',
         'NullCache',
         'LruCache',
@@ -27,32 +27,420 @@ __all__ = [
            ]
 
 
-class Node(object):
-    """Node of a linked list
+class LinkedSet(object):
+    """A doubly-linked set, i.e. a set whose entries are ordered and stored in
+    a doubly-linked list.
     
-    This class is used for implementing cache eviction policies relying on
-    doubly-linked lists for their implementation.
-    
-    This class is used for example by the LRU replacement policy.
+    This data structure is designed to efficiently implement a number of cache
+    eviction policies such as LRU and derivatives like segmented LRU.
+        
+    It provides O(1) time complexity for the following operations: searching,
+    remove from any position, move to top, move to bottom, insert after or
+    before a given item.
     """
-    __metaclass__ = abc.ABCMeta
-    
-    def __init__(self, down, val):
+    class _Node(object):
+        """Class implementing a node of the linked list
         """
-        Constructor
+        
+        def __init__(self, val, up=None, down=None):
+            """Constructor
+            
+            Parameters
+            ----------
+            val : any hashable type
+                The value stored by the node
+            up : any hashable type, optional
+                The node above in the list
+            down : any hashable type, optional
+                The node below in the list
+            """
+            self.val = val
+            self.up = up
+            self.down = down
+    
+    def __init__(self, iterable=[]):
+        """Constructuor
         
         Parameters
         ----------
-        down : Node
-            Pointer to the down node of the list
-        val : any hashable type
-            Object stored by this node
+        itaerable : iterable type    
+            An iterable type to inizialize the data structure.
+            It must contain only one instance of each element
         """
-        self.down = down        # Pointer to node down the chain
-        self.val = val          # Object stored by this node
-        self.up = None          # Pointer to node up the chain
-        self.hits = 0           # Number of hits of this object
-        self.time = 0           # Time this object was created
+        self._top = None
+        self._bottom = None
+        self._map = {}
+        if iterable:
+            if len(set(iterable)) < len(iterable):
+                raise ValueError('The iterable parameter contains repeated '
+                                 'elements')
+            for i in iterable:
+                self.append_bottom(i)
+            
+    def __len__(self):
+        """Return the number of elements in the linked set
+        
+        Returns
+        -------
+        len : int
+            The length of the set
+        """
+        return len(self._map)
+    
+    def __iter__(self):
+        """Return an iterator over the set
+        
+        Returns
+        -------
+        reversed : iterator
+            An iterator over the set
+        """
+        cur = self._top
+        while cur:
+            yield cur.val
+            cur = cur.down
+    
+    def __reversed__(self):
+        """Return a reverse iterator over the set
+        
+        Returns
+        -------
+        reversed : iterator
+            A reverse iterator over the set
+        """
+        cur = self._bottom
+        while cur:
+            yield cur.val
+            cur = cur.up
+    
+    def __str__(self):
+        """Return a string representation of the set
+        
+        Returns
+        -------
+        str : str
+            A string representation of the set
+        """
+        return self.__class__.__name__ + "([" + "".join("%s, " % str(i) for i in self)[:-2] + "])"
+
+    def __contains__(self, k):
+        """Return whether the set contains a given item
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to search
+            
+        Returns
+        -------
+        contains : bool
+            *True* if the set contains the item, *False* otherwise
+        """
+        return k in self._map
+    
+    @property
+    def top(self):
+        """Return the item at the top of the set
+        
+        Returns
+        -------
+        top : any hashable type
+            The item at the top or *None* if the set is empty
+        """
+        return self._top.val if self._top is not None else None
+    
+    @property
+    def bottom(self):
+        """Return the item at the bottom of the set
+        
+        Returns
+        -------
+        bottom : any hashable type
+            The item at the bottom or *None* if the set is empty
+        """
+        return self._bottom.val if self._bottom is not None else None
+    
+    def pop_top(self):
+        """Pop the item at the top of the set
+                
+        Returns
+        -------
+        top : any hashable type
+            The item at the top or *None* if the set is empty
+        """
+        if self._top == None: # No elements to pop
+            return None
+        k = self._top.val
+        if self._top == self._bottom: # One single element
+            self._bottom = self._top = None
+        else:
+            self._top.down.up = None
+            self._top = self._top.down
+        self._map.pop(k)
+        return k
+    
+    def pop_bottom(self):
+        """Pop the item at the bottom of the set
+        
+        Returns
+        -------
+        bottom : any hashable type
+            The item at the bottom or *None* if the set is empty
+        """
+        if self._bottom == None: # No elements to pop
+            return None
+        k = self._bottom.val
+        if self._bottom == self._top: # One single element
+            self._top = self._bottom = None
+        else:
+            self._bottom.up.down = None
+            self._bottom = self._bottom.up
+        self._map.pop(k)
+        return k
+    
+    def append_top(self, k):
+        """Append an item at the top of the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to append
+        """
+        if k in self._map:
+            raise KeyError('The item %s is already in the set' % str(k))
+        n = self._Node(val=k, up=None, down=self._top)
+        if self._top == self._bottom == None:
+            self._bottom = n
+        else:
+            self._top.up = n
+        self._top = n
+        self._map[k] = n
+    
+    def append_bottom(self, k):
+        """Append an item at the bottom of the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to append
+        """
+        if k in self._map:
+            raise KeyError('The item %s is already in the set' % str(k))
+        n = self._Node(val=k, up=self._bottom, down=None)
+        if self._top == self._bottom == None:
+            self._top = n
+        else:
+            self._bottom.down = n
+        self._bottom = n
+        self._map[k] = n
+    
+    def move_up(self, k):
+        """Move a specified item one position up in the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to move up
+        """
+        if k not in self._map:
+            raise KeyError('Item %s not in the set' % str(k))
+        n = self._map[k]
+        if n.up == None:    # already on top or there is only one element
+            return
+        if n.down == None:  # bottom but not top: there are at least two elements
+            self._bottom = n.up
+        else:
+            n.down.up = n.up
+        n.up.down = n.down
+        new_up = n.up.up
+        new_down = n.up
+        if new_up:
+            new_up.down = n
+        else:
+            self._top = n
+        new_down.up = n
+        n.up = new_up
+        n.down = new_down
+    
+    def move_down(self, k):
+        """Move a specified item one position down in the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to move down
+        """
+        if k not in self._map:
+            raise KeyError('Item %s not in the set' % str(k))
+        n = self._map[k]
+        if n.down == None: # already at the bottom or there is only one element
+            return
+        if n.up == None:
+            self._top = n.down
+        else:
+            n.up.down = n.down
+        n.down.up = n.up
+        new_down = n.down.down
+        new_up = n.down
+        new_up.down = n
+        if new_down != None:
+            new_down.up = n
+        else:
+            self._bottom = n
+        n.up = new_up
+        n.down = new_down
+    
+    def move_to_top(self, k):
+        """Move a specified item to the top of the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to move to the top
+        """
+        if k not in self._map:
+            raise KeyError('Item %s not in the set' % str(k))
+        n = self._map[k]
+        if n.up == None:    # already on top or there is only one element
+            return    
+        if n.down == None:  # at the bottom, there are at least two elements
+            self._bottom = n.up
+        else:
+            n.down.up = n.up
+        n.up.down = n.down
+        # Move to top
+        n.up = None
+        n.down = self._top
+        self._top.up = n
+        self._top = n
+    
+    def move_to_bottom(self, k):
+        """Move a specified item to the bottom of the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to move to the bottom
+        """
+        if k not in self._map:
+            raise KeyError('Item %s not in the set' % str(k))
+        n = self._map[k]
+        if n.down == None:    # already at bottom or there is only one element
+            return    
+        if n.up == None:  # at the top, there are at least two elements
+            self._top = n.down
+        else:
+            n.up.down = n.down
+        n.down.up = n.up
+        # Move to top
+        n.down = None
+        n.up = self._bottom
+        self._bottom.down = n
+        self._bottom = n
+    
+    def insert_above(self, i, k):
+        """Insert an item one position above a given item already in the set
+        
+        Parameters
+        ----------
+        i : any hashable type
+            The item of the set above which the new item is inserted
+        k : any hashable type
+            The item to insert
+        """
+        if k in self._map:
+            raise KeyError('Item %s already in the set' % str(k))
+        if i not in self._map:
+            raise KeyError('Item %s not in the set' % str(i))
+        n = self._map[i]
+        if n.up == None: # Insert on top
+            return self.append_top(k)
+        # Now I know I am inserting between two actual elements
+        m = self._Node(k, up=n.up, down=n)
+        n.up.down = m
+        n.up = m
+        self._map[k] = m
+        
+    def insert_below(self, i, k):
+        """Insert an item one position below a given item already in the set
+        
+        Parameters
+        ----------
+        i : any hashable type
+            The item of the set below which the new item is inserted
+        k : any hashable type
+            The item to insert
+        """
+        if k in self._map:
+            raise KeyError('Item %s already in the set' % str(k))
+        if i not in self._map:
+            raise KeyError('Item %s not in the set' % str(i))
+        n = self._map[i]
+        if n.down == None: # Insert on top
+            return self.append_bottom(k)
+        # Now I know I am inserting between two actual elements
+        m = self._Node(k, up=n, down=n.down)
+        n.down.up = m
+        n.down = m
+        self._map[k] = m
+        
+    def index(self, k):
+        """Return index of a given element.
+        
+        This operation has a O(n) time complexity, with n being the size of the
+        set.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item whose index is queried
+            
+        Returns
+        -------
+        index : int
+            The index of the item
+        """
+        if not k in self._map:
+            raise KeyError('The item %s is not in the set' % str(k))
+        index = 0
+        curr = self._top
+        while curr:
+            if curr.val == k:
+                return index
+            curr = curr.down
+            index += 1
+        else:
+            raise KeyError('It seems that the item %s is not in the set, '
+                           'but you should never see this message. '
+                           'There is something wrong with the code. '
+                           'Debug it or report it to the developers' % str(k))
+    
+    def remove(self, k):
+        """Remove an item from the set
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to remove
+        """
+        if k not in self._map:
+            raise KeyError('Item %s not in the set' % str(k))
+        n = self._map[k]
+        if self._bottom == n:    # I am trying to remove the last node
+            self._bottom = n.up
+        else:
+            n.down.up = n.up
+        if self._top == n:       # I am trying to remove the top node
+            self._top = n.down
+        else:
+            n.up.down = n.down
+        self._map.pop(k)
+    
+    def clear(self):
+        """Empty the set"""
+        self._top = None
+        self._bottom = None
+        self._map.clear()
 
 
 class Cache(object):
@@ -296,9 +684,7 @@ class LruCache(Cache):
         
     @inheritdoc(Cache)
     def __init__(self, maxlen):
-        self._cache = {}
-        self.bottom = None
-        self.top = None
+        self._cache = LinkedSet()
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
@@ -314,12 +700,7 @@ class LruCache(Cache):
     
     @inheritdoc(Cache)
     def dump(self):
-        d = deque()
-        cur = self.top
-        while cur:
-            d.append(cur.val)
-            cur = cur.down
-        return list(d)
+        return list(iter(self._cache))
 
     def position(self, k):
         """Return the current position of an item in the cache. Position *0*
@@ -341,13 +722,7 @@ class LruCache(Cache):
         """
         if not k in self._cache:
             raise ValueError('The item %s is not in the cache' % str(k))
-        index = 0
-        cur = self.top
-        while cur:
-            if cur.val == k:
-                return index
-            cur = cur.down
-            index += 1
+        return self._cache.index(k)
 
     @inheritdoc(Cache)
     def has(self, k):
@@ -357,26 +732,11 @@ class LruCache(Cache):
     def get(self, k):
         # search content over the list
         # if it has it push on top, otherwise return false
-        if not self.has(k):
+        if k not in self._cache:
             return False
-        node = self._cache[k]
-        if not node.up:
-            return True # Content is already on top
-        if node.down:
-            node.down.up = node.up
-        else:
-            self.bottom = node.up # The.bottom node (bottom) now points to the 2nd node
-        node.up.down = node.down
-        del self._cache[k]
-        obj = Node(self.top, k)
-        if self.bottom is None:
-            self.bottom = obj
-        if self.top:
-            self.top.up = obj
-        self.top = obj
-        self._cache[k] = obj
+        self._cache.move_to_top(k)
         return True
-
+    
     def put(self, k):
         """Insert an item in the cache if not already inserted.
         
@@ -393,38 +753,18 @@ class LruCache(Cache):
         evicted : any hashable type
             The evicted object or *None* if no contents were evicted.
         """
-        # if content in cache, push it on top
-        if self.get(k):
+        # if content in cache, push it on top, no eviction
+        if k in self._cache:
+            self._cache.move_to_top(k)
             return None
         # if content not in cache append it on top
-        obj = Node(self.top, k)
-        if self.bottom is None:
-            self.bottom = obj
-        if self.top:
-            self.top.up = obj
-        self.top = obj
-        self._cache[k] = obj
-        # If I reach cache size limit, evict a content
-        if len(self._cache) <= self.maxlen:
-            return None    
-        if self.bottom == self.top:
-            self.bottom = None
-            self.top = None
-            return None
-        a = self.bottom
-        evicted = a.val
-        a.up.down = None
-        self.bottom = a.up
-        a.up = None
-        del self._cache[evicted]
-        del a
-        return evicted
+        self._cache.append_top(k)
+        return self._cache.pop_bottom() if len(self._cache) > self._maxlen else None
+        
 
     @inheritdoc(Cache)
     def clear(self):
         self._cache.clear()
-        self.bottom = None
-        self.top = None
 
 
             

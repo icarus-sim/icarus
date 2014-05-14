@@ -7,14 +7,222 @@ else:
     except ImportError:
         raise ImportError("The unittest2 package is needed to run the tests.") 
 del sys
+import collections
+
+import numpy as np
 
 import icarus.models as cache
 
+class TestLinkedSet(unittest.TestCase):
+    
+    def link_consistency(self, linked_set):
+        """Checks that links of a linked set are consistent iterating from top
+        or from bottom.
+        
+        This method depends on the internal implementation of the LinkedSet
+        class
+        """
+        topdown = collections.deque()
+        bottomup = collections.deque()
+        cur = linked_set._top
+        while cur:
+            topdown.append(cur.val)
+            cur = cur.down
+        cur = linked_set._bottom
+        while cur:
+            bottomup.append(cur.val)
+            cur = cur.up
+        bottomup.reverse()
+        if topdown != bottomup:
+            return False
+        return list(reversed(list(linked_set))) == list(reversed(linked_set))
+        
+    def test_append_top(self):
+        c = cache.LinkedSet()
+        c.append_top(1)
+        self.assertEqual(len(c), 1)
+        self.assertEqual(list(c), [1])
+        c.append_top(2)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(list(c), [2, 1])
+        c.append_top(3)
+        self.assertEqual(len(c), 3)
+        self.assertEqual(list(c), [3, 2, 1])
+        self.assertTrue(self.link_consistency(c))
+        self.assertRaises(KeyError, c.append_top, 2)
+
+    def test_append_bottom(self):
+        c = cache.LinkedSet()
+        c.append_bottom(1)
+        self.assertEqual(len(c), 1)
+        self.assertEqual(list(c), [1])
+        c.append_bottom(2)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(list(c), [1, 2])
+        c.append_bottom(3)
+        self.assertEqual(len(c), 3)
+        self.assertEqual(list(c), [1, 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        self.assertRaises(KeyError, c.append_top, 2)
+
+    def test_move_to_top(self):
+        c = cache.LinkedSet()
+        c.append_top(1)
+        c.move_to_top(1)
+        self.assertEqual(list(c), [1])
+        c.append_bottom(2)
+        c.move_to_top(1)
+        self.assertEqual(list(c), [1, 2])
+        c.move_to_top(2)
+        self.assertEqual(list(c), [2, 1])
+        c.append_bottom(3)
+        c.move_to_top(1)
+        self.assertEqual(list(c), [1, 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        
+    def test_move_to_bottom(self):
+        c = cache.LinkedSet()
+        c.append_top(1)
+        c.move_to_bottom(1)
+        self.assertEqual(list(c), [1])
+        c.append_bottom(2)
+        c.move_to_bottom(2)
+        self.assertEqual(list(c), [1, 2])
+        c.move_to_bottom(1)
+        self.assertEqual(list(c), [2, 1])
+        c.append_top(3)
+        c.move_to_bottom(1)
+        self.assertEqual(list(c), [3, 2, 1])
+        self.assertTrue(self.link_consistency(c))
+    
+    def test_move_up(self):
+        c = cache.LinkedSet()
+        c.append_bottom(1)
+        c.move_up(1)
+        self.assertEqual(list(c), [1])
+        c.append_bottom(2)
+        c.move_up(1)
+        self.assertEqual(list(c), [1, 2])
+        c.move_up(2)
+        self.assertEqual(list(c), [2, 1])
+        c.append_bottom(3)
+        c.move_up(3)
+        self.assertEqual(list(c), [2, 3, 1])
+        c.move_up(3)
+        self.assertEqual(list(c), [3, 2, 1])
+        self.assertTrue(self.link_consistency(c))
+        self.assertRaises(KeyError, c.move_up, 4)
+        
+    def test_move_down(self):
+        c = cache.LinkedSet()
+        c.append_top(1)
+        c.move_down(1)
+        self.assertEqual(list(c), [1])
+        c.append_top(2)
+        c.move_down(1)
+        self.assertEqual(list(c), [2, 1])
+        c.move_down(2)
+        self.assertEqual(list(c), [1, 2])
+        c.move_down(2)
+        self.assertEqual(list(c), [1, 2])
+        c.append_top(3)
+        self.assertEqual(list(c), [3, 1, 2])
+        c.move_down(3)
+        self.assertEqual(list(c), [1, 3, 2])
+        c.move_down(3)
+        self.assertEqual(list(c), [1, 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        self.assertRaises(KeyError, c.move_down, 4)
+        
+    def test_pop_top(self):
+        c = cache.LinkedSet([1, 2, 3])
+        evicted = c.pop_top()
+        self.assertEqual(evicted, 1)
+        self.assertEqual(list(c), [2, 3])
+        self.assertTrue(self.link_consistency(c))
+        evicted = c.pop_top()
+        self.assertEqual(evicted, 2)
+        self.assertEqual(list(c), [3])    
+        self.assertTrue(self.link_consistency(c))
+        evicted = c.pop_top()
+        self.assertEqual(evicted, 3)
+        self.assertEqual(list(c), [])
+        evicted = c.pop_top()
+        self.assertEqual(evicted, None)
+        self.assertEqual(list(c), [])
+
+    def test_pop_bottom(self):
+        c = cache.LinkedSet([1, 2, 3])
+        evicted = c.pop_bottom()
+        self.assertEqual(evicted, 3)
+        self.assertEqual(list(c), [1, 2])
+        self.assertTrue(self.link_consistency(c))
+        evicted = c.pop_bottom()
+        self.assertEqual(evicted, 2)
+        self.assertEqual(list(c), [1])
+        self.assertTrue(self.link_consistency(c))
+        evicted = c.pop_bottom()
+        self.assertEqual(evicted, 1)
+        self.assertEqual(list(c), [])
+        evicted = c.pop_bottom()
+        self.assertEqual(evicted, None)
+        self.assertEqual(list(c), [])
+
+    def test_insert_above(self):
+        c = cache.LinkedSet([3])
+        c.insert_above(3, 2)
+        self.assertEqual(list(c), [2, 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_above(2, 1)
+        self.assertEqual(list(c), [1, 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_above(1, 'a')
+        self.assertEqual(list(c), ['a', 1, 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_above(2, 'b')
+        self.assertEqual(list(c), ['a', 1, 'b', 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_above(3, 'c')
+        self.assertEqual(list(c), ['a', 1, 'b', 2, 'c', 3])
+        self.assertTrue(self.link_consistency(c))
+
+    def test_insert_below(self):
+        c = cache.LinkedSet([1])
+        c.insert_below(1, 2)
+        self.assertEqual(list(c), [1, 2])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_below(2, 3)
+        self.assertEqual(list(c), [1, 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_below(1, 'a')
+        self.assertEqual(list(c), [1, 'a', 2, 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_below(2, 'b')
+        self.assertEqual(list(c), [1, 'a', 2, 'b', 3])
+        self.assertTrue(self.link_consistency(c))
+        c.insert_below(3, 'c')
+        self.assertEqual(list(c), [1, 'a', 2, 'b', 3, 'c'])
+        self.assertTrue(self.link_consistency(c))
+        
+    def test_clear(self):
+        c = cache.LinkedSet()
+        c.append_top(1)
+        c.append_top(2)
+        self.assertEqual(len(c), 2)
+        c.clear()
+        self.assertEqual(len(c), 0)
+        self.assertEqual(list(c), [])
+        c.clear()
+
+    def test_duplicated_elements(self):
+        self.assertRaises(ValueError, cache.LinkedSet, iterable=[1, 1, 2])
+        self.assertRaises(ValueError, cache.LinkedSet, iterable=[1, None, None])
+        self.assertIsNotNone(cache.LinkedSet(iterable=[1, 0, None]))
 class TestLruCache(unittest.TestCase):
 
     def test_lru(self):
         c = cache.LruCache(4)
-        c.put(1)
+        c.put(0)
         self.assertEquals(len(c), 1)
         c.put(2)
         self.assertEquals(len(c), 2)
@@ -22,8 +230,9 @@ class TestLruCache(unittest.TestCase):
         self.assertEquals(len(c), 3)
         c.put(4)
         self.assertEquals(len(c), 4)
-        self.assertEquals(c.dump(), [4, 3, 2, 1])
-        c.put(5)
+        self.assertEquals(c.dump(), [4, 3, 2, 0])
+        self.assertEquals(c.put(5), 0)
+        self.assertEquals(c.put(5), None)
         self.assertEquals(len(c), 4)
         self.assertEquals(c.dump(), [5, 4, 3, 2])
         c.get(2)
