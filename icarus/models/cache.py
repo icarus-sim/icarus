@@ -549,7 +549,23 @@ class Cache(object):
             The evicted object or *None* if no contents were evicted.
         """
         raise NotImplementedError('This method is not implemented')
-    
+
+    @abc.abstractmethod
+    def remove(self, k):
+        """Remove an item from the cache, if present.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to be inserted
+            
+        Returns
+        -------
+        removed : bool
+            *True* if the content was in the cache, *False* if it was not.
+        """
+        raise NotImplementedError('This method is not implemented')
+
     @abc.abstractmethod
     def clear(self):
         """Empty the cache
@@ -662,6 +678,24 @@ class NullCache(Cache):
         """
         return None
 
+    def remove(self, k):
+        """Remove a specified item from the cache.
+        
+        If the element is not present in the cache, no action is taken.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to be inserted
+            
+        Returns
+        -------
+        removed : bool
+            *True* if the content was in the cache, *False* if it was not. It
+            always return *False*
+        """
+        return False
+
     @inheritdoc(Cache)
     def clear(self):
         pass
@@ -763,6 +797,13 @@ class LruCache(Cache):
         
 
     @inheritdoc(Cache)
+    def remove(self, k):
+        if k not in self._cache:
+            return False
+        self._cache.remove(k)
+        return True
+
+    @inheritdoc(Cache)
     def clear(self):
         self._cache.clear()
 
@@ -830,6 +871,14 @@ class LfuCache(Cache):
                 del self._cache[evicted]
                 return evicted
         return None
+    
+    @inheritdoc(Cache)
+    def remove(self, k):
+        if k in self._cache:
+            self._cache.pop(k)
+            return True
+        else:
+            return False
         
     @inheritdoc(Cache)
     def clear(self):
@@ -853,7 +902,7 @@ class FifoCache(Cache):
     def __init__(self, maxlen):
         self._cache = set()
         self._maxlen = int(maxlen)
-        self.d = deque()
+        self._d = deque()
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
     
@@ -868,7 +917,7 @@ class FifoCache(Cache):
     
     @inheritdoc(Cache)
     def dump(self):
-        return list(self.d)
+        return list(self._d)
 
     @inheritdoc(Cache)
     def has(self, k):
@@ -893,7 +942,7 @@ class FifoCache(Cache):
             The current position of the item in the cache
         """
         i = 0
-        for c in self.d:
+        for c in self._d:
             if c == k:
                 return i
             i += 1
@@ -908,16 +957,25 @@ class FifoCache(Cache):
         evicted = None
         if not self.has(k):
             self._cache.add(k)
-            self.d.appendleft(k)
+            self._d.appendleft(k)
         if len(self._cache) > self.maxlen:
-            evicted = self.d.pop()
+            evicted = self._d.pop()
             self._cache.remove(evicted)
         return evicted
     
     @inheritdoc(Cache)
+    def remove(self, k):
+        if k in self._cache:
+            self._cache.remove(k)
+            self._d.remove(k)
+            return True
+        else:
+            return False
+            
+    @inheritdoc(Cache)
     def clear(self):
         self._cache.clear()
-        self.d.clear()
+        self._d.clear()
 
 
 @register_cache_policy('RAND')
@@ -932,11 +990,11 @@ class RandCache(Cache):
     
     @inheritdoc(Cache)
     def __init__(self, maxlen):
-        self._cache = set()
-        self.a = np.empty(maxlen, dtype=object)
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
+        self._cache = set()
+        self._a = [None for _ in range(self._maxlen)]
 
     @inheritdoc(Cache)
     def __len__(self):
@@ -964,13 +1022,23 @@ class RandCache(Cache):
         if not self.has(k):
             if len(self._cache) == self._maxlen:
                 evicted_index = random.randint(0, self.maxlen-1)
-                evicted = self.a[evicted_index]
-                self.a[evicted_index] = k
+                evicted = self._a[evicted_index]
+                self._a[evicted_index] = k
                 self._cache.remove(evicted)
             else:
-                self.a[len(self._cache)] = k
+                self._a[len(self._cache)] = k
             self._cache.add(k)
         return evicted
+    
+    @inheritdoc(Cache)
+    def remove(self, k):
+        if k not in self._cache:
+            return False
+        index = self._a.index(k)
+        self._a[index] = self._a[len(self._cache) - 1]
+        self._a[len(self._cache) - 1] = None
+        self._cache.remove(k)
+        return True
     
     @inheritdoc(Cache)
     def clear(self):

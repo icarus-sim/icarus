@@ -242,6 +242,36 @@ class TestLruCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
+        
+    def test_remove(self):
+        c = cache.LruCache(4)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        c.remove(2)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(c.dump(), [3, 1])
+        c.put(4)
+        c.put(5)
+        self.assertEqual(c.dump(), [5, 4, 3, 1])
+        c.remove(5)
+        self.assertEqual(len(c), 3)
+        self.assertEqual(c.dump(), [4, 3, 1])
+        c.remove(1)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(c.dump(), [4, 3])
+        
+    def test_position(self):
+        c = cache.LruCache(4)
+        c.put(4)
+        c.put(3)
+        c.put(2)
+        c.put(1)
+        self.assertEqual(c.dump(), [1, 2, 3, 4])
+        self.assertEqual(c.position(1), 0)
+        self.assertEqual(c.position(2), 1)
+        self.assertEqual(c.position(3), 2)
+        self.assertEqual(c.position(4), 3)
     
 
 class TestFifoCache(unittest.TestCase):
@@ -271,6 +301,21 @@ class TestFifoCache(unittest.TestCase):
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
     
+    def test_remove(self):
+        c = cache.FifoCache(4)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        c.remove(2)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(c.dump(), [3, 1])
+        c.put(4)
+        c.put(5)
+        self.assertEqual(c.dump(), [5, 4, 3, 1])
+        c.remove(5)
+        self.assertEqual(len(c), 3)
+        self.assertEqual(c.dump(), [4, 3, 1])
+        
 
 class TestRandCache(unittest.TestCase):
     
@@ -297,6 +342,24 @@ class TestRandCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
+
+    def test_remove(self):
+        c = cache.RandCache(4)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        c.remove(2)
+        self.assertEqual(len(c), 2)
+        for v in (3, 1):
+            self.assertTrue(c.has(v))
+        c.put(4)
+        c.put(5)
+        for v in (5, 4, 3, 1):
+            self.assertTrue(c.has(v))
+        c.remove(5)
+        self.assertEqual(len(c), 3)
+        for v in (4, 3, 1):
+            self.assertTrue(c.has(v))
 
 
 class TestLfuCache(unittest.TestCase):
@@ -328,6 +391,21 @@ class TestLfuCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
+        
+    def test_remove(self):
+        c = cache.FifoCache(4)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        c.remove(2)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(c.dump(), [3, 1])
+        c.put(4)
+        c.put(5)
+        self.assertEqual(c.dump(), [5, 4, 3, 1])
+        c.remove(5)
+        self.assertEqual(len(c), 3)
+        self.assertEqual(c.dump(), [4, 3, 1])
         
         
 class TestRandInsert(unittest.TestCase):
