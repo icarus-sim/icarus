@@ -16,7 +16,7 @@ __all__ = [
        'means_confidence_interval',
        'proportions_confidence_interval',
        'cdf',
-       'pdf'
+       'pdf',
            ]
 
 
@@ -116,8 +116,12 @@ class TruncatedZipfDist(DiscreteDist):
         # content i + 1 is picked
         pdf = np.arange(1.0, n+1.0)**-alpha
         pdf /= np.sum(pdf)
+        self._alpha = alpha
         super(TruncatedZipfDist, self).__init__(pdf, seed)
 
+    @property
+    def alpha(self):
+        return self._alpha
 
 def means_confidence_interval(data, confidence=0.95):
     """Computes the confidence interval for a given set of means.
@@ -209,7 +213,6 @@ def cdf(data):
     cdf = cdf/norm # normalize
     cdf[-1] = 1.0 # Prevent rounding errors 
     return sorted_unique_data, cdf
-
 
 
 def pdf(data, n_bins):
