@@ -155,7 +155,7 @@ def topology_geant(network_cache=0.05, n_contents=100000, seed=None):
     topology = fnss.parse_topology_zoo(path.join(TOPOLOGY_RESOURCES_DIR,
                                                  'Geant2012.graphml')
                                        ).to_undirected()
-    topology = nx.connected_component_subgraphs(topology)[0]
+    topology = list(nx.connected_component_subgraphs(topology))[0]
     deg = nx.degree(topology)
     receivers = [v for v in topology.nodes() if deg[v] == 1] # 8 nodes
     caches = [v for v in topology.nodes() if deg[v] > 2] # 19 nodes
@@ -219,7 +219,7 @@ def topology_tiscali(network_cache=0.05, n_contents=100000, seed=None):
     topology = fnss.parse_rocketfuel_isp_map(path.join(TOPOLOGY_RESOURCES_DIR,
                                                        '3257.r0.cch')
                                              ).to_undirected()
-    topology = nx.connected_component_subgraphs(topology)[0]
+    topology = list(nx.connected_component_subgraphs(topology))[0]
     # degree of nodes
     deg = nx.degree(topology)
     # nodes with degree = 1
