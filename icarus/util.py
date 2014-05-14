@@ -6,6 +6,7 @@ import collections
 
 __all__ = [
         'Settings',
+        'SequenceNumber',
         'config_logging',
         'inheritdoc',
         'timestr',
@@ -176,6 +177,46 @@ class Settings(object):
         self.__conf[name] = value
 
 
+class SequenceNumber(object):
+    """This class models an increasing sequence number.
+    
+    It is used to assign a sequence number for an experiment in a thread-safe
+    manner.
+    """
+    
+    def __init__(self, initval=1):
+        """Constructor
+        
+        Parameters
+        ----------
+        initval :int, optional
+            The starting sequence number
+        """
+        self.__seq = initval - 1
+        
+    def assign(self):
+        """Assigns a new sequence number.
+        
+        Returns
+        -------
+        seq : int
+            The sequence number
+        """
+        self.__seq += 1
+        seq = self.__seq
+        return seq
+    
+    def current(self):
+        """Return the latest sequence number assigned
+        
+        Returns
+        -------
+        seq : int
+            The latest assigned sequence number
+        """
+        return self.__seq
+
+
 def config_logging(log_level='INFO'):
     """Configure logging level
     
@@ -219,6 +260,7 @@ def inheritdoc(cls):
         return function
     return _decorator
 
+
 def timestr(sec, with_seconds=True):
     """Get a time interval in seconds and returns it formatted in a string.
     
@@ -255,16 +297,7 @@ def timestr(sec, with_seconds=True):
         vals.pop()
         units.pop()
     return "".join("%d%s " % (vals[i], units[i]) for i in range(len(vals)))[:-1]
-#    flag = False
-#    if t.tm_yday > 1:
-#        fmt_t = "%dd %dh %dm" % (t.tm_yday - 1, t.tm_hour, t.tm_min)
-#    elif t.tm_hour > 0:
-#        fmt_t = "%dh %dm" % (t.tm_hour, t.tm_min)
-#    else:
-#        fmt_t = "%dm" % t.tm_min
-#    if show_seconds:
-#        fmt_t += " %ds" % t.tm_sec
-#    return fmt_t
+
 
 def iround(x):
     """Round float to closest integer

@@ -17,7 +17,7 @@ from icarus.scenarios import uniform_req_gen
 from icarus.registry import topology_factory_register, cache_policy_register, \
                            strategy_register, data_collector_register
 from icarus.results import ResultSet
-from icarus.util import timestr
+from icarus.util import SequenceNumber, timestr
 
 
 __all__ = ['Orchestrator', 'run_scenario']
@@ -155,44 +155,6 @@ class Orchestrator(object):
                         seq, n_scheduled, eta)
         
 
-class SequenceNumber(object):
-    """This class models an increasing sequence number.
-    
-    It is used to assign a sequence number for an experiment in a thread-safe
-    manner.
-    """
-    
-    def __init__(self, initval=1):
-        """Constructor
-        
-        Parameters
-        ----------
-        initval :int, optional
-            The starting sequence number
-        """
-        self.__seq = initval - 1
-        
-    def assign(self):
-        """Assigns a new sequence number.
-        
-        Returns
-        -------
-        seq : int
-            The sequence number
-        """
-        self.__seq += 1
-        seq = self.__seq
-        return seq
-    
-    def current(self):
-        """Return the latest sequence number assigned
-        
-        Returns
-        -------
-        seq : int
-            The latest assigned sequence number
-        """
-        return self.__seq
 
 
 def run_scenario(settings, params, curr_exp, n_exp):
