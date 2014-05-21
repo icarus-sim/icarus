@@ -62,7 +62,7 @@ def run(config, output):
     config_logging(settings.LOG_LEVEL)
     # set up orchestration
     orch = Orchestrator(settings)
-    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT):
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT, signal.SIGABRT):
         signal.signal(sig, functools.partial(handler, settings, orch, output))
     logger.info('Launching orchestrator')
     orch.run()
