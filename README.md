@@ -75,7 +75,9 @@ You can also get the development branch from the Github repository using Git. Ju
 To use Icarus with the currently implemented topologies and models of caching policies
 and strategies you need to do the following.
 
-First, Create a configuration file with all the desired parameters of your simulation. You can modify the file `config.py`, which is a well documented example configuration. You can even use the configuration file as it is just to get started.
+To use Icarus with the currently implemented topologies and models of caching policies and strategies you need to do the following.
+
+First, create a configuration file with all the desired parameters of your simulation. You can modify the file `config.py`, which is a well documented example configuration. You can even use the configuration file as it is just to get started.
 
 Second, run Icarus by running the script `icarus.py` using the following syntax
 
@@ -84,14 +86,14 @@ Second, run Icarus by running the script `icarus.py` using the following syntax
 where:
 
  * `RESULTS_FILE` is the [pickle](http://docs.python.org/3/library/pickle.html) file in which results will be saved,
- * `PLOT_DIR` is the directory where graphs plotting the results will be saved. If the folder does not exist, it will be created. This parameter is optional. If omitted, graphs will not be plotted. Results can be plotted at a later stage anyway.
+ * `PLOTS_DIR` is the directory where graphs plotting the results will be saved. If the folder does not exist, it will be created. This parameter is optional. If omitted, graphs will not be plotted. Results can be plotted at a later stage anyway.
  * `CONF_FILE` is the configuration file
 
 Example usage could be:
 
-    $ python icarus.py --output results.pickle --plots graphs config.py
+    $ python icarus.py --results results.pickle --plots graphs config.py
 
-By executing the steps illustrated above it is possible to run simulation using the
+By executing the steps illustrated above it is possible to run simulations using the
 topologies, cache policies, strategies and result collectors readily available on
 Icarus. Icarus makes it easy to implement new models to use in simulations.
 
@@ -99,9 +101,10 @@ To implement new models, please refer to the description of the simulator
 provided in this paper:
 
 L.Saino, I. Psaras and G. Pavlou, Icarus: a Caching Simulator for Information Centric
-Networking (ICN), in *Proc. of SIMUTOOLS'14*, Lisbon, Portugal, March 2014.
-[\[PDF\]](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.pdf),
-[\[BibTex\]](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.bib)
+Networking (ICN), in Proc. of SIMUTOOLS'14, Lisbon, Portugal, March 2014.
+\[[PDF](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.pdf)\],
+\[[Slides](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14-slides.pdf)\],
+\[[BibTex](http://www.ee.ucl.ac.uk/~lsaino/publications/icarus-simutools14.bib)\]
 
 Otherwise, please browse the source code. It is very well documented and easy to
 understand.
@@ -214,3 +217,5 @@ Icarus is licensed under the terms of the [GNU GPLv2 license](http://www.gnu.org
 For further information about the Icarus simulator, please contact
 [Lorenzo Saino](http://www.ee.ucl.ac.uk/~lsaino)
 
+## Acknowledgments
+This work is funded by the EU-Japan initiative under European Commission FP7 grant agreement no. 608518 and NICT contract no. 167 ([the GreenICN project](http://www.greenicn.org/)).
