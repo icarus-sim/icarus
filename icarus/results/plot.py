@@ -10,7 +10,7 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-from icarus.util import Settings, config_logging
+from icarus.util import Settings, config_logging, step_cdf
 from icarus.tools import means_confidence_interval
 from icarus.registry import results_reader_register
 from icarus.results import extract_metric
@@ -529,6 +529,121 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
 
 
+def plot_cdf(resultset, desc, filename, plotdir):
+    """Plot a CDF with characteristics described in the plot descriptor
+    out of the data contained in the resultset and save the plot in given
+    directory.
+    
+    Parameters
+    ----------
+    rs : ResultSet
+        Result set
+    desc : dict
+        The plot descriptor (more info below)
+    filename : str
+        The name used to save the file. The file format is determined by the
+        extension of the file. For example, if this filename is 'foo.pdf', the
+        file will be saved in pdf format.
+    plotdir : str
+        The directory in which the plot will be saved.
+    
+    Notes
+    -----
+    The plot descriptor is a dictionary with a set of values that describe how
+    to make the plot.
+    
+    The dictionary can contain the following keys:
+     * title : str, optional.
+           The title of the graph
+     * xlabel : str, optional
+         The x label
+     * ylabel : str, optional
+         The y label. The default value is 'Cumulative probability'
+     * confidence : float, optional
+         The confidence used to plot error bars. Default value is 0.95
+     * metric : list
+         A list of values representing the metric to plot. These values are the
+         path to identify a specific metric into an entry of a result set.
+         Normally, it is a 2-value list where the first value is the name of
+         the collector which measured the metric and the second value is the
+         metric name. The metric must be a CDF.
+         Example values could be ['LATENCY', 'CDF'].
+     * filter : dict, optional
+         A dictionary of values to filter in the resultset.
+         Example: {'network_cache': 0.004, 'topology_name': 'GEANT'}
+         If not specified or None, no filtering is executed on the results
+         and possibly heterogeneous results may be plotted together
+     * yparam : str
+         The name of the y metric, e.g. 'strategy'
+     * yvals : list
+         List of lines plotted. For example. if yparam = 'strategy_name', then
+         a valid yvals value could be ['HR_SYMM', 'HR_ASYMM']
+     * xscale : str, optional
+         The scale of x axis. Options allowed are 'linear' and 'log'. 
+         Default value is 'linear'
+     * yscale : str, optional
+         The scale of y axis. Options allowed are 'linear' and 'log'.
+         Default value is 'linear'
+     * step : bool, optional
+         If *True* draws the CDF with steps. Default value is *True*
+     * legend_loc : str
+         Legend location, e.g. 'upper left'
+     * line_style : dict, optional
+         Dictionary mapping each value of yvals with a line style
+     * legend : dict, optional
+         Dictionary mapping each value of yvals with a legend label
+     * plotempty : bool, optional
+         If *True*, plot and save graph even if empty. Default is *True* 
+    """
+    plt.figure()
+    if 'title' in desc:
+        plt.title(desc['title'])
+    if 'xlabel' in desc:
+        plt.xlabel(desc['xlabel'])
+    plt.ylabel(desc['ylabel'] if 'ylabel' in desc else 'Cumulative probability')
+    if 'xscale' in desc:
+        plt.xscale(desc['xscale'])
+    if 'yscale' in desc:
+        plt.yscale(desc['yscale'])
+    if 'filter' not in desc or desc['filter'] is None:
+        desc['filter'] = {}
+    step = desc['step'] if 'step' in desc else True
+    plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    x_min = np.infty
+    x_max = - np.infty
+    empty = True
+    for l in desc['yvals']:
+        condition = dict(list(desc['filter'].items()) + \
+                         [(desc['yparam'], l)])
+        data = [extract_metric(x, desc['metric'])
+                for x in resultset.filter(condition)]
+        # If there are more than 1 CDFs in the resultset, take the first one
+        if data:
+            x_cdf, y_cdf = data[0]
+            if step:
+                x_cdf, y_cdf = step_cdf(x_cdf, y_cdf)
+        else:
+            x_cdf, y_cdf = [], []
+        fmt = desc['line_style'][l] if 'line_style' in desc \
+              and l in desc['line_style'] else '-'
+        # This check is to prevent crashing when trying to plot arrays of nan
+        # values with axes log scale
+        if all(np.isnan(x) for x in x_cdf) or all(np.isnan(y) for y in y_cdf):
+            plt.plot([], [], fmt)
+        else:
+            plt.plot(x_cdf, y_cdf, fmt)
+            empty = False
+            x_min = min(x_min, x_cdf[0])
+            x_max = max(x_max, x_cdf[-1])
+    if empty and not plot_empty:
+        return
+    plt.xlim(x_min, x_max)
+    legend = [desc['legend'][l] for l in desc['yvals']] if 'legend'in desc \
+             else desc['yvals']
+    plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+
+
 def run(config, results, plotdir):
     """Run the plot script
     
@@ -553,7 +668,7 @@ def run(config, results, plotdir):
     cache_sizes = settings.NETWORK_CACHE
     alphas = settings.ALPHA
     strategies = settings.STRATEGIES
-    #Plot graphs
+    # Plot graphs
     for topology in topologies:
         for cache_size in cache_sizes:
             logger.info('Plotting cache hit ratio for topology %s and cache size %s vs alpha' % (topology, str(cache_size)))

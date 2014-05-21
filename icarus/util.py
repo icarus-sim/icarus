@@ -4,13 +4,16 @@ import time
 import logging
 import collections
 
+import numpy as np
+
 __all__ = [
         'Settings',
         'SequenceNumber',
         'config_logging',
         'inheritdoc',
         'timestr',
-        'iround'
+        'iround',
+        'step_cdf'
            ]
 
 
@@ -317,3 +320,35 @@ def iround(x):
     """
     y = round(x) - .5
     return int(y) + (y > 0)
+
+
+def step_cdf(x, y):
+    """Convert an empirical CDF in set of points representing steps.
+
+    Normally this is conversion is done for plotting purposes.
+    
+    Parameters
+    ----------
+    x : array
+        The x values of the CDF
+    y : array
+        The y values of the CDF
+
+    Returns
+    -------
+    x : array
+        The x values of the CDF
+    y : array
+        The y values of the CDF
+    """
+    if len(x) != len(y):
+        raise ValueError('x and y must have the same size')
+    sx = np.empty(2*(len(x)))
+    sy = np.empty(2*(len(y)))
+    for i in range(len(x)):
+        sx[2*i] = x[i]
+        sx[2*i + 1] = x[i]
+        sy[2*i] = y[i-1]
+        sy[2*i + 1] = y[i]
+    sy[0] = 0
+    return sx, sy
