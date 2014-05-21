@@ -141,7 +141,7 @@ class Orchestrator(object):
         # Extract parameters
         params, results, seq, duration = args
         # Store results
-        self.results.add((params, results))
+        self.results.add(params, results)
         self.exp_durations.append(duration)
         if seq % self.summary_freq == 0:
             # Number of experiments scheduled to be executed

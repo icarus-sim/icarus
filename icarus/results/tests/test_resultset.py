@@ -19,9 +19,9 @@ class TestResultSet(unittest.TestCase):
         cls.cond_b = {'alpha': 1, 'beta': 2, 'gamma': 3}
         cls.cond_c = {'alpha': -1, 'beta': -2, 'gamma': 3}
         cls.metric = {'m1': 1, 'm2': 2, 'm3': 3}
-        cls.rs.add((cls.cond_a, cls.metric))
-        cls.rs.add((cls.cond_b, cls.metric))
-        cls.rs.add((cls.cond_c, cls.metric))
+        cls.rs.add(cls.cond_a, cls.metric)
+        cls.rs.add(cls.cond_b, cls.metric)
+        cls.rs.add(cls.cond_c, cls.metric)
         pass
         
     @classmethod

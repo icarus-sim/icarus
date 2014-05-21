@@ -24,12 +24,17 @@ class ResultSet(object):
     be shared by different processes.
     """
     
-    def __init__(self):
+    def __init__(self, attr=None):
         """Constructor
+        
+        Parameters
+        ----------
+        attr : dict, optional
+            Dictionary of common attributes to all experiments
         """
         self._results = collections.deque()
         # Dict of global attributes common to all experiments
-        self.attr = {}
+        self.attr = attr if attr else {}
     
     def __len__(self):
         """Returns the number of results in the resultset
@@ -83,17 +88,17 @@ class ResultSet(object):
             rs.add(i)
         return rs
 
-    def add(self, result):
-        """Add a result to the result set. This method is thread safe
+    def add(self, parameters, results):
+        """Add a result to the result set.
         
         Parameters
         ----------
-        results : 2-value tuple
-            2-value tuples where the first value is a dictionary of experiment
-            parameters and the second value is the dictionary of experiment
-            results
+        parameters : dict
+            Dictionary of experiment parameters
+        results : dict
+            Dictionary of experiment results
         """
-        self._results.append(result)
+        self._results.append((parameters, results))
     
     def dump(self):
         """Dump all results.
