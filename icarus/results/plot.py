@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Plot results read from a resultset
+"""Plot results read from a result set
 """
 from __future__ import division
 import os
@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from icarus.util import Settings, config_logging
 from icarus.tools import means_confidence_interval
 from icarus.registry import results_reader_register
+from icarus.results import extract_metric
 
 
 # Logger object
@@ -22,6 +23,9 @@ logger = logging.getLogger('plot')
 # Publishers don't want them
 plt.rcParams['ps.useafm'] = True
 plt.rcParams['pdf.use14corefonts'] = True
+
+# If True text is interpreted as LaTeX, e.g. underscore are interpreted as 
+# subscript. If False, text is interpreted literally
 plt.rcParams['text.usetex'] = True
 
 # Aspect ratio of the output figures
@@ -276,7 +280,6 @@ def plot_link_load_vs_topology(resultset, alpha, cache_size, topology_range, str
     plot_bar_graph(resultset, desc, 'LINK_LOAD_INTERNAL_A=%s_C=%s.pdf'
                    % (alpha, cache_size), plotdir)
 
-
     
 def plot_lines(resultset, desc, filename, plotdir):
     """Plot a graph with characteristics described in the plot descriptor out
@@ -311,15 +314,18 @@ def plot_lines(resultset, desc, filename, plotdir):
          If *True* error bars will be plotted. Default value is *True*
      * confidence : float, optional
          The confidence used to plot error bars. Default value is 0.95
-     * metric : tuple
-         A tuple of 2-values representing the metric to plot.
-         The first value is the name of the collector which measured the metric
-         and the second value is the metric name. Example values could
-         ('CACHE_HIT_RATIO', 'MEAN'), ('LINK_LOAD', 'MEAN_INTERNAL') or 
-         ('LATENCY', 'MEAN')
-     * filter : dict
+     * metric : list
+         A list of values representing the metric to plot. These values are the
+         path to identify a specific metric into an entry of a result set.
+         Normally, it is a 2-value list where the first value is the name of
+         the collector which measured the metric and the second value is the
+         metric name. Example values could be ['CACHE_HIT_RATIO', 'MEAN'],
+         ['LINK_LOAD', 'MEAN_INTERNAL'] or ['LATENCY', 'MEAN']
+     * filter : dict, optional
          A dictionary of values to filter in the resultset.
          Example: {'network_cache': 0.004, 'topology_name': 'GEANT'}
+         If not specified or None, no filtering is executed on the results
+         and possibly heterogeneous results may be plotted together
      * xparam : str
          The name of the x axis metric, e.g. 'alpha'
      * xvals : list
@@ -355,6 +361,8 @@ def plot_lines(resultset, desc, filename, plotdir):
         plt.xscale(desc['xscale'])
     if 'yscale' in desc:
         plt.yscale(desc['yscale'])
+    if 'filter' not in desc or desc['filter'] is None:
+        desc['filter'] = {}
     xvals = sorted(desc['xvals'])
     plot_empty = desc['plotempty'] if 'plotempty' in desc else True
     empty = True
@@ -365,7 +373,8 @@ def plot_lines(resultset, desc, filename, plotdir):
             condition = dict(list(desc['filter'].items()) + \
                              [(desc['xparam'], xvals[i]),
                               (desc['yparam'], l)])
-            data = [x[1][desc['metric'][0]][desc['metric'][1]]
+            
+            data = [extract_metric(x, desc['metric'])
                     for x in resultset.filter(condition)]
             confidence = desc['confidence'] if 'confidence' in desc else 0.95 
             means[i], err[i] = means_confidence_interval(data, confidence)
@@ -422,15 +431,18 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
          If *True* error bars will be plotted. Default value is *True*
      * confidence : float, optional
          The confidence used to plot error bars. Default value is 0.95
-     * metric : tuple
-         A tuple of 2-values representing the metric to plot.
-         The first value is the name of the collector which measured the metric
-         and the second value is the metric name. Example values could
-         ('CACHE_HIT_RATIO', 'MEAN'), ('LINK_LOAD', 'MEAN_INTERNAL') or 
-         ('LATENCY', 'MEAN')
-     * filter : dict
+     * metric : list
+         A list of values representing the metric to plot. These values are the
+         path to identify a specific metric into an entry of a result set.
+         Normally, it is a 2-value list where the first value is the name of
+         the collector which measured the metric and the second value is the
+         metric name. Example values could be ['CACHE_HIT_RATIO', 'MEAN'],
+         ['LINK_LOAD', 'MEAN_INTERNAL'] or ['LATENCY', 'MEAN']
+     * filter : dict, optional
          A dictionary of values to filter in the resultset.
          Example: {'network_cache': 0.004, 'topology_name': 'GEANT'}
+         If not specified or None, no filtering is executed on the results
+         and possibly heterogeneous results may be plotted together
      * xparam : str
          The name of the x axis metric, e.g. 'alpha'
      * xvals : list
@@ -460,6 +472,8 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
         plt.xlabel(desc['xlabel'])
     if 'ylabel' in desc:
         plt.ylabel(desc['ylabel'])
+    if 'filter' not in desc or desc['filter'] is None:
+        desc['filter'] = {}
     plot_empty = desc['plotempty'] if 'plotempty' in desc else True
     empty = True
     # Spacing attributes
@@ -490,7 +504,7 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
             condition = dict(list(desc['filter'].items()) + \
                              [(desc['xparam'], desc['xvals'][i]),
                               (desc['yparam'], l)])
-            data = [x[1][desc['metric'][0]][desc['metric'][1]]
+            data = [extract_metric(x, desc['metric'])
                     for x in resultset.filter(condition)]
             confidence = desc['confidence'] if 'confidence' in desc else 0.95 
             meanval, err = means_confidence_interval(data, confidence)

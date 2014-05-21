@@ -12,6 +12,7 @@ from icarus.registry import register_results_reader, register_results_writer
 
 __all__ = [
     'ResultSet',
+    'extract_metric',
     'write_results_pickle',
     'read_results_pickle'
            ]
@@ -143,6 +144,39 @@ class ResultSet(object):
                     dict((m, exp_metrics[m]) for m in metrics if m in exp_metrics)
                 filtered_results.append((exp_params, filtered_metrics))
         return list(filtered_results)
+
+
+def extract_metric(result, metric_hierarchy):
+    """Extract a specific metric from an entry of a result set.
+    
+    In a result set, each experiment is represented by a 2-tuple of
+    dictionaries whereby the first element is a dictionary of parameters and
+    the second element is a dictionary of measured metrics, possibly nesting
+    other dictionaries.
+    
+    This function, given a result entry, iterates through the metric hierarchy
+    and returns the desired metric value. For example, let us assume that we
+    want to get the mean cache hit ratio of the first experiment, as stored by
+    the cache hit ratio collector. We can do this as::
+    
+    cache_hit_ratio = extract_metric(resultset[0], ['CACHE_HIT_RATIO', 'MEAN'])
+    
+    Parameters
+    ----------
+    result: 2-value tuple
+        An entry of a resultset
+    metric_hierarchy : list
+        List of key values to get the desired metric
+    
+    Returns
+    -------
+    metric : any hashable type
+        The desired metric value
+    """
+    result = result[1]
+    for m in metric_hierarchy:
+        result = result[m]
+    return result
 
 
 @register_results_writer('PICKLE')
