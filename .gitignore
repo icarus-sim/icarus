@@ -7,6 +7,9 @@ __pycache__
 .*
 !.gitignore
 
+# Ignore results
+*.pickle
+
 # Ignore doc build files
 doc/build
 doc/source/apidoc
