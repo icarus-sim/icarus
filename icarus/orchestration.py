@@ -11,6 +11,7 @@ import multiprocessing as mp
 import logging
 import sys
 import signal
+import traceback
 
 from icarus.execution import exec_experiment
 from icarus.scenarios import uniform_req_gen
@@ -48,6 +49,8 @@ class Orchestrator(object):
         self.results = ResultSet()
         self.seq = SequenceNumber()
         self.exp_durations = collections.deque(maxlen=30)
+        self.n_success = 0
+        self.n_fail = 0
         self.summary_freq = summary_freq
         self._stop = False
         if settings.PARALLEL_EXECUTION:
@@ -85,51 +88,58 @@ class Orchestrator(object):
                                           n_contents=n_contents,
                                           strategy_params={})
                             queue.append(params)
-        # Calc number of experiments nad number of processes
+        # Calculate number of experiments and number of processes
         self.n_exp = len(queue) * self.settings.N_REPLICATIONS 
         self.n_proc = self.settings.N_PROCESSES \
                       if self.settings.PARALLEL_EXECUTION \
                       else 1
         logger.info('Starting simulations: %d experiments, %d process(es)' 
                     % (self.n_exp, self.n_proc))
-        # Schedule experiments from the queue
-        while queue:
-            experiment = queue.popleft()
-            for _ in range(self.settings.N_REPLICATIONS):
-                if self.settings.PARALLEL_EXECUTION:
-                    last_job = self.pool.apply_async(run_scenario,
+        
+        if self.settings.PARALLEL_EXECUTION:
+            # This job queue is used only to keep track of which jobs have
+            # finished and which are still running. Currently this information
+            # is used only to handle keyboard interrupts correctly
+            job_queue = collections.deque()
+            # Schedule experiments from the queue
+            while queue:
+                experiment = queue.popleft()
+                for _ in range(self.settings.N_REPLICATIONS):
+                    job_queue.append(self.pool.apply_async(run_scenario,
                             args=(self.settings, experiment,
                                   self.seq.assign(), self.n_exp),
-                            callback=self.experiment_callback)
-                else:
-                    self.experiment_callback(run_scenario(self.settings, 
-                                    experiment, self.seq.assign(),
-                                    self.n_exp))
-                if self._stop:
-                    self.stop()
-                                
-        # If parallel execution, wait for all processes to terminate
-        if self.settings.PARALLEL_EXECUTION:
+                            callback=self.experiment_callback))
             self.pool.close()
-            # This solution is not optimal, but at least makes KeyboardInterrupt
-            # work fine, which is crucial if launching the simulation remotely
-            # via screen.
+            # This solution is probably not optimal, but at least makes
+            # KeyboardInterrupt work fine, which is crucial if launching the
+            # simulation remotely via screen.
             # What happens here is that we keep waiting for possible
-            # KeyboardInterrupts till the last scheduled process terminates
-            # successfully. The last scheduled process is not necessarily the last
-            # finishing one but nothing bad is going to happen in such case, it
-            # will only not be possible interrupting the simulation between the
-            # last scheduled process ends and the last ending process ends, which
-            # is likely a matter of seconds.
+            # KeyboardInterrupts till the last process terminates successfully.
+            # We may have to wait up to 5 seconds after the last process
+            # terminates before exiting, which is really negligible
             try:
-                while not last_job.ready(): time.sleep(5)
+                while job_queue:
+                    job = job_queue.popleft()
+                    while not job.ready():
+                        time.sleep(5)
             except KeyboardInterrupt:
                 self.pool.terminate()
-                self.pool.join()
-                return
             self.pool.join()
-    
-    
+        
+        else: # Single-process execution
+            while queue:
+                experiment = queue.popleft()
+                for _ in range(self.settings.N_REPLICATIONS):
+                    self.experiment_callback(run_scenario(self.settings, 
+                                            experiment, self.seq.assign(),
+                                            self.n_exp))
+                    if self._stop:
+                        self.stop()
+
+        logger.info('END | Planned: %d, Completed: %d, Succeeded: %d, Failed: %d', 
+                    self.n_exp, self.n_fail + self.n_success, self.n_success, self.n_fail)
+        
+
     def experiment_callback(self, args):
         """Callback method called by run_scenario
         
@@ -138,24 +148,28 @@ class Orchestrator(object):
         args : tuple
             Tuple of arguments
         """
+        # If args is None, that means that an exception was raised during the
+        # execution of the experiment. In such case, ignore it
+        if not args:
+            self.n_fail += 1
+            return
         # Extract parameters
-        params, results, seq, duration = args
+        params, results, duration = args
+        self.n_success += 1
         # Store results
         self.results.add(params, results)
         self.exp_durations.append(duration)
-        if seq % self.summary_freq == 0:
+        if self.n_success % self.summary_freq == 0:
             # Number of experiments scheduled to be executed
-            n_scheduled = self.n_exp - seq
+            n_scheduled = self.n_exp - (self.n_fail + self.n_success)
             # Compute ETA
             n_cores = min(mp.cpu_count(), self.n_proc)
             mean_duration = sum(self.exp_durations)/len(self.exp_durations)
             eta = timestr(n_scheduled*mean_duration/n_cores, False)
             # Print summary
-            logger.info('SUMMARY | Completed: %d, Scheduled: %d, ETA: %s', 
-                        seq, n_scheduled, eta)
+            logger.info('SUMMARY | Completed: %d, Failed: %d, Scheduled: %d, ETA: %s', 
+                        self.n_success, self.n_fail, n_scheduled, eta)
         
-
-
 
 def run_scenario(settings, params, curr_exp, n_exp):
     """Run a single scenario experiment
@@ -173,9 +187,12 @@ def run_scenario(settings, params, curr_exp, n_exp):
     
     Returns
     -------
-    results : 2-tuple
-        A 2-tuple of dictionaries. The first dict stores all the attributes of
-        the experiment. The second dict stores the results.
+    results : 3-tuple
+        A (params, results, duration) 3-tuple. The first element is a dictionary
+        which stores all the attributes of the experiment. The second element
+        is a dictionary which stores the results. The third element is an
+        integer expressing the wall-clock duration of the experiment (in
+        seconds) 
     """
     try:
         start_time = time.time()
@@ -227,7 +244,13 @@ def run_scenario(settings, params, curr_exp, n_exp):
         duration = time.time() - start_time
         logger.info('Experiment %d/%d | End simulation | Duration %s.', 
                     curr_exp, n_exp, timestr(duration, True))
-        return (params, results, curr_exp, duration)
+        return (params, results, duration)
     except KeyboardInterrupt:
         logger.error('Received keyboard interrupt. Terminating')
         sys.exit(-signal.SIGINT)
+    except Exception as e:
+        err_type = str(type(e)).split("'")[1].split(".")[1]
+        err_message = e.message
+        logger.error('Experiment %d/%d | Failed | %s: %s\n%s',
+                     curr_exp, n_exp, err_type, err_message,
+                     traceback.format_exc())
