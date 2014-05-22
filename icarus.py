@@ -12,6 +12,7 @@ import argparse
 def main():
     src_dir = path.abspath(path.dirname(__file__))
     sys.path.insert(0, src_dir)
+    import icarus
     import icarus.run
     import icarus.results.plot
     parser = argparse.ArgumentParser(description=__doc__)
@@ -21,10 +22,17 @@ def main():
     parser.add_argument("-p", "--plots", dest="plotsdir",
                         help='plot results and save them in plotsdir',
                         required=False)
+    parser.add_argument("-c", "--config-override", dest="config_override", action="append",
+                        help='override specific key=value parameter of configuration file',
+                        required=False)
     parser.add_argument("config",
                         help="configuration file")
+    parser.add_argument('--version', action='version',
+                        version="icarus %s" % icarus.__version__)
     args = parser.parse_args()
-    icarus.run.run(args.config, args.results)
+    config_override = dict(c.split("=") for c in args.config_override) \
+             if args.config_override else None
+    icarus.run.run(args.config, args.results, config_override)
     if args.plotsdir:
         icarus.results.plot.run(args.config, args.results, args.plotsdir)
 

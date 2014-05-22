@@ -26,7 +26,7 @@ class Settings(object):
         # This kind of assignment using __setattr__ is to prevent infinite
         # recursion 
         object.__setattr__(self, '__conf', dict())
-        object.__setattr__(self, 'frozen', False)
+        object.__setattr__(self, '__frozen', False)
 
     def __len__(self):
         """Return the number of settings
@@ -71,6 +71,8 @@ class Settings(object):
         """
         if name == '_Settings__conf':
             return object.__getattribute__(self, '__conf')
+        if name == '_Settings__frozen':
+            return object.__getattribute__(self, '__frozen')
         if name in self.__conf:
             return self.__conf[name]
         else:
@@ -110,7 +112,7 @@ class Settings(object):
         name : str
             Name of the setting
         """
-        if self.frozen:
+        if self.__frozen:
             raise ValueError('Settings are frozen and cannot be modified')
         del self.__conf[name]
         
@@ -129,7 +131,12 @@ class Settings(object):
         """
         return name in self.__conf
 
-    def read_from(self, path, freeze=True):
+    @property
+    def frozen(self):
+        "Return whether the object is frozen or not."
+        return self.__frozen
+
+    def read_from(self, path, freeze=False):
         """Initialize settings by reading from a file
         
         Parameters
@@ -139,13 +146,18 @@ class Settings(object):
         freeze : bool, optional
             If *True*, freezes object so that settings cannot be changed
         """
-        if self.frozen:
+        if self.__frozen:
             raise ValueError('Settings are frozen and cannot be modified')
         exec(open(path).read(), self.__conf)
         for k in list(self.__conf):
             if k != k.upper():
                 del self.__conf[k]
-        self.frozen = freeze
+        if freeze:
+            self.freeze()
+    
+    def freeze(self):
+        "Freeze the objects. No settings can be added or modified any more"
+        self.__frozen = True
     
     def get(self, name):
         """Return value of settings with given name

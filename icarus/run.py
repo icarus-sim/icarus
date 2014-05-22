@@ -43,7 +43,7 @@ def handler(settings, orch, output, signum=None, frame=None):
     orch.stop()
     sys.exit(-signum)
 
-def run(config, output):
+def run(config_file, output, config_override):
     """ 
     Run function. It starts the simulator.
     experiments
@@ -54,10 +54,20 @@ def run(config, output):
         Path of the configuration file
     output : str
         The file name where results will be saved
+    config_override : dict, optional
+        Configuration parameters overriding parameters in the file
     """
     # Read settings from file and save them in icarus.conf.settings
     settings = Settings()
-    settings.read_from(config)
+    settings.read_from(config_file)
+    if config_override:
+        for k, v in config_override.iteritems():
+            try:
+                v = eval(v)
+            except NameError:
+                pass
+            settings.set(k, v)
+    settings.freeze()
     # Config logger
     config_logging(settings.LOG_LEVEL)
     # set up orchestration
