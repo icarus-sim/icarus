@@ -6,7 +6,7 @@ import collections
 
 from icarus.registry import register_data_collector
 from icarus.tools import cdf
-from icarus.util import inheritdoc
+from icarus.util import Tree, inheritdoc
 
 
 __all__ = [
@@ -184,7 +184,7 @@ class CollectorProxy(DataCollector):
     
     @inheritdoc(DataCollector)
     def results(self):
-        return dict((c.name, c.results()) for c in self.collectors['results'])
+        return Tree(**{c.name: c.results() for c in self.collectors['results']})
 
 
 @register_data_collector('LINK_LOAD')
@@ -240,10 +240,10 @@ class LinkLoadCollector(DataCollector):
                               if self.view.link_type(*link) == 'external')
         mean_load_int = sum(link_loads_int.values())/len(link_loads_int)
         mean_load_ext = sum(link_loads_ext.values())/len(link_loads_ext)
-        return {'MEAN_INTERNAL':  mean_load_int, 
-                'MEAN_EXTERNAL':  mean_load_ext,
-                'PER_LINK_INTERNAL': link_loads_int,
-                'PER_LINK_EXTERNAL': link_loads_ext}
+        return Tree({'MEAN_INTERNAL':     mean_load_int, 
+                     'MEAN_EXTERNAL':     mean_load_ext,
+                     'PER_LINK_INTERNAL': link_loads_int,
+                     'PER_LINK_EXTERNAL': link_loads_ext})
 
 
 @register_data_collector('LATENCY')
@@ -293,7 +293,7 @@ class LatencyCollector(DataCollector):
     
     @inheritdoc(DataCollector)
     def results(self):
-        results = {'MEAN': self.latency/self.sess_count}
+        results = Tree({'MEAN': self.latency/self.sess_count})
         if self.cdf:
             results['CDF'] = cdf(self.latency_data) 
         return results
@@ -305,22 +305,33 @@ class CacheHitRatioCollector(DataCollector):
     requests served by a cache.
     """
     
-    def __init__(self, view, content_hits=False):
+    def __init__(self, view, off_path_hits=True, per_node=True, content_hits=False):
         """Constructor
         
         Parameters
         ----------
         view : NetworkView
             The NetworkView instance
+        off_path_hits : bool, optional
+            If *True* also records cache hits from caches not on located on the
+            shortest path. This metric may be relevant only for some strategies
         content_hits : bool, optional
             If *True* also records cache hits per content instead of just
             globally
         """
+        self.view = view
+        self.off_path_hits = off_path_hits
+        self.per_node = per_node
         self.cont_hits = content_hits
         self.sess_count = 0
         self.cache_hits = 0
         self.serv_hits = 0
-        if self.cont_hits:
+        if off_path_hits:
+            self.off_path_hit_count = 0
+        if per_node:
+            self.per_node_cache_hits = collections.defaultdict(int)
+            self.per_node_server_hits = collections.defaultdict(int)
+        if content_hits:
             self.curr_cont = None
             self.cont_cache_hits = collections.defaultdict(int)
             self.cont_serv_hits = collections.defaultdict(int)
@@ -328,30 +339,50 @@ class CacheHitRatioCollector(DataCollector):
     @inheritdoc(DataCollector)
     def start_session(self, timestamp, receiver, content):
         self.sess_count += 1
+        if self.off_path_hits:
+            source = self.view.content_source(content)
+            self.curr_path = self.view.shortest_path(receiver, source)
         if self.cont_hits:
             self.curr_cont = content
     
     @inheritdoc(DataCollector)
     def cache_hit(self, node):
         self.cache_hits += 1
+        if self.off_path_hits and node not in self.curr_path:
+            self.off_path_hit_count += 1
         if self.cont_hits:
             self.cont_cache_hits[self.curr_cont] += 1
+        if self.per_node:
+            self.per_node_cache_hits[node] += 1
 
     @inheritdoc(DataCollector)
     def server_hit(self, node):
         self.serv_hits += 1
         if self.cont_hits:
             self.cont_serv_hits[self.curr_cont] += 1
+        if self.per_node:
+            self.per_node_server_hits[node] += 1
     
     @inheritdoc(DataCollector)
     def results(self):
-        hit_ratio = self.cache_hits/(self.cache_hits + self.serv_hits)
-        results = {'MEAN': hit_ratio}
+        n_sess = self.cache_hits + self.serv_hits
+        hit_ratio = self.cache_hits/n_sess
+        results = Tree(**{'MEAN': hit_ratio})
+        if self.off_path_hits:
+            results['MEAN_OFF_PATH'] = self.off_path_hit_count/n_sess
+            results['MEAN_ON_PATH'] = results['MEAN'] - results['MEAN_OFF_PATH']
         if self.cont_hits:
             cont_set = set(self.cont_cache_hits.keys() + self.cont_serv_hits.keys())
             cont_hits=dict((self.cont_cache_hits[i]/(self.cont_cache_hits[i] + self.cont_serv_hits[i])) 
                             for i in cont_set)
             results['PER_CONTENT'] = cont_hits
+        if self.per_node:
+            for v in self.per_node_cache_hits:
+                self.per_node_cache_hits[v] /= n_sess
+            for v in self.per_node_server_hits:
+                self.per_node_server_hits[v] /= n_sess    
+            results['PER_NODE_CACHE_HIT_RATIO'] = self.per_node_cache_hits
+            results['PER_NODE_SERVER_HIT_RATIO'] = self.per_node_server_hits
         return results
 
 
@@ -419,9 +450,9 @@ class PathStretchCollector(DataCollector):
             
     @inheritdoc(DataCollector)
     def results(self):
-        results = {'MEAN': self.mean_stretch/self.sess_count,
-                   'MEAN_REQUEST': self.mean_req_stretch/self.sess_count,
-                   'MEAN_CONTENT': self.mean_cont_stretch/self.sess_count}
+        results = Tree({'MEAN': self.mean_stretch/self.sess_count,
+                        'MEAN_REQUEST': self.mean_req_stretch/self.sess_count,
+                        'MEAN_CONTENT': self.mean_cont_stretch/self.sess_count})
         if self.cdf:
             results['CDF'] = cdf(self.stretch_data)
             results['CDF_REQUEST'] = cdf(self.req_stretch_data)
