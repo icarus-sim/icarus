@@ -19,6 +19,7 @@ __all__ = [
         'Cache',
         'NullCache',
         'LruCache',
+        'SegmentedLruCache',
         'LfuCache',
         'FifoCache',
         'RandCache',
@@ -808,7 +809,161 @@ class LruCache(Cache):
         self._cache.clear()
 
 
+@register_cache_policy('SLRU')
+class SegmentedLruCache(Cache):
+    """Segmented Least Recently Used (LRU) cache eviction policy.
+    
+    This policy divides the cache space into a number of segments of equal
+    size each operating according to an LRU policy. When a new item is inserted
+    to the cache, it is placed on the top entry of the bottom segment. Each
+    subsequent hit promotes the item to the top entry of the segment above.
+    When an item is evicted from a segment, it is demoted to the top entry of
+    the segment immediately below. An item is evicted from the cache when it is
+    evicted from the bottom segment.
+    
+    This policy can be viewed as a sort of combination between an LRU and LFU
+    replacement policies as it makes eviction decisions based both frequency
+    and recency of item reference.
+    """
+        
+    def __init__(self, maxlen, segments=2, **kwargs):
+        """Constructor
+        
+        Parameters
+        ----------
+        maxlen : int
+            The maximum number of items the cache can store
+        segments : int
+            The number of segments
+        """
+        self._maxlen = int(maxlen)
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+        if not isinstance(segments, int) or segments <= 0:
+            raise ValueError('maxlen must be a positive integer')
+        self._segment = [LinkedSet() for _ in range(segments)]
+        quotient = self._maxlen // segments
+        self._segment_maxlen = [quotient for _ in range(segments)]
+        for i in range(self._maxlen % segments):
+            self._segment_maxlen[i] += 1
+        # This map is a dictionary mapping each item in the cache with the
+        # segment in which it is located. This is not strictly necessary to
+        # locate an item as we could have used the map in each segment.
+        # This design choice however speeds up processing at the cost of a
+        # moderate increase in memory footprint.
+        self._cache = {}
+
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+    
+    @property
+    @inheritdoc(Cache)
+    def maxlen(self):
+        return self._maxlen
+
+    @inheritdoc(Cache)
+    def has(self, k):
+        return k in self._cache
             
+    @inheritdoc(Cache)
+    def get(self, k):
+        if k not in self._cache:
+            return False
+        seg = self._cache[k]
+        if seg == 0:
+            self._segment[seg].move_to_top(k)
+        else:
+            self._segment[seg].remove(k)
+            self._segment[seg - 1].append_top(k)
+            self._cache[k] = seg - 1
+            if len(self._segment[seg - 1]) > self._segment_maxlen[seg - 1]:
+                demoted = self._segment[seg - 1].pop_bottom()
+                self._segment[seg].append_top(demoted)
+                self._cache[demoted] = seg
+        return True
+    
+    def put(self, k):
+        """Insert an item in the cache if not already inserted.
+        
+        If the element is already present in the cache, it will pushed to the
+        top of the cache.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to be inserted
+            
+        Returns
+        -------
+        evicted : any hashable type
+            The evicted object or *None* if no contents were evicted.
+        """
+        # if content in cache, promote it, no eviction
+        if k in self._cache:
+            seg = self._cache[k]
+            if seg == 0:
+                self._segment[seg].move_to_top(k)
+            else:
+                self._segment[seg].remove(k)
+                self._segment[seg - 1].append_top(k)
+                self._cache[k] = seg - 1
+                if len(self._segment[seg - 1]) > self._segment_maxlen[seg - 1]:
+                    demoted = self._segment[seg - 1].pop_bottom()
+                    self._segment[seg].append_top(demoted)
+                    self._cache[demoted] = seg
+            return None
+        # if content not in cache append on top of probatory segment and
+        # possibly evict LRU item
+        self._segment[-1].append_top(k)
+        self._cache[k] = len(self._segment) - 1
+        if len(self._segment[-1]) > self._segment_maxlen[-1]:
+            evicted = self._segment[-1].pop_bottom()
+            self._cache.pop(evicted)
+            return evicted
+
+    @inheritdoc(Cache)
+    def remove(self, k):
+        if k not in self._cache:
+            return False
+        seg = self._cache.pop(k)
+        self._segment[seg].remove(k)
+        return True
+
+    def position(self, k):
+        """Return the current position of an item in the cache. Position *0*
+        refers to the head of cache (i.e. most recently used item), while
+        position *maxlen - 1* refers to the tail of the cache (i.e. the least
+        recently used item).
+        
+        This method does not change the internal state of the cache.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item looked up in the cache
+            
+        Returns
+        -------
+        position : int
+            The current position of the item in the cache
+        """
+        if not k in self._cache:
+            raise ValueError('The item %s is not in the cache' % str(k))
+        seg = self._cache[k]
+        position = self._segment[seg].index(k)
+        return sum(len(self._segment[i]) for i in range(seg)) + position
+    
+    @inheritdoc(Cache)
+    def dump(self):
+        return list(list(iter(s)) for s in self._segment)
+    
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()
+        for s in self._segment:
+            s.clear()
+
 
 @register_cache_policy('LFU')
 class LfuCache(Cache):
