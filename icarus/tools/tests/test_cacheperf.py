@@ -48,7 +48,7 @@ class TestNumericCacheHitRatio(unittest.TestCase):
         
     def test_rand_cache(self):
         r = 0.1
-        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.RandCache(r*self.n))
+        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.RandEvictionCache(r*self.n))
         self.assertLess(np.abs(h - r), 0.01)
 
 class TestLaoutarisCacheHitRatio(unittest.TestCase):

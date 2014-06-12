@@ -22,7 +22,7 @@ __all__ = [
         'SegmentedLruCache',
         'LfuCache',
         'FifoCache',
-        'RandCache',
+        'RandEvictionCache',
         'rand_insert_cache',
         'keyval_cache'
            ]
@@ -1133,7 +1133,7 @@ class FifoCache(Cache):
 
 
 @register_cache_policy('RAND')
-class RandCache(Cache):
+class RandEvictionCache(Cache):
     """Random eviction cache implementation.
     
     This class implements a cache whereby the item to evict in case of a full
@@ -1198,7 +1198,7 @@ class RandCache(Cache):
     def clear(self):
         self._cache.clear()
 
-    
+
 def rand_insert_cache(cache, p, seed=None):
     """It modifies the instance of a cache object such that items are
     inserted randomly instead of deterministically.

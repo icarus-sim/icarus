@@ -430,7 +430,7 @@ class TestFifoCache(unittest.TestCase):
 class TestRandCache(unittest.TestCase):
     
     def test_rand(self):
-        c = cache.RandCache(4)
+        c = cache.RandEvictionCache(4)
         self.assertEquals(len(c), 0)
         c.put(1)
         self.assertEquals(len(c), 1)
@@ -454,7 +454,7 @@ class TestRandCache(unittest.TestCase):
         self.assertEquals(c.dump(), [])
 
     def test_remove(self):
-        c = cache.RandCache(4)
+        c = cache.RandEvictionCache(4)
         c.put(1)
         c.put(2)
         c.put(3)
