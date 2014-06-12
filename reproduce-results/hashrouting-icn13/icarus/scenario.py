@@ -124,7 +124,7 @@ def scenario_geant(net_cache=[0.05], n_contents=100000, alpha=[0.6, 0.8, 1.0]):
     T = 'GEANT' # name of the topology
     # 240 nodes in the main component
     topology = fnss.parse_topology_zoo(path.join(scenarios_dir, 'resources/Geant2012.graphml')).to_undirected()
-    topology = nx.connected_component_subgraphs(topology)[0]
+    topology = list(nx.connected_component_subgraphs(topology))[0]
     
     deg = nx.degree(topology)
 
@@ -208,7 +208,7 @@ def scenario_tiscali(net_cache=[0.05], n_contents=100000, alpha=[0.6, 0.8, 1.0])
     T = 'TISCALI' # name of the topology
     # 240 nodes in the main component
     topology = fnss.parse_rocketfuel_isp_map(path.join(scenarios_dir, 'resources/3257.r0.cch')).to_undirected()
-    topology = nx.connected_component_subgraphs(topology)[0]
+    topology = list(nx.connected_component_subgraphs(topology))[0]
     
     deg = nx.degree(topology)
     onedeg = [v for v in topology.nodes() if deg[v] == 1] # they are 80
