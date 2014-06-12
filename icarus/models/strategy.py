@@ -30,13 +30,11 @@ __all__ = [
 #TODO: In Hashrouting, implement request routing phase under in single function
 
 class Strategy(object):
-    """
-    Base strategy imported by all other strategy classes
-    """
+    """Base strategy imported by all other strategy classes"""
     
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, view, controller, params=None):
+    def __init__(self, view, controller, **kwargs):
         """Constructor
         
         Parameters
@@ -45,8 +43,8 @@ class Strategy(object):
             An instance of the network view
         controller : NetworkController
             An instance of the network controller
-        params : dict, optional
-            A dict of additional strategy parameters
+        kwargs : keyworded arguments, optional
+            Additional strategy parameters
         """
         self.view = view
         self.controller = controller
@@ -90,7 +88,7 @@ class Hashrouting(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, params=None):
+    def __init__(self, view, controller, **kwargs):
         super(Hashrouting, self).__init__(view, controller)
         cache_nodes = list(view.caches().keys())
         # Allocate results of hash function to caching nodes 
@@ -139,7 +137,7 @@ class HashroutingSymmetric(Hashrouting):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, params=None):
+    def __init__(self, view, controller, **kwargs):
         super(HashroutingSymmetric, self).__init__(view, controller)
 
     @inheritdoc(Strategy)
@@ -173,7 +171,7 @@ class HashroutingAsymmetric(Hashrouting):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, params=None):
+    def __init__(self, view, controller, **kwargs):
         super(HashroutingAsymmetric, self).__init__(view, controller)
         
     @inheritdoc(Strategy)
@@ -219,7 +217,7 @@ class HashroutingMulticast(Hashrouting):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, params=None):
+    def __init__(self, view, controller, **kwargs):
         super(HashroutingMulticast, self).__init__(view, controller)
         # map id of content to node with cache responsibility
 

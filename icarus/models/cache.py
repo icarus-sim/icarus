@@ -448,7 +448,7 @@ class Cache(object):
     """Base implementation of a cache object"""
     
     @abc.abstractmethod
-    def __init__(self, maxlen):
+    def __init__(self, maxlen, **kwargs):
         """Constructor
         
         Parameters
@@ -583,7 +583,7 @@ class NullCache(Cache):
     identical to a cache with max size equal to 0.
     """
      
-    def __init__(self, maxlen=0):
+    def __init__(self, maxlen=0, **kwargs):
         """
         Constructor
         
@@ -718,7 +718,7 @@ class LruCache(Cache):
     """
         
     @inheritdoc(Cache)
-    def __init__(self, maxlen):
+    def __init__(self, maxlen, **kwargs):
         self._cache = LinkedSet()
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
@@ -796,7 +796,6 @@ class LruCache(Cache):
         self._cache.append_top(k)
         return self._cache.pop_bottom() if len(self._cache) > self._maxlen else None
         
-
     @inheritdoc(Cache)
     def remove(self, k):
         if k not in self._cache:
@@ -983,7 +982,7 @@ class LfuCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen):
+    def __init__(self, maxlen, **kwargs):
         self._cache = {}
         self.t = 0
         self._maxlen = int(maxlen)
@@ -1144,7 +1143,7 @@ class RandCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen):
+    def __init__(self, maxlen, **kwargs):
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
