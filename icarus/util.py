@@ -3,7 +3,7 @@
 import time
 import logging
 import collections
-
+import copy
 import numpy as np
 
 __all__ = [
@@ -13,9 +13,118 @@ __all__ = [
         'inheritdoc',
         'timestr',
         'iround',
-        'step_cdf'
+        'step_cdf',
+        'Tree',
            ]
 
+class Tree(collections.defaultdict):
+    """Tree data structure
+    
+    This class models a tree data structure that is mainly used to store
+    experiment parameters and results in a hierarchical form that makes it
+    easier to search and filter data in them. 
+    """
+    
+    def __init__(self, data=None, **attr):
+        """Constructor
+        
+        Parameters
+        ----------
+        data : input data
+            Data from which building a tree. Types supported are Tree objects
+            and dicts (or object that can be cast to trees), even nested.
+        attr : additional keyworded attributes. Attributes can be trees of leaf
+            values. If they're dictionaries, they will be converted to trees
+        """
+        if data is None:
+            data = {}
+        elif not isinstance(data, Tree):
+            # If data is not a Tree try to castto dict and iteratively recurse
+            # it to convert each node to a tree
+            data = dict(data)
+            for k in data:
+                if not isinstance(data[k], Tree) and isinstance(data[k], dict):
+                    data[k] = Tree(data[k])
+        # Add processed data to the tree
+        super(Tree, self).__init__(Tree, **data)
+        if attr:
+            self.update(attr)
+
+    def __iter__(self, root=[]):
+        it = collections.deque() # []
+        for k_child, v_child in self.iteritems():
+            base = copy.copy(root)
+            base.append(k_child)
+            if isinstance(v_child, Tree):
+                it.extend(v_child.__iter__(base))
+#                itertools.chain(it, v_child.__iter__(root))
+            else:
+                it.append((tuple(base), v_child))
+#                itertools.chain(it, iter([(root, v_child)]))
+        return iter(it)
+
+#    @inheritdoc(collections.defaultdict)
+    def __setitem__(self, k, v):
+        if not isinstance(v, Tree) and isinstance(v, dict):
+            v = Tree(v)
+        super(Tree, self).__setitem__(k, v)
+    
+#    @inheritdoc(collections.defaultdict)    
+    def update(self, e):
+        if not isinstance(e, Tree):
+            e = Tree(e)
+        super(Tree, self).update(e)
+
+    # This code is needed to fix an issue occurring while pickling.
+    # Further info here:
+    # http://stackoverflow.com/questions/3855428/how-to-pickle-and-unpickle-instances-of-a-class-that-inherits-from-defaultdict
+#    @inheritdoc(collections.defaultdict)
+    def __reduce__(self):
+        t = collections.defaultdict.__reduce__(self)
+        return (t[0], ()) + t[2:]
+
+    def paths(self):
+        return dict(iter(self))
+
+    def getval(self, path):
+        """Get the value at a specific path, None if not there"""
+        tree = self
+        for i in path:
+            if isinstance(tree, Tree) and i in tree:
+                tree = tree[i]
+            else:
+                return None
+        return None if isinstance(tree, Tree) and tree.empty else tree
+    
+    def setval(self, path, val):
+        """Set a value at a specific path"""
+        tree =self
+        for i in path[:-1]:
+            if not isinstance(tree[i], Tree):
+                tree[i] = Tree()
+            tree = tree[i]
+        tree[path[-1]] = val
+    
+    def pprint(self):
+        """Pretty print the tree"""
+        return str(self)
+    
+    def __str__(self, dictonly=False):
+        s = "{" if dictonly else "Tree({"
+        for k, v in self.items():
+            s += "%s: " % str(k)
+            s += "%s, " % (v.__str__(True) if isinstance(v, Tree) else str(v))
+        s = s.rstrip(", ")
+        s += "}" if dictonly else "})"
+        return s
+    
+    def match(self, condition):
+        condition = Tree(condition)
+        return all(self.getval(path) == val for path, val in condition.paths().items())
+    
+    @property
+    def empty(self):
+        return len(self) == 0
 
 class Settings(object):
     """Object storing all settings"""
