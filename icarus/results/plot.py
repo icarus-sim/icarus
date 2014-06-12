@@ -3,36 +3,36 @@
 """
 from __future__ import division
 import os
-import argparse
 import collections
-import logging
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from icarus.util import Settings, config_logging, step_cdf
+from icarus.util import Tree, step_cdf
 from icarus.tools import means_confidence_interval
-from icarus.registry import results_reader_register
-from icarus.results import extract_metric
 
 
-# Logger object
-logger = logging.getLogger('plot')
+__all__ = ['plot_lines', 'plot_bar_chart', 'plot_cdf']
+
 
 # These lines prevent insertion of Type 3 fonts in figures
-# Publishers don't want them
-plt.rcParams['ps.useafm'] = True
-plt.rcParams['pdf.use14corefonts'] = True
+# Publishers don't want them. However, in some case these commands block the
+# embedding of fonts raising complaints for example from EDAS
+#plt.rcParams['ps.useafm'] = True
+#plt.rcParams['pdf.use14corefonts'] = True
 
 # If True text is interpreted as LaTeX, e.g. underscore are interpreted as 
 # subscript. If False, text is interpreted literally
-plt.rcParams['text.usetex'] = True
+plt.rcParams['text.usetex'] = False
 
 # Aspect ratio of the output figures
-plt.rcParams['figure.figsize'] = 8, 4.5
+plt.rcParams['figure.figsize'] = 8, 5
 
 # Size of font in legends
-LEGEND_SIZE = 11
+LEGEND_SIZE = 14
+
+# Line width in pixels
+LINE_WIDTH = 1.5
 
 # Plot
 PLOT_EMPTY_GRAPHS = False
@@ -42,243 +42,6 @@ BW_COLOR_CATALOGUE = ['k', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9
 
 # Catalogue of possible hatch styles (for bar charts)
 HATCH_CATALOGUE = [None, '/', '\\', '\\\\', '//', '+', 'x', '*', 'o', '.',  '|', '-',  'O']
-
-# This dict maps strategy names to the style of the line to be used in the plots
-# Off-path strategies: solid lines
-# On-path strategies: dashed lines
-# No-cache: dotted line
-STRATEGY_STYLE = {
-         'HR_SYMM':         'b-o',
-         'HR_ASYMM':        'g-D',
-         'HR_MULTICAST':    'm-^',         
-         'HR_HYBRID_AM':    'c-s',
-         'HR_HYBRID_SM':    'r-v',
-         'LCE':             'b--p',
-         'LCD':             'g-->',
-         'CL4M':            'g-->',
-         'PROB_CACHE':      'c--<',
-         'RAND_CHOICE':     'r--<',
-         'RAND_BERNOULLI':  'g--*',
-         'NO_CACHE':        'k:o',
-         'OPTIMAL':         'k-o'
-                }
-
-# This dict maps name of strategies to names to be displayed in the legend
-STRATEGY_LEGEND = {
-         'LCE':             'LCE',
-         'LCD':             'LCD',
-         'HR_SYMM':         'HR Symm',
-         'HR_ASYMM':        'HR Asymm',
-         'HR_MULTICAST':    'HR Multicast',         
-         'HR_HYBRID_AM':    'HR Hybrid AM',
-         'HR_HYBRID_SM':    'HR Hybrid SM',
-         'CL4M':            'CL4M',
-         'PROB_CACHE':      'ProbCache',
-         'RAND_CHOICE':     'Random (choice)',
-         'RAND_BERNOULLI':  'Random (Bernoulli)',
-         'NO_CACHE':        'No caching',
-         'OPTIMAL':         'Optimal'
-                    }
-
-# Color and hatch styles for bar charts of cache hit ratio and link load vs topology
-STRATEGY_BAR_COLOR = {
-    'LCE':          'k',
-    'LCD':          '0.4',
-    'NO_CACHE':     '0.5',
-    'HR_ASYMM':     '0.6',
-    'HR_SYMM':      '0.7'
-    }
-
-STRATEGY_BAR_HATCH = {
-    'LCE':          None,
-    'LCD':          '//',
-    'NO_CACHE':     'x',
-    'HR_ASYMM':     '+',
-    'HR_SYMM':      '\\'
-    }
-
-
-def plot_cache_hits_vs_alpha(resultset, topology, cache_size, alpha_range, strategies, plotdir):
-    desc = {}
-    desc['title'] = 'Cache hit ratio: T=%s C=%s' % (topology, cache_size)
-    desc['ylabel'] = 'Cache hit ratio'
-    desc['xlabel'] = u'Content distribution \u03b1'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'alpha'
-    desc['xvals'] = alpha_range
-    desc['filter'] = dict(topology_name=topology, network_cache=cache_size)
-    desc['metric'] = ('CACHE_HIT_RATIO', 'MEAN')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'upper left'
-    desc['line_style'] = STRATEGY_STYLE
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    if 'NO_CACHE' in desc['yvals']:
-        desc['yvals'].remove('NO_CACHE')
-    plot_lines(resultset, desc, 'CACHE_HIT_RATIO_T=%s@C=%s.pdf'
-               % (topology, cache_size), plotdir)
-
-
-def plot_cache_hits_vs_cache_size(resultset, topology, alpha, cache_size_range, strategies, plotdir):
-    desc = {}
-    desc['title'] = 'Cache hit ratio: T=%s A=%s' % (topology, alpha)
-    desc['xlabel'] = u'Cache to population ratio'
-    desc['ylabel'] = 'Cache hit ratio'
-    desc['xscale'] = 'log'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'network_cache'
-    desc['xvals'] = cache_size_range
-    desc['filter'] = dict(topology_name=topology, alpha=alpha)
-    desc['metric'] = ('CACHE_HIT_RATIO', 'MEAN')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'upper left'
-    desc['line_style'] = STRATEGY_STYLE
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    if 'NO_CACHE' in desc['yvals']:
-        desc['yvals'].remove('NO_CACHE')
-    plot_lines(resultset, desc,'CACHE_HIT_RATIO_T=%s@A=%s.pdf'
-               % (topology, alpha), plotdir)
-    
-
-def plot_link_load_vs_alpha(resultset, topology, cache_size, alpha_range, strategies, plotdir):
-    desc = {}
-    desc['title'] = 'Internal link load: T=%s C=%s' % (topology, cache_size)
-    desc['xlabel'] = u'Content distribution \u03b1'
-    desc['ylabel'] = 'Internal link load'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'alpha'
-    desc['xvals'] = alpha_range
-    desc['filter'] = dict(topology_name=topology, network_cache=cache_size)
-    desc['metric'] = ('LINK_LOAD', 'MEAN_INTERNAL')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'upper right'
-    desc['line_style'] = STRATEGY_STYLE
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    plot_lines(resultset, desc, 'LINK_LOAD_INTERNAL_T=%s@C=%s.pdf'
-               % (topology, cache_size), plotdir)
-
-
-def plot_link_load_vs_cache_size(resultset, topology, alpha, cache_size_range, strategies, plotdir):
-    desc = {}
-    desc['title'] = 'Internal link load: T=%s A=%s' % (topology, alpha)
-    desc['xlabel'] = 'Cache to population ratio'
-    desc['ylabel'] = 'Internal link load'
-    desc['xscale'] = 'log'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'network_cache'
-    desc['xvals'] = cache_size_range
-    desc['filter'] = dict(topology_name=topology, alpha=alpha)
-    desc['metric'] = ('LINK_LOAD', 'MEAN_INTERNAL')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'upper right'
-    desc['line_style'] = STRATEGY_STYLE
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    plot_lines(resultset, desc, 'LINK_LOAD_INTERNAL_T=%s@A=%s.pdf'
-               % (topology, alpha), plotdir)
-    
-
-def plot_latency_vs_alpha(resultset, topology, cache_size, alpha_range, strategies, plotdir):
-    desc = {}
-    desc['title'] = 'Latency: T=%s C=%s' % (topology, cache_size)
-    desc['xlabel'] = u'Content distribution \u03b1'
-    desc['ylabel'] = 'Latency (ms)'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'alpha'
-    desc['xvals'] = alpha_range
-    desc['filter'] = dict(topology_name=topology, network_cache=cache_size)
-    desc['metric'] = ('LATENCY', 'MEAN')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'upper right'
-    desc['line_style'] = STRATEGY_STYLE
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    plot_lines(resultset, desc, 'LATENCY_T=%s@C=%s.pdf'
-               % (topology, cache_size), plotdir)
-
-
-def plot_latency_vs_cache_size(resultset, topology, alpha, cache_size_range, strategies, plotdir):
-    desc = {}
-    desc['title'] = 'Latency: T=%s A=%s' % (topology, alpha)
-    desc['xlabel'] = 'Cache to population ratio'
-    desc['ylabel'] = 'Latency'
-    desc['xscale'] = 'log'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'network_cache'
-    desc['xvals'] = cache_size_range
-    desc['filter'] = dict(topology_name=topology, alpha=alpha)
-    desc['metric'] = ('LATENCY', 'MEAN')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'upper right'
-    desc['line_style'] = STRATEGY_STYLE
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    plot_lines(resultset, desc, 'LATENCY_T=%s@A=%s.pdf'
-               % (topology, alpha), plotdir)
-    
-
-def plot_cache_hits_vs_topology(resultset, alpha, cache_size, topology_range, strategies, plotdir):
-    """
-    Plot bar graphs of cache hit ratio for specific values of alpha and cache
-    size for various topologies.
-    
-    The objective here is to show that our algorithms works well on all
-    topologies considered
-    """
-    desc = {}
-    desc['title'] = 'Cache hit ratio: A=%s C=%s' % (alpha, cache_size)
-    desc['ylabel'] = 'Cache hit ratio'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'topology_name'
-    desc['xvals'] = topology_range
-    desc['filter'] = dict(alpha=alpha, network_cache=cache_size)
-    desc['metric'] = ('CACHE_HIT_RATIO', 'MEAN')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'lower right'
-    desc['bar_color'] = STRATEGY_BAR_COLOR
-    desc['bar_hatch'] = STRATEGY_BAR_HATCH
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    if 'NO_CACHE' in desc['yvals']:
-        desc['yvals'].remove('NO_CACHE')
-    plot_bar_graph(resultset, desc, 'CACHE_HIT_RATIO_A=%s_C=%s.pdf'
-                   % (alpha, cache_size), plotdir)
-    
-
-def plot_link_load_vs_topology(resultset, alpha, cache_size, topology_range, strategies, plotdir):
-    """
-    Plot bar graphs of link load for specific values of alpha and cache
-    size for various topologies.
-    
-    The objective here is to show that our algorithms works well on all
-    topologies considered
-    """
-    desc = {}
-    desc['title'] = 'Internal link load: A=%s C=%s' % (alpha, cache_size)
-    desc['ylabel'] = 'Internal link load'
-    desc['yparam'] = 'strategy_name'
-    desc['yvals'] = strategies
-    desc['xparam'] = 'topology_name'
-    desc['xvals'] = topology_range
-    desc['filter'] = dict(alpha=alpha, network_cache=cache_size)
-    desc['metric'] = ('LINK_LOAD', 'MEAN_INTERNAL')
-    desc['errorbar'] = True
-    desc['legend_loc'] = 'lower right'
-    desc['bar_color'] = STRATEGY_BAR_COLOR
-    desc['bar_hatch'] = STRATEGY_BAR_HATCH
-    desc['legend'] = STRATEGY_LEGEND
-    desc['plotempty'] = PLOT_EMPTY_GRAPHS
-    plot_bar_graph(resultset, desc, 'LINK_LOAD_INTERNAL_A=%s_C=%s.pdf'
-                   % (alpha, cache_size), plotdir)
 
     
 def plot_lines(resultset, desc, filename, plotdir):
@@ -314,41 +77,70 @@ def plot_lines(resultset, desc, filename, plotdir):
          If *True* error bars will be plotted. Default value is *True*
      * confidence : float, optional
          The confidence used to plot error bars. Default value is 0.95
-     * metric : list
-         A list of values representing the metric to plot. These values are the
-         path to identify a specific metric into an entry of a result set.
-         Normally, it is a 2-value list where the first value is the name of
-         the collector which measured the metric and the second value is the
-         metric name. Example values could be ['CACHE_HIT_RATIO', 'MEAN'],
-         ['LINK_LOAD', 'MEAN_INTERNAL'] or ['LATENCY', 'MEAN']
+     * xparam : iterable
+         Path to the value of the x axis metric, e.g. ['workload', 'alpha']
+     * xvals : list
+         Range of x values, e.g. [0.6, 0.7, 0.8, 0.9]
      * filter : dict, optional
          A dictionary of values to filter in the resultset.
          Example: {'network_cache': 0.004, 'topology_name': 'GEANT'}
          If not specified or None, no filtering is executed on the results
          and possibly heterogeneous results may be plotted together
-     * xparam : str
-         The name of the x axis metric, e.g. 'alpha'
-     * xvals : list
-         Range of x values, e.g. [0.6, 0.7, 0.8, 0.9]
-     * yparam : str
-         The name of the y metric, e.g. 'strategy'
-     * yvals : list
-         List of lines plotted. For example. if yparam = 'strategy_name', then
-         a valid yvals value could be ['HR_SYMM', 'HR_ASYMM']
-     * xscale : str, optional
-         The scale of x axis. Options allowed are 'linear' and 'log'. 
-         Default value is 'linear'
-     * yscale : str, optional
-         The scale of y axis. Options allowed are 'linear' and 'log'.
-         Default value is 'linear'
-     * legend_loc : str
-         Legend location, e.g. 'upper left'
+     * ymetrics : list of tuples
+         List of metrics to be shown on the graph. The i-th metric of the list
+         is the metric that the i-th line on the graph will represent. If
+         all lines are for the same metric, then all elements of the list are
+         equal.
+         Each single metric (i.e. each element of the list) is a tuple modeling
+         the path to identify a specific metric into an entry of a result set.
+         Normally, it is a 2-value list where the first value is the name of
+         the collector which measured the metric and the second value is the
+         metric name. Example values could be ('CACHE_HIT_RATIO', 'MEAN'),
+         ('LINK_LOAD', 'MEAN_INTERNAL') or ('LATENCY', 'MEAN').
+         For example, if in a graph of N lines all lines of the graph show mean
+         latency, then ymetrics = [('LATENCY', 'MEAN')]*5.
+     * ycondnames : list of tuples, optional
+         List of condition names specific to each line of the graph. Different
+         from the conditions expressed in the filter parameter, which are
+         global, these conditions are specific to one bar. Ech condition name,
+         different from the filter parameter is a path to a condition to be
+         checked, e.g. ('topology', 'name'). Values to be matched for this
+         conditions are specified in ycondvals. This list must be as long as
+         the number of lines to plot. If not specified, all lines are filtered
+         by the conditions of filter parameter only, but in this case all
+         ymetrics should be different.
+     * ycondvals : list of tuples, optional
+         List of values that the conditions of ycondnames must meet. This list
+         must be as long as the number of lines to plot. If not specified,
+         all lines are filtered by the conditions of filter parameter only,
+         but in this case all ymetrics should be different.
+     * xscale : ('linear' | 'log'), optional
+         The scale of x axis. Default value is 'linear'
+     * yscale : ('linear' | 'log'), optional
+         The scale of y axis. Default value is 'linear'
      * line_style : dict, optional
          Dictionary mapping each value of yvals with a line style
+     * plot_args : dict, optional
+         Additional args to be provided to the Pyplot errorbar function.
+         Example parameters that can be specified here are *linewidth* and
+         *elinewidth*
      * legend : dict, optional
-         Dictionary mapping each value of yvals with a legend label
+         Dictionary mapping each value of yvals with a legend label. If not
+         specified, it is not plotted. If you wish to plot it with the
+         name of the line, set it to put yvals or ymetrics, depending on which
+         one is used
+     * legend_loc : str
+         Legend location, e.g. 'upper left'
+     * legend_args : dict, optional
+         Optional legend arguments, such as ncol
      * plotempty : bool, optional
-         If *True*, plot and save graph even if empty. Default is *True* 
+         If *True*, plot and save graph even if empty. Default is *True*
+     * xmin, xmax: float, optional
+        The limits of the x axis. If not specified, they're set to the min and
+        max values of xvals
+     * ymin, ymax: float, optional
+        The limits of the y axis. If not specified, they're automatically
+        selected by Matplotlib
     """
     plt.figure()
     if 'title' in desc:
@@ -364,40 +156,59 @@ def plot_lines(resultset, desc, filename, plotdir):
     if 'filter' not in desc or desc['filter'] is None:
         desc['filter'] = {}
     xvals = sorted(desc['xvals'])
+    ymetrics = desc['ymetrics']
+    ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
+    ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
+    if ycondnames is not None and ycondvals is not None:
+        if not len(ymetrics) == len(ycondnames) == len(ycondvals):
+            raise ValueError('ymetrics, ycondnames and ycondvals must have the same length')
+        # yvals is basically the list of values that differentiate each line
+        # it is used for legends and styles mainly
+        yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
+    else:
+        yvals = ymetrics
+    plot_args = desc['plot_args'] if 'plot_args' in desc else {}
     plot_empty = desc['plotempty'] if 'plotempty' in desc else True
     empty = True
-    for l in desc['yvals']:
+    for i in range(len(yvals)):
         means = np.zeros(len(xvals))
         err = np.zeros(len(xvals))
-        for i in range(len(xvals)):
-            condition = dict(list(desc['filter'].items()) + \
-                             [(desc['xparam'], xvals[i]),
-                              (desc['yparam'], l)])
-            
-            data = [extract_metric(x, desc['metric'])
-                    for x in resultset.filter(condition)]
+        for j in range(len(xvals)):
+            condition = Tree(desc['filter'])
+            condition.setval(desc['xparam'], xvals[j])
+            if ycondnames is not None:
+                condition.setval(ycondnames[i], ycondvals[i])
+            data = [v.getval(ymetrics[i])
+                    for _, v in resultset.filter(condition)]
             confidence = desc['confidence'] if 'confidence' in desc else 0.95 
-            means[i], err[i] = means_confidence_interval(data, confidence)
+            means[j], err[j] = means_confidence_interval(data, confidence)
         yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
-        fmt = desc['line_style'][l] if 'line_style' in desc \
-              and l in desc['line_style'] else '-'
+        fmt = desc['line_style'][yvals[i]] if 'line_style' in desc \
+              and yvals[i] in desc['line_style'] else '-'
         # This check is to prevent crashing when trying to plot arrays of nan
         # values with axes log scale
         if all(np.isnan(x) for x in xvals) or all(np.isnan(y) for y in means):
             plt.errorbar([], [], fmt=fmt)
         else:
-            plt.errorbar(xvals, means, yerr=yerr, fmt=fmt)
+            plt.errorbar(xvals, means, yerr=yerr, fmt=fmt, **plot_args)
             empty = False
     if empty and not plot_empty:
         return
-    plt.xlim(min(xvals), max(xvals))
-    legend = [desc['legend'][l] for l in desc['yvals']] if 'legend'in desc \
-             else desc['yvals']
-    plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
+    x_min = desc['xmin'] if 'xmin' in desc else min(xvals)
+    x_max = desc['xmax'] if 'xmax' in desc else max(xvals)
+    plt.xlim(x_min, x_max)
+    if 'ymin' in desc:
+        plt.ylim(ymin=desc['ymin'])
+    if 'ymax' in desc:
+        plt.ylim(ymax=desc['ymax'])
+    if 'legend' in desc:
+        legend = [desc['legend'][l] for l in yvals]
+        legend_args = desc['legend_args'] if 'legend_args' in desc else {}
+        plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'], **legend_args)
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
 
 
-def plot_bar_graph(resultset, desc, filename, plotdir):
+def plot_bar_chart(resultset, desc, filename, plotdir):
     """Plot a bar chart with characteristics described in the plot descriptor
     out of the data contained in the resultset and save the plot in given
     directory.
@@ -431,37 +242,79 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
          If *True* error bars will be plotted. Default value is *True*
      * confidence : float, optional
          The confidence used to plot error bars. Default value is 0.95
-     * metric : list
-         A list of values representing the metric to plot. These values are the
-         path to identify a specific metric into an entry of a result set.
-         Normally, it is a 2-value list where the first value is the name of
-         the collector which measured the metric and the second value is the
-         metric name. Example values could be ['CACHE_HIT_RATIO', 'MEAN'],
-         ['LINK_LOAD', 'MEAN_INTERNAL'] or ['LATENCY', 'MEAN']
-     * filter : dict, optional
-         A dictionary of values to filter in the resultset.
-         Example: {'network_cache': 0.004, 'topology_name': 'GEANT'}
+     * filter : tree or dict of dicts, optional
+         A tree or nested dictionary of values to include from the resultset.
+         Example: {'cache_placement': {'network_cache': 0.004},
+         'topology': {'name', 'GEANT'}}.
          If not specified or None, no filtering is executed on the results
-         and possibly heterogeneous results may be plotted together
-     * xparam : str
-         The name of the x axis metric, e.g. 'alpha'
+         and possibly heterogeneous results may be plotted together.
+     * xparam : tuple
+         The path of the x axis metric, e.g. ('workload', 'alpha')
      * xvals : list
          Range of x values, e.g. [0.6, 0.7, 0.8, 0.9]
-     * yparam : str
-         The name of the y metric, e.g. 'strategy'
-     * yvals : list
-         List of lines plotted. For example. if yparam = 'strategy_name', then
-         a valid yvals value could be ['HR_SYMM', 'HR_ASYMM']
-     * legend_loc : str
-         Legend location, e.g. 'upper left'
+     * xticks : list, optional
+         Names to display as ticks. If not specified, xvals is used instead
+     * ymetrics : list of tuples
+         List of metrics to be shown on the graph. The i-th metric of the list
+         is the metric that the i-th bar on the graph will represent. If
+         all bars are for the same metric, then all elements of the list are
+         equal.
+         Each single metric (i.e. each element of the list) is a tuple modeling
+         the path to identify a specific metric into an entry of a result set.
+         Normally, it is a 2-value list where the first value is the name of
+         the collector which measured the metric and the second value is the
+         metric name. Example values could be ('CACHE_HIT_RATIO', 'MEAN'),
+         ('LINK_LOAD', 'MEAN_INTERNAL') or ('LATENCY', 'MEAN').
+         For example, if in a graph of N bars all bar of the graph show mean
+         latency, then ymetrics = [('LATENCY', 'MEAN')]*5.
+     * ycondnames : list of tuples, optional
+         List of condition names specific to each bar of the graph. Different
+         from the conditions expressed in the filter parameter, which are
+         global, these conditions are specific to one bar. Ech condition name,
+         different from the filter parameter is a path to a condition to be
+         checked, e.g. ('topology', 'name'). Values to be matched for this
+         conditions are specified in ycondvals. This list must be as long as
+         the number of bars to plot. If not specified, all bars are filtered
+         by the conditions of filter parameter only, but in this case all
+         ymetrics should be different.
+     * ycondvals : list of tuples, optional
+         List of values that the conditions of ycondnames must meet. This list
+         must be as long as the number of bars to plot. If not specified,
+         all bars are filtered by the conditions of filter parameter only,
+         but in this case all ymetrics should be different.
+     * placement : (grouped | stacked | [x, y, ...])
+         Defines how to place bars in the plot. If grouped, defaults, all
+         bars for a specific xval are grouped next to each other, if stacked,
+         they are plot on top of each other. It is also possible to specify a
+         custom grouped+stacked placement with a list of integers, in which
+         the number of items is the number of columns and the actual value of
+         an items is the number of metrics stacked on the column. For example
+         [4,2,3] means plotting 4 + 2 + 3 = 9 metrics: 4 stacked in the first
+         column, 2 stacked on the second and 3 stacked on the third  
+         If *True*, draw all bars of a group stacked on top of each other.
+         Default value is *False*.
+     * group_width : float, default: 0.4
+         Width of a group of bars
      * bar_color : dict, optional
          Dictionary mapping each value of yvals with a bar color
      * bar_hatch : dict, optional
-         Dictionary mapping each value of yvals with a bar hatch
+         Dictionary mapping each value of yvals with a bar hatch. If set to
+         None all bars will be plotted without hatch. If not set, hatches will
+         be plotted randomly
      * legend : dict, optional
-         Dictionary mapping each value of yvals with a legend label
+         Dictionary mapping each value of yvals with a legend label. If not
+         specified, it is not plotted. If you wish to plot it with the
+         name of the line, set it to put yvals or ymetrics, depending on which
+         one is used
+     * legend_loc : str
+         Legend location, e.g. 'upper left'
+     * legend_args : dict, optional
+         Optional legend arguments, such as ncol
      * plotempty : bool, optional
          If *True*, plot and save graph even if empty. Default is *True*
+     * ymax: float, optional
+        The upper limit of the y axis. If not specified, it is automatically
+        selected by Matplotlib
     """
     plt.figure()
     if 'title' in desc:
@@ -475,57 +328,96 @@ def plot_bar_graph(resultset, desc, filename, plotdir):
     if 'filter' not in desc or desc['filter'] is None:
         desc['filter'] = {}
     plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    
+    ymetrics = desc['ymetrics']
+    ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
+    ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
+    if ycondnames is not None and ycondvals is not None:
+        if not len(ymetrics) == len(ycondnames) == len(ycondvals):
+            raise ValueError('ymetrics, ycondnames and ycondvals must have the same length')
+        # yvals is basically the list of values that differentiate each bar
+        # it is used for legends and styles mainly
+        yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
+    else:
+        yvals = ymetrics
+    placement = desc['placement'] if 'placement' in desc else 'grouped'
+    if placement == 'grouped':
+        placement = [1 for _ in range(len(yvals))]
+    elif placement == 'stacked':
+        placement = [len(yvals)]
+    else:
+        if sum(placement) != len(yvals):
+            raise ValueError('Placement definition incorrect. '
+                             'The sum of values of the list must be equal to '
+                             'the number of y values')
+    xticks = desc['xticks'] if 'xticks' in desc else desc['xvals']
     empty = True
     # Spacing attributes
-    GROUP_WIDTH = 0.4                           # width of a group of bars 
-    WIDTH = GROUP_WIDTH/len(desc['yvals'])      # width of a single bar
-    SEPARATION = WIDTH/2                        # space between adjacent groups
-    BORDER = 0.6 * SEPARATION                   # left and right borders
+    # width of a group of bars
+    group_width = desc['group_width'] if 'group_width' in desc else 0.4 
+    width = group_width/len(placement)          # width of a single bar
+    separation = width/2                        # space between adjacent groups
+    border = 0.6 * separation                   # left and right borders
         
     elem = collections.defaultdict(int)         # bar objects (for legend)
     # Select colors and hatches
-    yvals = list(desc['yvals'])
     if 'bar_color' in desc and all(y in desc['bar_color'] for y in yvals):
         color = desc['bar_color']
     elif len(yvals) <= len(BW_COLOR_CATALOGUE):
         color = dict((y, BW_COLOR_CATALOGUE[yvals.index(y)]) for y in yvals)
     else:
         color = collections.defaultdict(lambda: None)
-    if 'bar_hatch' in desc and all(y in desc['bar_hatch'] for y in yvals):
+    if 'bar_hatch' in desc and desc['bar_hatch'] is None:
+        hatch = collections.defaultdict(lambda: None)
+    elif 'bar_hatch' in desc and all(y in desc['bar_hatch'] for y in yvals):
         hatch = desc['bar_hatch']
     elif len(yvals) <= len(BW_COLOR_CATALOGUE):
         hatch = dict((y, HATCH_CATALOGUE[yvals.index(y)]) for y in yvals)
     else:
         hatch = collections.defaultdict(lambda: None)
     # Plot bars
-    left = BORDER       # left-most point of the bar about to draw
+    left = border    # left-most point of the bar about to draw
     for i in range(len(desc['xvals'])):
-        for l in desc['yvals']:
-            condition = dict(list(desc['filter'].items()) + \
-                             [(desc['xparam'], desc['xvals'][i]),
-                              (desc['yparam'], l)])
-            data = [extract_metric(x, desc['metric'])
-                    for x in resultset.filter(condition)]
-            confidence = desc['confidence'] if 'confidence' in desc else 0.95 
-            meanval, err = means_confidence_interval(data, confidence)
-            yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
-            if not np.isnan(meanval):
-                empty = False
-            elem[l] = plt.bar(left, meanval, WIDTH, color=color[l], 
-                              yerr=yerr, ecolor='k', hatch=hatch[l], label=l)
-            left += WIDTH
-        left += SEPARATION
+        l = 0
+        for x in placement:
+            bottom = 0   # Bottom point of a bar. It is alway 0 if stacked is False
+            for y in range(x):
+                condition = Tree(desc['filter'])
+                condition.setval(desc['xparam'], desc['xvals'][i])
+                if ycondnames is not None:
+                    condition.setval(ycondnames[l], ycondvals[l])
+                data = [v.getval(ymetrics[l])
+                            for _, v in resultset.filter(condition)]
+                confidence = desc['confidence'] if 'confidence' in desc else 0.95 
+                meanval, err = means_confidence_interval(data, confidence)
+                yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
+                if not np.isnan(meanval):
+                    empty = False
+                elem[yvals[l]] = plt.bar(left, meanval, width,
+                                         color=color[yvals[l]], 
+                                         yerr=yerr, bottom=bottom, ecolor='k',
+                                         hatch=hatch[yvals[l]], label=yvals[l])
+                bottom += meanval
+                l += 1
+            left += width
+        left += separation
     if empty and not plot_empty:
         return
-    plt.xticks(BORDER + 0.5*(len(desc['yvals'])*WIDTH) + 
-               (SEPARATION + len(desc['yvals'])*WIDTH)*np.arange(len(desc['xvals'])),
-               desc['xvals'])
-    legend = [desc['legend'][l] for l in desc['yvals']] if 'legend'in desc \
-             else desc['yvals']
-    plt.legend([elem[x] for x in desc['yvals']], legend,
-               prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
+    n_bars = len(placement)
+    plt.xticks(border + 0.5*(n_bars*width) + 
+               (separation + n_bars*width)*np.arange(len(xticks)),
+               xticks)
+    if 'legend' in desc:
+        legend = [desc['legend'][l] for l in yvals] if 'legend'in desc else yvals
+        legend_args = desc['legend_args'] if 'legend_args' in desc else {}
+        plt.legend([elem[x] for x in yvals], legend,
+                   prop={'size': LEGEND_SIZE},
+                   loc=desc['legend_loc'],
+                   **legend_args)
     xmin, _ = plt.xlim()
-    plt.xlim(xmin, left - SEPARATION + BORDER)
+    plt.xlim(xmin, left - separation + border)
+    if 'ymax' in desc:
+        plt.ylim(ymax=desc['ymax'])
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
 
 
@@ -573,11 +465,34 @@ def plot_cdf(resultset, desc, filename, plotdir):
          Example: {'network_cache': 0.004, 'topology_name': 'GEANT'}
          If not specified or None, no filtering is executed on the results
          and possibly heterogeneous results may be plotted together
-     * yparam : str
-         The name of the y metric, e.g. 'strategy'
-     * yvals : list
-         List of lines plotted. For example. if yparam = 'strategy_name', then
-         a valid yvals value could be ['HR_SYMM', 'HR_ASYMM']
+     * ymetrics : list of tuples
+         List of metrics to be shown on the graph. The i-th metric of the list
+         is the metric that the i-th line on the graph will represent. If
+         all lines are for the same metric, then all elements of the list are
+         equal.
+         Each single metric (i.e. each element of the list) is a tuple modeling
+         the path to identify a specific metric into an entry of a result set.
+         Normally, it is a 2-value list where the first value is the name of
+         the collector which measured the metric and the second value is the
+         metric name. Example values could be ('CACHE_HIT_RATIO', 'MEAN'),
+         ('LINK_LOAD', 'MEAN_INTERNAL') or ('LATENCY', 'MEAN').
+         For example, if in a graph of N lines all lines of the graph show mean
+         latency, then ymetrics = [('LATENCY', 'MEAN')]*5.
+     * ycondnames : list of tuples, optional
+         List of condition names specific to each line of the graph. Different
+         from the conditions expressed in the filter parameter, which are
+         global, these conditions are specific to one bar. Ech condition name,
+         different from the filter parameter is a path to a condition to be
+         checked, e.g. ('topology', 'name'). Values to be matched for this
+         conditions are specified in ycondvals. This list must be as long as
+         the number of lines to plot. If not specified, all lines are filtered
+         by the conditions of filter parameter only, but in this case all
+         ymetrics should be different.
+     * ycondvals : list of tuples, optional
+         List of values that the conditions of ycondnames must meet. This list
+         must be as long as the number of lines to plot. If not specified,
+         all lines are filtered by the conditions of filter parameter only,
+         but in this case all ymetrics should be different.
      * xscale : str, optional
          The scale of x axis. Options allowed are 'linear' and 'log'. 
          Default value is 'linear'
@@ -586,12 +501,17 @@ def plot_cdf(resultset, desc, filename, plotdir):
          Default value is 'linear'
      * step : bool, optional
          If *True* draws the CDF with steps. Default value is *True*
-     * legend_loc : str
-         Legend location, e.g. 'upper left'
      * line_style : dict, optional
          Dictionary mapping each value of yvals with a line style
      * legend : dict, optional
-         Dictionary mapping each value of yvals with a legend label
+         Dictionary mapping each value of yvals with a legend label. If not
+         specified, it is not plotted. If you wish to plot it with the
+         name of the line, set it to put yvals or ymetrics, depending on which
+         one is used
+     * legend_loc : str
+         Legend location, e.g. 'upper left'
+     * legend_args : dict, optional
+         Optional legend arguments, such as ncol
      * plotempty : bool, optional
          If *True*, plot and save graph even if empty. Default is *True* 
     """
@@ -609,14 +529,25 @@ def plot_cdf(resultset, desc, filename, plotdir):
         desc['filter'] = {}
     step = desc['step'] if 'step' in desc else True
     plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    ymetrics = desc['ymetrics']
+    ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
+    ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
+    if ycondnames is not None and ycondvals is not None:
+        if not len(ymetrics) == len(ycondnames) == len(ycondvals):
+            raise ValueError('ymetrics, ycondnames and ycondvals must have the same length')
+        # yvals is basically the list of values that differentiate each line
+        # it is used for legends and styles mainly
+        yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
+    else:
+        yvals = ymetrics
     x_min = np.infty
     x_max = - np.infty
     empty = True
-    for l in desc['yvals']:
-        condition = dict(list(desc['filter'].items()) + \
-                         [(desc['yparam'], l)])
-        data = [extract_metric(x, desc['metric'])
-                for x in resultset.filter(condition)]
+    for i in range(len(yvals)):
+        condition = Tree(desc['filter'])
+        if ycondnames is not None:
+            condition.setval(ycondnames[i], ycondvals[i])      
+        data = [v.getval(ymetrics[i]) for _, v in resultset.filter(condition)]
         # If there are more than 1 CDFs in the resultset, take the first one
         if data:
             x_cdf, y_cdf = data[0]
@@ -624,8 +555,8 @@ def plot_cdf(resultset, desc, filename, plotdir):
                 x_cdf, y_cdf = step_cdf(x_cdf, y_cdf)
         else:
             x_cdf, y_cdf = [], []
-        fmt = desc['line_style'][l] if 'line_style' in desc \
-              and l in desc['line_style'] else '-'
+        fmt = desc['line_style'][yvals[i]] if 'line_style' in desc \
+              and yvals[i] in desc['line_style'] else '-'
         # This check is to prevent crashing when trying to plot arrays of nan
         # values with axes log scale
         if all(np.isnan(x) for x in x_cdf) or all(np.isnan(y) for y in y_cdf):
@@ -638,73 +569,9 @@ def plot_cdf(resultset, desc, filename, plotdir):
     if empty and not plot_empty:
         return
     plt.xlim(x_min, x_max)
-    legend = [desc['legend'][l] for l in desc['yvals']] if 'legend'in desc \
-             else desc['yvals']
+    if 'legend' in desc:
+        legend = [desc['legend'][l] for l in desc['yvals']]
+        legend_args = desc['legend_args'] if 'legend_args' in desc else {}
+        plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'], **legend_args)
     plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
-
-
-def run(config, results, plotdir):
-    """Run the plot script
-    
-    Parameters
-    ----------
-    config : str
-        The path of the configuration file
-    results : str
-        The file storing the experiment results
-    plotdir : str
-        The directory into which graphs will be saved
-    """
-    settings = Settings()
-    settings.read_from(config)
-    config_logging(settings.LOG_LEVEL)
-    resultset = results_reader_register[settings.RESULTS_FORMAT](results)
-    # Create dir if not existsing
-    if not os.path.exists(plotdir):
-        os.makedirs(plotdir)
-    # Parse params from settings
-    topologies = settings.TOPOLOGIES
-    cache_sizes = settings.NETWORK_CACHE
-    alphas = settings.ALPHA
-    strategies = settings.STRATEGIES
-    # Plot graphs
-    for topology in topologies:
-        for cache_size in cache_sizes:
-            logger.info('Plotting cache hit ratio for topology %s and cache size %s vs alpha' % (topology, str(cache_size)))
-            plot_cache_hits_vs_alpha(resultset, topology, cache_size, alphas, strategies, plotdir)
-            logger.info('Plotting link load for topology %s vs cache size %s' % (topology, str(cache_size)))
-            plot_link_load_vs_alpha(resultset, topology, cache_size, alphas, strategies, plotdir)
-            logger.info('Plotting latency for topology %s vs cache size %s' % (topology, str(cache_size)))
-            plot_latency_vs_alpha(resultset, topology, cache_size, alphas, strategies, plotdir)
-    for topology in topologies:
-        for alpha in alphas:
-            logger.info('Plotting cache hit ratio for topology %s and alpha %s vs cache size' % (topology, str(alpha)))
-            plot_cache_hits_vs_cache_size(resultset, topology, alpha, cache_sizes, strategies, plotdir)
-            logger.info('Plotting link load for topology %s and alpha %s vs cache size' % (topology, str(alpha)))
-            plot_link_load_vs_cache_size(resultset, topology, alpha, cache_sizes, strategies, plotdir)
-            logger.info('Plotting latency for topology %s and alpha %s vs cache size' % (topology, str(alpha)))
-            plot_latency_vs_cache_size(resultset, topology, alpha, cache_sizes, strategies, plotdir)
-    for cache_size in cache_sizes:
-        for alpha in alphas:
-            logger.info('Plotting cache hit ratio for cache size %s vs alpha %s against topologies' % (str(cache_size), str(alpha)))
-            plot_cache_hits_vs_topology(resultset, alpha, cache_size, topologies, strategies, plotdir)
-            logger.info('Plotting link load for cache size %s vs alpha %s against topologies' % (str(cache_size), str(alpha)))
-            plot_link_load_vs_topology(resultset, alpha, cache_size, topologies, strategies, plotdir)
-    logger.info('Exit. Plots were saved in directory %s' % os.path.abspath(plotdir))
-
-def main():
-    parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("-r", "--results", dest="results",
-                        help='the results file',
-                        required=True)
-    parser.add_argument("-o", "--output", dest="output",
-                        help='the output directory where plots will be saved',
-                        required=True)
-    parser.add_argument("config",
-                        help="the configuration file")
-    args = parser.parse_args()
-    run(args.config, args.results, args.output)
-
-if __name__ == '__main__':
-    main()

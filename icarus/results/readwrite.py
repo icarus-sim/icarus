@@ -6,13 +6,12 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
+from icarus.util import Tree
 from icarus.registry import register_results_reader, register_results_writer
 
 
 __all__ = [
     'ResultSet',
-    'extract_metric',
     'write_results_pickle',
     'read_results_pickle'
            ]
@@ -35,7 +34,7 @@ class ResultSet(object):
         """
         self._results = collections.deque()
         # Dict of global attributes common to all experiments
-        self.attr = attr if attr else {}
+        self.attr = attr if attr is not None else {}
     
     def __len__(self):
         """Returns the number of results in the resultset
@@ -94,11 +93,22 @@ class ResultSet(object):
         
         Parameters
         ----------
-        parameters : dict
-            Dictionary of experiment parameters
-        results : dict
-            Dictionary of experiment results
+        parameters : Tree
+            Tree of experiment parameters
+        results : Tree
+            Tree of experiment results
+            
+        Notes
+        -----
+        If parameters and results are dictionaries, this method will attempt to
+        convert them to trees and storing them anyway. It is necessary that
+        parameters and results are saved as trees so that plotting functions
+        can search correctly in them.
         """
+        if not isinstance(parameters, Tree):
+            parameters = Tree(parameters)
+        if not isinstance(results, Tree):
+            results = Tree(results)
         self._results.append((parameters, results))
     
     def dump(self):
@@ -114,69 +124,32 @@ class ResultSet(object):
         return list(self._results)
 
     
-    def filter(self, parameters, metrics=None):
+    def filter(self, condition):
         """Return subset of results matching specific conditions
         
         Parameters
         ----------
-        parameters : dict
+        condition : dict
             Dictionary listing all parameters and values to be matched in the
-            results set
+            results set. Each parameter, i.e. each key of the dictionary must
+            be an iterable object containing the path in the parameters tree
+            to the required parameter 
         metrics : dict, optional
             List of metrics to be reported
         
         Returns
         -------
-        filtered_results : list
+        filtered_results : ResultSet
             List of 2-tuples of filtered results, where the first element is a
-            dictionary of all experiment parameters and the second value is 
-            a dictionary with experiment results.
+            tree of all experiment parameters and the second value is 
+            a tree with experiment results.
         """
-        filtered_results = collections.deque()
-        for exp_params, exp_metrics in self._results:
-            match = True
-            for k, v in parameters.iteritems():
-                if k not in exp_params or exp_params[k] != v:
-                    match = False
-                    break
-            if match:
-                filtered_metrics = exp_metrics if metrics is None else \
-                    dict((m, exp_metrics[m]) for m in metrics if m in exp_metrics)
-                filtered_results.append((exp_params, filtered_metrics))
-        return list(filtered_results)
-
-
-def extract_metric(result, metric_hierarchy):
-    """Extract a specific metric from an entry of a result set.
-    
-    In a result set, each experiment is represented by a 2-tuple of
-    dictionaries whereby the first element is a dictionary of parameters and
-    the second element is a dictionary of measured metrics, possibly nesting
-    other dictionaries.
-    
-    This function, given a result entry, iterates through the metric hierarchy
-    and returns the desired metric value. For example, let us assume that we
-    want to get the mean cache hit ratio of the first experiment, as stored by
-    the cache hit ratio collector. We can do this as::
-    
-    cache_hit_ratio = extract_metric(resultset[0], ['CACHE_HIT_RATIO', 'MEAN'])
-    
-    Parameters
-    ----------
-    result: 2-value tuple
-        An entry of a resultset
-    metric_hierarchy : list
-        List of key values to get the desired metric
-    
-    Returns
-    -------
-    metric : any hashable type
-        The desired metric value
-    """
-    result = result[1]
-    for m in metric_hierarchy:
-        result = result[m]
-    return result
+        filtered_resultset = ResultSet()
+        for parameters, results in self._results:
+            parameters = Tree(parameters)
+            if parameters.match(condition):
+                filtered_resultset.add(parameters, results)
+        return filtered_resultset
 
 
 @register_results_writer('PICKLE')

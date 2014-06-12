@@ -43,15 +43,16 @@ class TestResultSet(unittest.TestCase):
         self.assertEquals(self.metric, metric)
         
     def test_filter_match(self):
-        filtered_rs = self.rs.filter({'gamma': 3}, ['m1', 'm2'])
+        filtered_rs = self.rs.filter({'gamma': 3})
         self.assertEquals(3, len(filtered_rs))
         #TODO: Complete
         
     def test_filter_no_matching_metrics(self):
-        filtered_rs = self.rs.filter({'gamma': 3}, ['mn'])
+        filtered_rs = self.rs.filter({'gamma': 3})
         self.assertEquals(3, len(filtered_rs))
         #TODO: Complete
         
     def test_filter_no_match(self):
-        filtered_rs = self.rs.filter({'gamma': 3}, ['m1', 'm2'])
+        filtered_rs = self.rs.filter({'gamma': 3})
         self.assertEquals(3, len(filtered_rs))
+        

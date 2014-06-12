@@ -28,7 +28,7 @@ If you have other operating systems, you can install all dependencies manually.
 
 Icarus dependencies are:
 
-* **Python interpreter (v 2.6 onwards, 2.7 preferred)**: you can either download it
+* **Python interpreter (2.7.x)**: you can either download it
   from the [Python website](http://www.python.org) or, possibly, from the package
   manager of your operating system.
 * The following Python packages: 
@@ -36,9 +36,7 @@ Icarus dependencies are:
    * **scipy** (version 0.12 onwards)
    * **matplotlib** (version 1.2 onwards)
    * **networkx** (version 1.6 onwards)
-   * **fnss** (version 0.3 onwards)
-   * **argparse** (only if using Python version 2.6. It is already included the standard
-     library starting from Python 2.7)
+   * **fnss** (version 0.5 onwards)
 
 All these packages can be installed using either [`easy_install`](http://pythonhosted.org/setuptools/easy_install.html) or [`pip`](http://www.pip-installer.org/en/latest/) utilities.
 
@@ -72,26 +70,31 @@ You can also get the development branch from the Github repository using Git. Ju
 ## Usage
 
 ### Run simulations
-To use Icarus with the currently implemented topologies and models of caching policies
-and strategies you need to do the following.
 
 To use Icarus with the currently implemented topologies and models of caching policies and strategies you need to do the following.
 
-First, create a configuration file with all the desired parameters of your simulation. You can modify the file `config.py`, which is a well documented example configuration. You can even use the configuration file as it is just to get started.
+First, create a configuration file with all the desired parameters of your simulation. You can modify the file `config.py`, which is a well documented example configuration. You can even use the configuration file as it is just to get started. Alternatively, have a look at the `examples` folder which contains examples of configuration files for various uses.
 
 Second, run Icarus by running the script `icarus.py` using the following syntax
 
-    $ python icarus.py --results RESULTS_FILE [--plots PLOTS_DIR] CONF_FILE
+    $ python icarus.py --results RESULTS_FILE CONF_FILE
 
 where:
 
  * `RESULTS_FILE` is the [pickle](http://docs.python.org/3/library/pickle.html) file in which results will be saved,
- * `PLOTS_DIR` is the directory where graphs plotting the results will be saved. If the folder does not exist, it will be created. This parameter is optional. If omitted, graphs will not be plotted. Results can be plotted at a later stage anyway.
  * `CONF_FILE` is the configuration file
 
 Example usage could be:
 
-    $ python icarus.py --results results.pickle --plots graphs config.py
+    $ python icarus.py --results results.pickle config.py
+
+After saved results in pickle format you can extract results in a human readable format
+using the `printresults.py` script from the `scripts` folder. Example usage could be:
+
+    $ python scripts/printresults.py results.pickle > results.txt
+
+Icarus also provides a set of helper functions for plotting results. Have a look at the `examples`
+folder for plot examples.
 
 By executing the steps illustrated above it is possible to run simulations using the
 topologies, cache policies, strategies and result collectors readily available on
@@ -194,4 +197,4 @@ For further information about the Icarus simulator, please contact
 [Lorenzo Saino](http://www.ee.ucl.ac.uk/~lsaino)
 
 ## Acknowledgments
-This work is funded by the EU-Japan initiative under European Commission FP7 grant agreement no. 608518 and NICT contract no. 167 ([the GreenICN project](http://www.greenicn.org/)).
+This work was funded by the EU-Japan initiative under European Commission FP7 grant agreement no. 608518 and NICT contract no. 167 ([the GreenICN project](http://www.greenicn.org/)).
