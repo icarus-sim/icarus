@@ -177,38 +177,14 @@ If you desire further information about Icarus, you can find it in the following
 ## Reproduce results of previous papers
 
 ### Hash-routing schemes, ACM SIGCOMM ICN '13
-This repository contains the code and configuration to reproduce the results and plot the graphs presented
-in the paper:
+The Icarus simulator can be used to reproduce the results and plot the graphs presented in the paper:
 
 L.Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for Information Centric Networking,
 in *Proc. of the 3rd ACM SIGCOMM workshop on Information Centric Networking (ICN'13)*, Hong Kong, China, August 2013.
 [\[PDF\]](http://www.ee.ucl.ac.uk/~lsaino/publications/hashrouting-icn13.pdf),
 [\[BibTex\]](http://www.ee.ucl.ac.uk/~lsaino/publications/hashrouting-icn13.bib)
 
-To reproduce results and plot the graph, simply go to the folder `./reproduce-results/hashrouting-icn13` and run the script `reproduce_results.sh`. 
-
-    $ cd <YOUR ICARUS FOLDER>
-    $ cd reproduce-results/hashrouting-icn13
-    $ sh reproduce_results.sh
-
-This script has been tested only on Ubuntu 12.04, but should work fine on any more recent versions.
-
-This script will run all simulations automatically, save all log files and plot all graphs.
-
-The logs will be saved in the `logs` directory, while the graphs will be saved in the `graphs` directory.
-
-If you want to change the configuration of the program, e.g. the range of
-parameters tested, the number of CPU cores used and so on, please look at the 
-file `reproduce-results/hashrouting-icn13/icarus/config.py`. It contains all the configuration parameters and it is
-well commented.
-
-**ATTENTION**: The code used to reproduce the results of the hash-routing
-paper is based on version 0.1 of Icarus which, although well tested,
-it is poorly documented and difficult to extend.
-This code should therefore be used only to reproduce the results shown in the
-paper. If you wish to run simulations using different parameters or implement
-new models, you should use the latest version of the code located in the main
-directory.
+To do so, refer to the instructions reported in the  [icarus-sim/hashrouting-icn13-results](http://github.com/icarus-sim/hashrouting-icn13-results) repository.
 
 ## License
 Icarus is licensed under the terms of the [GNU GPLv2 license](http://www.gnu.org/licenses/gpl-2.0.html).
