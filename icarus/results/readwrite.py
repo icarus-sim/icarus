@@ -86,7 +86,7 @@ class ResultSet(object):
                              'they have different global attributes')
         rs = copy.deepcopy(self)
         for i in iter(resultset):
-            rs.add(i)
+            rs.add(*i)
         return rs
 
     def add(self, parameters, results):
