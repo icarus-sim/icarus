@@ -8,6 +8,7 @@ import numpy as np
 
 __all__ = [
         'Settings',
+        'AnyValue',
         'SequenceNumber',
         'config_logging',
         'inheritdoc',
@@ -300,6 +301,52 @@ class Settings(object):
             raise ValueError('Settings are frozen and cannot be modified')
         self.__conf[name] = value
 
+
+class AnyValue(object):
+    """Pseudo-value that returns True when compared to any other object.
+    
+    This object can be used for example to store parameters in resultsets. 
+    
+    One concrete usage example is the following: let's assume that a user runs
+    an experiment using various strategies under different values of a
+    specific parameter and that the user knows that one strategy does not
+    depend on that parameters while others do.
+    If a user wants to plot the sensitivity of all these strategies against
+    this parameter, he would want the strategy insensitive to that parameter to
+    be selected from the resultset when filtering it against any value of that
+    parameter. This can be achieved by setting AnyValue() to this parameter in
+    the result related to that strategy.
+    """
+    
+    def __eq__(self, other):
+        """Return always True
+        
+        Parameters
+        ----------
+        other : any
+            The object to be compared
+        
+        Returns
+        -------
+        eq : bool
+            Always True
+        """
+        return True
+    
+    def __ne__(self, other):
+        """Return always False
+        
+        Parameters
+        ----------
+        other : any
+            The object to be compared
+        
+        Returns
+        -------
+        en : bool
+            Always False
+        """
+        return False
 
 class SequenceNumber(object):
     """This class models an increasing sequence number.
