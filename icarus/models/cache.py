@@ -485,8 +485,8 @@ class Cache(object):
         """Return a dump of all the elements currently in the cache possibly
         sorted according to the eviction policy.
         
-        Return
-        ------
+        Returns
+        -------
         cache_dump : list
             The list of all items currently stored in the cache
         """
@@ -611,8 +611,8 @@ class NullCache(Cache):
         
         Since this is a dummy cache implementation, this value is 0.
         
-        Return
-        ------
+        Returns
+        -------
         maxlen : int
             The maximum number of items the cache can store. It is always 0
         """
@@ -623,8 +623,8 @@ class NullCache(Cache):
         
         In this case it is always an empty list.
         
-        Return
-        ------
+        Returns
+        -------
         cache_dump : list
             An empty list.
         """

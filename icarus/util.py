@@ -41,8 +41,8 @@ class Settings(object):
     def __getitem__(self, name):
         """Return value of settings with given name
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
             
@@ -59,8 +59,8 @@ class Settings(object):
     def __getattr__(self, name):
         """Return value of settings with given name
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
             
@@ -81,8 +81,8 @@ class Settings(object):
     def __setitem__(self, name, value):
         """Sets a given value for a settings with given name
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
         value : any hashable type
@@ -93,8 +93,8 @@ class Settings(object):
     def __setattr__(self, name, value):
         """Sets a given value for a settings with given name
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
         value : any hashable type
@@ -107,8 +107,8 @@ class Settings(object):
     def __delitem__(self, name):
         """Removes a specific setting
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
         """
@@ -162,8 +162,8 @@ class Settings(object):
     def get(self, name):
         """Return value of settings with given name
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
             
@@ -180,8 +180,8 @@ class Settings(object):
     def set(self, name, value):
         """Sets a given value for a settings with given name
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name : str
             Name of the setting
         value : any hashable type

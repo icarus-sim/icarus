@@ -49,8 +49,8 @@ class DiscreteDist(object):
     def __len__(self):
         """Return the cardinality of the support
         
-        Return
-        ------
+        Returns
+        -------
         len : int
             The cardinality of the support
         """
@@ -61,8 +61,8 @@ class DiscreteDist(object):
         """
         Return the Probability Density Function (PDF)
         
-        Return
-        ------
+        Returns
+        -------
         pdf : Numpy array
             Array representing the probability density function of the
             distribution 
@@ -74,8 +74,8 @@ class DiscreteDist(object):
         """
         Return the Cumulative Density Function (CDF)
         
-        Return
-        ------
+        Returns
+        -------
         cdf : Numpy array
             Array representing cdf 
         """

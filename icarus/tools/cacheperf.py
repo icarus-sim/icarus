@@ -156,8 +156,8 @@ def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
         d : float
             Constant
         
-        Return
-        ------
+        Returns
+        -------
         roots : tuple
             Tuple of real solutions.
             The tuple may comprise either 1 or 3 values
