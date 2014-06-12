@@ -13,6 +13,7 @@ import numpy as np
 
 import icarus.tools as traces
 from icarus.tools import TruncatedZipfDist
+from icarus.util import can_import
 
 class TestZipfFit(unittest.TestCase):
 
@@ -24,6 +25,8 @@ class TestZipfFit(unittest.TestCase):
     def tearDownClass(cls):
         pass
     
+    @unittest.skipIf(not can_import("from scipy.optimize import minimize_scalar"),
+                     "Scipy not installed or version < 0.12")
     def test_expected_fit(self):
         """Test that the Zipf fit function correctly estimates the alpha
         parameter of a known Zipf distribution"""
@@ -37,6 +40,8 @@ class TestZipfFit(unittest.TestCase):
             self.assertLessEqual(np.abs(a - est_a), alpha_tolerance)
             self.assertGreaterEqual(p, p_min)
 
+    @unittest.skipIf(not can_import("from scipy.optimize import minimize_scalar"),
+                     "Scipy not installed or version < 0.12")
     def test_no_fit(self):
         """Test that the Zipf fit function correctly identifies a non-Zipfian
         distribution"""

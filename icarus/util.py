@@ -16,6 +16,7 @@ __all__ = [
         'iround',
         'step_cdf',
         'Tree',
+        'can_import'
            ]
 
 class Tree(collections.defaultdict):
@@ -520,3 +521,23 @@ def step_cdf(x, y):
         sy[2*i + 1] = y[i]
     sy[0] = 0
     return sx, sy
+
+def can_import(statement):
+    """Try executing an import statement and return True if succeeds or False
+    othrwise
+    
+    Parameters
+    ----------
+    statement : string
+        The import statement
+    
+    Returns
+    -------
+    can_import : bool
+        True if can import, False otherwise
+    """
+    try:
+        exec(statement)
+        return True
+    except ImportError:
+        return False

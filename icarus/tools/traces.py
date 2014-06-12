@@ -6,7 +6,6 @@ import math
 import collections
 
 import numpy as np
-from scipy.optimize import minimize_scalar
 from scipy.stats import chisquare
 
 from icarus.tools import TruncatedZipfDist
@@ -64,6 +63,12 @@ def zipf_fit(obs_freqs):
     This function uses the method described in
     http://stats.stackexchange.com/questions/6780/how-to-calculate-zipfs-law-coefficient-from-a-set-of-top-frequencies
     """
+    try:
+        from scipy.optimize import minimize_scalar
+    except ImportError:
+        raise ImportError("Cannot import scipy.optimize minimize_scalar. "
+                          "You either don't have scipy install or you have a "
+                          "version too old (required 0.12 onwards)")
     obs_freqs = np.asarray(obs_freqs)
     n = len(obs_freqs)
     def log_likelihood(alpha):
