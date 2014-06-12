@@ -3,9 +3,10 @@
 __pycache__
 *~ 
 
-# Ignore all files starting with . (e.g. .classpath, .*project) but not .gitignore
+# Ignore all files starting with . (e.g. .classpath, .*project) but not .gitignore and .travis.yml
 .*
 !.gitignore
+!.travis.yml
 
 # Ignore results
 *.pickle
