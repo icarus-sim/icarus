@@ -26,13 +26,22 @@ def print_results(path):
         i += 1
         print("EXPERIMENT %d/%d:" % (i, n)) 
         print("  CONFIGURATION:")
-        for k, v in experiment.iteritems():
-            print("    * %s: %s" % (str(k), str(v)))
+        for k, v in experiment.items():
+            if isinstance(v, dict):
+                s = "   * %s ->" % str(k)
+                if 'name' in v:
+                    s += " name: %s," % str(v.pop('name'))
+                for group, value in v.items():
+                    s += " %s: %s," % (str(group), str(value))
+                print(s.rstrip(","))
+            else:
+                print("   * %s -> %s" % (str(k), str(v)))
+#            print("    * %s: %s" % (str(k), str(v)))
         print("  RESULTS:")
-        for collector, data in results.iteritems():
+        for collector, data in results.items():
             if isinstance(data, dict):
                 print("    %s" % str(collector))
-                for metric, value in data.iteritems():
+                for metric, value in data.items():
                     print("     * %s: %s" % (str(metric), str(value)))
             else:
                 print("     * %s: %s" % (str(collector), str(data)))
