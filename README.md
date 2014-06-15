@@ -36,7 +36,7 @@ Icarus dependencies are:
    * **scipy** (version 0.12 onwards)
    * **matplotlib** (version 1.2 onwards)
    * **networkx** (version 1.6 onwards)
-   * **fnss** (version 0.5 onwards)
+   * **fnss** (version 0.5.1 onwards)
 
 All these packages can be installed using either [`easy_install`](http://pythonhosted.org/setuptools/easy_install.html) or [`pip`](http://www.pip-installer.org/en/latest/) utilities.
 
@@ -55,10 +55,11 @@ You can download a stable release in a zip or tar.gz format using the links belo
 
 **Latest version:**
 
- * Version 0.2.1: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.tar.gz)
+ * Version 0.3.0: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.3.0.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.3.0.tar.gz)
 
 **Older versions:**
 
+ * Version 0.2.1: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.tar.gz)
  * Version 0.2: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.tar.gz)
  * Version 0.1.1: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.1.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.1.1.tar.gz)
  * Version 0.1.0: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.1.tar.gz)
