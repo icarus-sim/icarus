@@ -4,14 +4,12 @@
 import sys
 import os
 import signal
-import argparse
 import functools
 import logging
 
 from icarus.util import Settings, config_logging
 from icarus.registry import results_writer_register
 from icarus.orchestration import Orchestrator
-from icarus.results import plot
 
 
 __all__ = ['run', 'handler']
@@ -80,21 +78,3 @@ def run(config_file, output, config_override):
     results = orch.results
     results_writer_register[settings.RESULTS_FORMAT](results, output)
     logger.info('Saved results to file %s' % os.path.abspath(output))
-    
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-r", "--results", dest="results",
-                        help='the file on which results will be saved',
-                        required=True)
-    parser.add_argument("-p", "--plots", dest="plotsdir",
-                        help='plot results and save them in plotsdir',
-                        required=False)
-    parser.add_argument("config",
-                        help="configuration file")
-    args = parser.parse_args()
-    main(args.config, args.results)
-    if args.plotsdir:
-        plot.main(args.config, args.results, args.plotsdir)
-
-if __name__ == '__main__':
-    main()
