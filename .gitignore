@@ -15,7 +15,5 @@ __pycache__
 doc/build
 doc/source/apidoc
 
-# Ignore various files in reproduce results ICN'13
-reproduce-results/hashrouting-icn13/logs
-reproduce-results/hashrouting-icn13/graphs
-reproduce-results/hashrouting-icn13/scenarios/*.xml
+# Ignore plot files
+*.pdf

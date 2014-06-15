@@ -53,43 +53,57 @@ class Tree(collections.defaultdict):
             self.update(attr)
 
     def __iter__(self, root=[]):
-        it = collections.deque() # []
+        it = collections.deque()
         for k_child, v_child in self.iteritems():
             base = copy.copy(root)
             base.append(k_child)
             if isinstance(v_child, Tree):
                 it.extend(v_child.__iter__(base))
-#                itertools.chain(it, v_child.__iter__(root))
             else:
                 it.append((tuple(base), v_child))
-#                itertools.chain(it, iter([(root, v_child)]))
         return iter(it)
 
-#    @inheritdoc(collections.defaultdict)
     def __setitem__(self, k, v):
         if not isinstance(v, Tree) and isinstance(v, dict):
             v = Tree(v)
         super(Tree, self).__setitem__(k, v)
     
-#    @inheritdoc(collections.defaultdict)    
     def update(self, e):
         if not isinstance(e, Tree):
             e = Tree(e)
         super(Tree, self).update(e)
 
-    # This code is needed to fix an issue occurring while pickling.
-    # Further info here:
-    # http://stackoverflow.com/questions/3855428/how-to-pickle-and-unpickle-instances-of-a-class-that-inherits-from-defaultdict
-#    @inheritdoc(collections.defaultdict)
     def __reduce__(self):
+        # This code is needed to fix an issue occurring while pickling.
+        # Further info here:
+        # http://stackoverflow.com/questions/3855428/how-to-pickle-and-unpickle-instances-of-a-class-that-inherits-from-defaultdict
         t = collections.defaultdict.__reduce__(self)
         return (t[0], ()) + t[2:]
 
     def paths(self):
+        """Return a dictionary mapping all paths to final (non-tree) values
+        and the values.
+        
+        Returns
+        -------
+        paths : dict
+            Path-value mapping
+        """
         return dict(iter(self))
 
     def getval(self, path):
-        """Get the value at a specific path, None if not there"""
+        """Get the value at a specific path, None if not there
+        
+        Parameters
+        ----------
+        path : iterable
+            Path to the desired value
+            
+        Returns
+        -------
+        val : any type
+            The value at the given path
+        """
         tree = self
         for i in path:
             if isinstance(tree, Tree) and i in tree:
@@ -99,7 +113,15 @@ class Tree(collections.defaultdict):
         return None if isinstance(tree, Tree) and tree.empty else tree
     
     def setval(self, path, val):
-        """Set a value at a specific path"""
+        """Set a value at a specific path
+        
+        Parameters
+        ----------
+        path : iterable
+            Path to the value
+        val : any type
+            The value to set at the given path
+        """
         tree =self
         for i in path[:-1]:
             if not isinstance(tree[i], Tree):
@@ -108,7 +130,13 @@ class Tree(collections.defaultdict):
         tree[path[-1]] = val
     
     def pprint(self):
-        """Pretty print the tree"""
+        """Pretty print the tree
+        
+        Returns
+        -------
+        pprint : str
+            A pretty string representation of the tree
+        """
         return str(self)
     
     def __str__(self, dictonly=False):
@@ -121,11 +149,34 @@ class Tree(collections.defaultdict):
         return s
     
     def match(self, condition):
+        """Check if the tree matches a given condition.
+        
+        The condition is another tree. This method iterates to all the values
+        of the condition and verify that all values of the condition tree are
+        present in this tree and have the same value.
+        
+        Note that the operation is not symmetric i.e.
+        self.match(condition) != condition.match(self). In fact, this method
+        return True if this tree has values not present in the condition tree
+        while it would return False if the condition has values not present
+        in this tree.
+        
+        Parameters
+        ----------
+        condition : Tree
+            The condition to check
+        
+        Returns
+        -------
+        match : bool
+            True if the tree matches the condition, False otherwise.
+        """
         condition = Tree(condition)
         return all(self.getval(path) == val for path, val in condition.paths().items())
     
     @property
     def empty(self):
+        """Return True if the tree is empty, False otherwise"""
         return len(self) == 0
 
 class Settings(object):
@@ -445,6 +496,7 @@ def timestr(sec, with_seconds=True):
         The time interval
     with_seconds : bool
         If *True* the time string includes seconds, otherwise only minutes
+    
     Returns
     -------
     timestr : str
@@ -521,6 +573,7 @@ def step_cdf(x, y):
         sy[2*i + 1] = y[i]
     sy[0] = 0
     return sx, sy
+
 
 def can_import(statement):
     """Try executing an import statement and return True if succeeds or False

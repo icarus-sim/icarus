@@ -31,9 +31,6 @@ plt.rcParams['figure.figsize'] = 8, 5
 # Size of font in legends
 LEGEND_SIZE = 14
 
-# Line width in pixels
-LINE_WIDTH = 1.5
-
 # Plot
 PLOT_EMPTY_GRAPHS = False
 
