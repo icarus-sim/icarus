@@ -521,19 +521,65 @@ class TestLfuCache(unittest.TestCase):
 class TestRandInsert(unittest.TestCase):
     
     def test_rand_insert(self):
-        n = 100000
+        n = 10000
+        r = 10
         p1 = 0.01
         p2 = 0.1
         rc1 = cache.rand_insert_cache(cache.LruCache(n), p1)
         rc2 = cache.rand_insert_cache(cache.LruCache(n), p2)
+        len_rc1 = 0
+        len_rc2 = 0
+        for _ in range(r):
+            for i in range(n):
+                rc1.put(i)
+                rc2.put(i)
+            len_rc1 += len(rc1)
+            len_rc2 += len(rc2)
+            rc1.clear()
+            rc2.clear()
+        self.assertLess(abs(len_rc1/r - n*p1), 50)
+        self.assertLess(abs(len_rc2/r - n*p2), 50)
+
+    def test_constant_seed(self):
+        n = 10000
+        p = 0.1
+        rc1 = cache.rand_insert_cache(cache.LruCache(n), p, seed=0)
         for i in range(n):
             rc1.put(i)
+        rc2 = cache.rand_insert_cache(cache.LruCache(n), p, seed=0)
+        for i in range(n):
             rc2.put(i)
-        self.assertLess(len(rc1) - n*p1, 200)
-        self.assertLess(len(rc2) - n*p2, 200)
-        self.assertEqual(rc1.put.__name__, 'put')
-        self.assertGreater(len(rc1.put.__doc__), 0)
+        self.assertEqual(rc1.dump(), rc2.dump())
 
+    def test_different_seed(self):
+        n = 10000
+        p = 0.1
+        rc1 = cache.rand_insert_cache(cache.LruCache(n), p, seed=1)
+        for i in range(n):
+            rc1.put(i)
+        rc2 = cache.rand_insert_cache(cache.LruCache(n), p, seed=2)
+        for i in range(n):
+            rc2.put(i)
+        self.assertNotEqual(rc1.dump(), rc2.dump())
+    
+    def test_deepcopy(self):
+        c = cache.LruCache(10)
+        rc = cache.rand_insert_cache(c, p=1.0)
+        rc.put(1)
+        self.assertFalse(c.has(1))
+        c.put(3)
+        self.assertFalse(rc.has(3))
+
+    def test_naming(self):
+        c = cache.rand_insert_cache(cache.FifoCache(3), 0.2)
+        self.assertEqual(c.get.__name__, 'get')
+        self.assertEqual(c.put.__name__, 'put')
+        self.assertEqual(c.dump.__name__, 'dump')
+        self.assertEqual(c.clear.__name__, 'clear')
+        self.assertGreater(len(c.get.__doc__), 0)
+        self.assertGreater(len(c.put.__doc__), 0)
+        self.assertGreater(len(c.dump.__doc__), 0)
+        self.assertGreater(len(c.clear.__doc__), 0)
 
 class TestKeyValCache(unittest.TestCase):
     

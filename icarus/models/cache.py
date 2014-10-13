@@ -1226,13 +1226,12 @@ def rand_insert_cache(cache, p, seed=None):
         raise ValueError('p must be a value between 0 and 1')
     cache = copy.deepcopy(cache)
     random.seed(seed)
-    put = cache.put
-    def rand_put(k):
+    c_put = cache.put
+    def put(k):
         if random.random() < p:
-            return put(k)
-    cache.put = rand_put
-    cache.put.__name__ = 'put'
-    cache.put.__doc__ = put.__doc__
+            return c_put(k)
+    cache.put = put
+    cache.put.__doc__ = c_put.__doc__
     return cache
 
 
