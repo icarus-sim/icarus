@@ -3,12 +3,12 @@
 single pickle file.
 """
 import argparse
-from icarus.registry import results_reader_register, results_writer_register
+from icarus.registry import RESULTS_READER, RESULTS_WRITER
 
 __all__ = ['merge_results']
 
-read = results_reader_register['PICKLE']
-write = results_writer_register['PICKLE']
+read = RESULTS_READER['PICKLE']
+write = RESULTS_WRITER['PICKLE']
 
 def merge_results(inputs, output):
     """Merge a list of resultsets, saved as pickle into a single pickle file.

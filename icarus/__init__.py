@@ -22,7 +22,10 @@ __modules_to_register = [
      'icarus.models.strategy',
      'icarus.execution.collectors', 
      'icarus.results.readwrite',
-     'icarus.scenarios.topology'
+     'icarus.scenarios.topology',
+     'icarus.scenarios.contentplacement',
+     'icarus.scenarios.cacheplacement',
+     'icarus.scenarios.workload',
                          ]
 
 for m in __modules_to_register:

@@ -1,20 +1,29 @@
 # Dictionary storying all cache policy implementations keyed by ID
-cache_policy_register = {}
+CACHE_POLICY = {}
 
 # Dictionary storying all strategy implementations keyed by ID
-strategy_register = {}
+STRATEGY = {}
 
 # Dictionary storying all network topologies keyed by ID
-topology_factory_register = {}
+TOPOLOGY_FACTORY = {}
 
-# Dictionary storying all network topologies keyed by ID
-data_collector_register = {}
+# Dictionary storying all cache placement functions keyed by ID
+CACHE_PLACEMENT = {}
+
+# Dictionary storying all content placement functions keyed by ID
+CONTENT_PLACEMENT = {}
+
+# Dictionary storying all workload generators keyed by ID
+WORKLOAD = {}
+
+# Dictionary storying all data collector classes keyed by ID
+DATA_COLLECTOR = {}
 
 # Dictionary storying all results reader functions keyed by ID
-results_reader_register = {}
+RESULTS_READER = {}
 
 # Dictionary storying all results writer functions keyed by ID
-results_writer_register = {}
+RESULTS_WRITER = {}
 
 def register_decorator(register):
     """Returns a decorator that register a class or function to a specified
@@ -45,9 +54,12 @@ def register_decorator(register):
         return _decorator
     return decorator
 
-register_cache_policy = register_decorator(cache_policy_register)
-register_strategy = register_decorator(strategy_register)
-register_topology_factory = register_decorator(topology_factory_register)
-register_data_collector = register_decorator(data_collector_register)
-register_results_reader = register_decorator(results_reader_register)
-register_results_writer = register_decorator(results_writer_register)
+register_cache_policy = register_decorator(CACHE_POLICY)
+register_strategy = register_decorator(STRATEGY)
+register_topology_factory = register_decorator(TOPOLOGY_FACTORY)
+register_cache_placement = register_decorator(CACHE_PLACEMENT)
+register_content_placement = register_decorator(CONTENT_PLACEMENT)
+register_workload = register_decorator(WORKLOAD)
+register_data_collector = register_decorator(DATA_COLLECTOR)
+register_results_reader = register_decorator(RESULTS_READER)
+register_results_writer = register_decorator(RESULTS_WRITER)

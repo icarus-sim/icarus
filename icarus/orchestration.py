@@ -9,14 +9,14 @@ import time
 import collections
 import multiprocessing as mp
 import logging
+import copy
 import sys
 import signal
 import traceback
 
 from icarus.execution import exec_experiment
-from icarus.scenarios import uniform_req_gen
-from icarus.registry import topology_factory_register, cache_policy_register, \
-                           strategy_register, data_collector_register
+from icarus.registry import TOPOLOGY_FACTORY, CACHE_PLACEMENT, CONTENT_PLACEMENT, \
+                            CACHE_POLICY, WORKLOAD, DATA_COLLECTOR, STRATEGY
 from icarus.results import ResultSet
 from icarus.util import SequenceNumber, timestr
 
@@ -72,22 +72,10 @@ class Orchestrator(object):
         methods returns only after all experiments are executed.
         """
         # Create queue of experiment configurations
-        if 'EXPERIMENT_QUEUE' in self.settings and self.settings.EXPERIMENT_QUEUE:
-            queue = collections.deque(self.settings.EXPERIMENT_QUEUE)
-        else:
-            queue = collections.deque()
-            n_contents = self.settings.N_CONTENTS
-            for topology_name in self.settings.TOPOLOGIES:
-                for network_cache in self.settings.NETWORK_CACHE:
-                    for alpha in self.settings.ALPHA:
-                        for strategy_name in self.settings.STRATEGIES:
-                            params = dict(alpha=alpha,
-                                          topology_name=topology_name,
-                                          network_cache=network_cache,
-                                          strategy_name=strategy_name,
-                                          n_contents=n_contents,
-                                          strategy_params={})
-                            queue.append(params)
+        if 'EXPERIMENT_QUEUE' not in self.settings:
+            logger.error('No EXPERIMENT_QUEUE setting found. Exiting')
+            sys.exit(-1)
+        queue = collections.deque(self.settings.EXPERIMENT_QUEUE)
         # Calculate number of experiments and number of processes
         self.n_exp = len(queue) * self.settings.N_REPLICATIONS 
         self.n_proc = self.settings.N_PROCESSES \
@@ -178,8 +166,8 @@ def run_scenario(settings, params, curr_exp, n_exp):
     ----------
     settings : Settings
         The simulator settings
-    params : dict
-        Dictionary of parameters
+    params : Tree
+        experiment parameters tree
     curr_exp : int
         sequence number of the experiment
     n_exp : int
@@ -199,48 +187,79 @@ def run_scenario(settings, params, curr_exp, n_exp):
         proc_name = mp.current_process().name
         logger = logging.getLogger('runner-%s' % proc_name)
     
-        alpha = params['alpha']
-        topology_name = params['topology_name']
-        network_cache = params['network_cache']
-        strategy_name = params['strategy_name']
-        n_contents = params['n_contents']
-        strategy_params = params['strategy_params']
-        cache_policy = params['cache_policy'] if 'cache_policy' in params \
-                       and params['cache_policy'] is not None \
-                       else settings.CACHE_POLICY
+        # Get list of metrics required
         metrics = settings.DATA_COLLECTORS
         
-        scenario = "%s, %s, alpha: %s, netcache: %s" % (topology_name, strategy_name, str(alpha), str(network_cache))
+        # Copy parameters so that they can be manipulated
+        tree = copy.deepcopy(params)
+        
+        # Set topology
+        topology_spec = tree['topology']
+        topology_name = topology_spec.pop('name')
+        if topology_name not in TOPOLOGY_FACTORY:
+            logger.error('No topology factory implementation for %s was found.'
+                         % topology_name)
+            return None
+        topology = TOPOLOGY_FACTORY[topology_name](**topology_spec)
+        
+        workload_spec = tree['workload']
+        workload_name = workload_spec.pop('name')
+        if workload_name not in WORKLOAD:
+            logger.error('No workload implementation named %s was found.'
+                         % workload_name)
+            return None
+        workload = WORKLOAD[workload_name](topology, **workload_spec)
+        
+        contpl_spec = tree['content_placement']
+        contpl_name = contpl_spec.pop('name')
+        if contpl_name not in CONTENT_PLACEMENT:
+            logger.error('No content placement implementation named %s was found.'
+                         % contpl_name)
+            return None
+        CONTENT_PLACEMENT[contpl_name](topology, workload.contents, **contpl_spec)
+        
+        if 'cache_placement' in tree:
+            cachepl_spec = tree['cache_placement']
+            cachepl_name = cachepl_spec.pop('name')
+            if cachepl_name not in CACHE_PLACEMENT:
+                logger.error('No cache placement named %s was found.'
+                             % cachepl_name)
+                return None
+            network_cache = cachepl_spec.pop('network_cache')
+            # Cache budget is the cumulative number of cache entries across
+            # the whole network
+            cachepl_spec['cache_budget'] = workload.n_contents * network_cache
+            CACHE_PLACEMENT[cachepl_name](topology, **cachepl_spec)
+              
+        # caching and routing strategy definition
+        strategy = tree['strategy']
+        if strategy['name'] not in STRATEGY:
+            logger.error('No implementation of strategy %s was found.' % strategy['name'])
+            return None
+        
+        # cache eviction policy definition
+        cache_policy = tree['cache_policy']
+        if cache_policy['name'] not in CACHE_POLICY:
+            logger.error('No implementation of cache policy %s was found.' % cache_policy['name'])
+            return None
+        
+        # Configuration parameters of network model
+        netconf = tree['netconf']
+        
+        # Text description of the scenario run to print on screen
+        scenario = tree['desc'] if 'desc' in tree else "Description N/A"
+
         logger.info('Experiment %d/%d | Preparing scenario: %s', curr_exp, n_exp, scenario)
         
-        # Check parameters
-        if topology_name not in topology_factory_register:
-            logger.error('No topology factory implementation for %s was found.' % topology_name)
-            return None
-        if cache_policy not in cache_policy_register:
-            logger.error('No implementation of cache policy %s was found.' % cache_policy)
-            return None
-        if strategy_name not in strategy_register:
-            logger.error('No implementation of strategy %s was found.' % strategy_name)
-            return None
-        if any(m not in data_collector_register for m in metrics):
+        if any(m not in DATA_COLLECTOR for m in metrics):
             logger.error('There are no implementations for at least one data collector specified')
             return None
-        # Get user-defined seed, if any
-        seed = settings.SEED if 'SEED' in settings else None
-        # Get topology and event generator
-        topology = topology_factory_register[topology_name](network_cache, n_contents, seed=seed)   
-        events = uniform_req_gen(topology, n_contents, alpha, 
-                                          rate=settings.NETWORK_REQUEST_RATE,
-                                          n_warmup=settings.N_WARMUP_REQUESTS,
-                                          n_measured=settings.N_MEASURED_REQUESTS,
-                                          seed=seed)
-        topology.graph['cache_policy'] = cache_policy
     
-        collectors = [(m, {}) for m in metrics]
-        strategy = (strategy_name, strategy_params)
+        collectors = {m: {} for m in metrics}
+
         logger.info('Experiment %d/%d | Start simulation', curr_exp, n_exp)
-        results = exec_experiment(topology, events, strategy, collectors)
+        results = exec_experiment(topology, workload, netconf, strategy, cache_policy, collectors)
+        
         duration = time.time() - start_time
         logger.info('Experiment %d/%d | End simulation | Duration %s.', 
                     curr_exp, n_exp, timestr(duration, True))

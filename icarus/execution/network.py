@@ -1,10 +1,11 @@
 """Network Model-View-Controller (MVC)
 """
+import logging
+
 import networkx as nx
 import fnss
 
-from icarus.registry import cache_policy_register
-
+from icarus.registry import CACHE_POLICY
 
 __all__ = [
     'NetworkModel',
@@ -12,6 +13,13 @@ __all__ = [
     'NetworkController'
           ]
 
+logger = logging.getLogger('orchestration')
+
+def symmetrify_paths(shortest_paths):
+    for u in shortest_paths:
+        for v in shortest_paths[u]:
+            shortest_paths[u][v] = list(reversed(shortest_paths[v][u]))
+    return shortest_paths
 
 class NetworkView(object):
     
@@ -43,13 +51,12 @@ class NetworkView(object):
         nodes : set
             A set of all nodes currently storing the given content
         """
-        loc = set(v for v in self.model.caches if self.model.caches[v].has(k))
+        loc = set(v for v in self.model.cache if self.model.cache[v].has(k))
         loc.add(self.content_source(k))
         return loc
     
     def content_source(self, k):
-        """
-        Return the node identifier where the content is persistently stores.
+        """Return the node identifier where the content is persistently stored.
         
         Parameters
         ----------
@@ -132,29 +139,97 @@ class NetworkView(object):
         Changes to this object will lead to inconsistent network state.
         """
         return self.model.topology
-    
-    def caches(self):
-        """Returns a dictionary mapping caching nodes and cache space
+
+    def cache_nodes(self, size=False):
+        """Returns a list of nodes with caching capability
+        
+        Parameters
+        ----------
+        size: bool, opt
+            If *True* return dict mapping nodes with size
         
         Returns
         -------
-        caches : dict
-            dict mapping caching nodes and cache space
+        cache_nodes : list or dict
+            If size parameter is False or not specified, it is a list of nodes
+            with caches. Otherwise it is a dict mapping nodes with a cache
+            and their size.
         """
-        return self.model.cache_size
+        return self.model.cache_size if size else list(self.model.cache_size.keys())
+    
+    def has_cache(self, node):
+        """Check if a node has a content cache.
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node identifier
+            
+        Returns
+        -------
+        has_cache : bool,
+            *True* if the node has a cache, *False* otherwise
+        """
+        return node in self.model.cache
 
+    def cache_lookup(self, node, content):
+        """Check if the cache of a node has a content object, without changing
+        the internal state of the cache.
+        
+        This method is meant to be used by data collectors to calculate
+        metrics. It should not be used by strategies to look up for contents
+        during the simulation. Instead they should use
+        NetworkController.get_content
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node identifier
+        content : any hashable type
+            The content identifier
+            
+        Returns
+        -------
+        has_content : bool
+            *True* if the cache of the node has the content, *False* otherwise.
+            If the node does not have a cache, return *None*
+        """
+        if node in self.model.cache:
+            return self.model.cache[node].has(content)
+
+    def cache_dump(self, node):
+        """Returns the dump of the content of a cache in a specific node
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node identifier
+            
+        Returns
+        -------
+        dump : list
+            List of contents currently in the cache
+        """
+        if node in self.model.cache:
+            return self.model.cache[node].dump()
+
+         
 
 class NetworkModel(object):
     """Models the internal state of the network
     """
     
-    def __init__(self, topology, shortest_path=None):
+    def __init__(self, topology, cache_policy, shortest_path=None):
         """Constructors
         
         Parameters
         ----------
         topology : fnss.Topology
             The topology object
+        cache_policy : dict or Tree
+            cache policy descriptor. It has the name attribute which identify
+            the cache policy name and keyworded arguments specific to the
+            policy
         shortest_path : dict of dict, optional
             The all-pair shortest paths of the network
         """
@@ -165,7 +240,7 @@ class NetworkModel(object):
         
         # Shortest paths of the network
         self.shortest_path = shortest_path if shortest_path is not None \
-                             else nx.all_pairs_shortest_path(topology)
+                             else symmetrify_paths(nx.all_pairs_shortest_path(topology))
         
         # Network topology
         self.topology = topology
@@ -182,27 +257,32 @@ class NetworkModel(object):
         
         self.link_delay = fnss.get_delays(topology.to_directed())
         
-        policy_name = topology.graph['cache_policy']
         # Initialize attributes
         for node in topology.nodes_iter():
             stack_name, stack_props = fnss.get_stack(topology, node)
-            if stack_name == 'cache':
-                self.cache_size[node] = stack_props['size']
+            if stack_name == 'router':
+                if 'cache_size' in stack_props:
+                    self.cache_size[node] = stack_props['cache_size']
             elif stack_name == 'source':
                 contents = stack_props['contents']
                 for content in contents:
                     self.content_source[content] = node
-        cache_size = dict((node, fnss.get_stack(topology, node)[1]['size'])
-                          for node in topology.nodes_iter()
-                          if fnss.get_stack(topology, node)[0] == 'cache')
-        # The actual cache object storing the content
-        self.caches = dict((node, cache_policy_register[policy_name](cache_size[node]))
-                            for node in cache_size)
+        if any(c < 1 for c in self.cache_size.values()):
+            logger.warn('Some content caches have size equal to 0. '
+                          'I am setting them to 1 and run the experiment anyway')
+            for node in self.cache_size:
+                if self.cache_size[node] < 1:    
+                    self.cache_size[node] = 1
+                    
+        policy_name = cache_policy['name']
+        policy_args = {k: v for k, v in cache_policy.items() if k != 'name'}
+        # The actual cache objects storing the content
+        self.cache = {node: CACHE_POLICY[policy_name](self.cache_size[node], **policy_args)
+                          for node in self.cache_size}
 
 
 class NetworkController(object):
-    """Network controller
-    """
+    """Network controller"""
     
     def __init__(self, model):
         """Constructor
@@ -215,7 +295,6 @@ class NetworkController(object):
         self.session = None
         self.model = model
         self.collector = None
-    
     
     def attach_collector(self, collector):
         """Attaches a data collector to which all events will be reported.
@@ -331,9 +410,14 @@ class NetworkController(object):
         ----------
         node : any hashable type
             The node where the content is inserted
+            
+        Returns
+        -------
+        evicted : any hashable type
+            The evicted object or *None* if no contents were evicted.
         """
-        if node in self.model.caches:
-            self.model.caches[node].put(self.session['content'])
+        if node in self.model.cache:
+            return self.model.cache[node].put(self.session['content'])
     
     def get_content(self, node):
         """Get a content from a server or a cache.
@@ -348,8 +432,8 @@ class NetworkController(object):
         content : bool
             True if the content is available, False otherwise
         """
-        if node in self.model.caches:
-            cache_hit = self.model.caches[node].get(self.session['content'])
+        if node in self.model.cache:
+            cache_hit = self.model.cache[node].get(self.session['content'])
             if cache_hit:
                 if self.session['log']:
                     self.collector.cache_hit(node)
@@ -361,7 +445,23 @@ class NetworkController(object):
             return True
         else:
             return False
-    
+
+    def remove_content(self, node):
+        """Remove the content being handled from the cache
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node where the cached content is removed
+
+        Returns
+        -------
+        removed : bool
+            *True* if the entry was in the cache, *False* if it was not.
+        """
+        if node in self.model.cache:
+            return self.model.cache[node].remove(self.session['content'])
+
     def end_session(self, success=True):
         """Close a session
         

@@ -7,12 +7,20 @@ import random
 import collections
 
 from fnss.util import random_from_pdf
-
+from icarus.registry import register_content_placement
 
 __all__ = ['uniform_content_placement', 'weighted_content_placement']
 
 
-def uniform_content_placement(topology, contents, source_nodes, seed=None):
+def apply_content_placement(placement, topology):
+    for v, contents in placement.iteritems():
+        topology.node[v]['stack'][1]['contents'] = contents
+
+def get_sources(topology):
+    return [v for v in topology if topology.node[v]['stack'][0] == 'source']
+
+@register_content_placement('UNIFORM')
+def uniform_content_placement(topology, contents, seed=None):
     """Places content objects to source nodes randomly following a uniform
     distribution.
     
@@ -20,8 +28,8 @@ def uniform_content_placement(topology, contents, source_nodes, seed=None):
     ----------
     topology : Topology
         The topology object
-   contents : list
-        List of content objects
+   contents : iterable
+        Iterable of content objects
     source_nodes : list
         List of nodes of the topology which are content sources
         
@@ -36,11 +44,13 @@ def uniform_content_placement(topology, contents, source_nodes, seed=None):
     achieved by using a fix seed value
     """
     random.seed(seed)
+    source_nodes = get_sources(topology)
     content_placement = collections.defaultdict(list)
     for c in contents:
         content_placement[random.choice(source_nodes)].append(c)
-    return content_placement
-    
+    apply_content_placement(content_placement, topology)
+
+@register_content_placement('WEIGHTED')
 def weighted_content_placement(topology, contents, source_weights, seed=None):
     """Places content objects to source nodes randomly according to the weight
     of the source node.
@@ -49,8 +59,8 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     ----------
     topology : Topology
         The topology object
-   contents : list
-        List of content objects
+   contents : iterable
+        Iterable of content objects
     source_weights : dict
         Dict mapping nodes nodes of the topology which are content sources and
         the weight according to which content placement decision is made.
@@ -72,5 +82,5 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     content_placement = collections.defaultdict(list)
     for c in contents:
         content_placement[random_from_pdf(source_pdf)].append(c)
-    return content_placement
+    apply_content_placement(content_placement, topology)
     

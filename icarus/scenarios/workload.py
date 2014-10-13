@@ -1,17 +1,26 @@
-"""Functions for generating traffic workloads 
+"""Traffic workloads
+
+Every traffic workload to be used with Icarus must be modelled as an iterable
+class, i.e. a class with at least an __init__ method (through which it is
+inizialized, with values taken from the configuration file) and an __iter__
+method that is called to return a new event.
+
+Each workload must expose the 'contents' attribute which is an iterable of
+all content identifiers. This is need for content placement
 """
 import random
-from icarus.tools import TruncatedZipfDist
+import csv
 
+from icarus.tools import TruncatedZipfDist
+from icarus.registry import register_workload
 
 __all__ = [
-        'uniform_req_gen',
-        'globetraff_req_gen'
+        'stationary_workload',
+        'globetraff_workload'
            ]
 
-
-def uniform_req_gen(topology, n_contents, alpha, rate=12.0,
-                    n_warmup=10**5, n_measured=4*10**5, seed=None):
+@register_workload('STATIONARY')
+class stationary_workload(object):
     """This function generates events on the fly, i.e. instead of creating an 
     event schedule to be kept in memory, returns an iterator that generates
     events when needed.
@@ -45,24 +54,35 @@ def uniform_req_gen(topology, n_contents, alpha, rate=12.0,
         the timestamp at which the event occurs and the second element is a
         dictionary of event attributes.
     """
-    receivers = [v for v in topology.nodes_iter()
-                 if topology.node[v]['stack'][0] == 'receiver']
-    zipf = TruncatedZipfDist(alpha, n_contents)
-    random.seed(seed)
-    
-    req_counter = 0
-    t_event = 0.0
-    while req_counter < n_warmup + n_measured:
-        t_event += (random.expovariate(rate))
-        receiver = random.choice(receivers)
-        content = int(zipf.rv())
-        log = (req_counter >= n_warmup)
-        event = {'receiver': receiver, 'content': content, 'log': log}
-        yield (t_event, event)
-        req_counter += 1
-    raise StopIteration()
+    def __init__(self, topology, n_contents, alpha, rate=12.0,
+                    n_warmup=10**5, n_measured=4*10**5, seed=None):
+        self.receivers = [v for v in topology.nodes_iter()
+                     if topology.node[v]['stack'][0] == 'receiver']
+        self.zipf = TruncatedZipfDist(alpha, n_contents)
+        self.n_contents = n_contents
+        self.contents = range(1, n_contents + 1)
+        self.alpha = alpha
+        self.rate = rate
+        self.n_warmup = n_warmup
+        self.n_measured = n_measured
+        random.seed(seed)
+        
+    def __iter__(self):
+        req_counter = 0
+        t_event = 0.0
+        while req_counter < self.n_warmup + self.n_measured:
+            t_event += (random.expovariate(self.rate))
+            receiver = random.choice(self.receivers)
+            content = int(self.zipf.rv())
+            log = (req_counter >= self.n_warmup)
+            event = {'receiver': receiver, 'content': content, 'log': log}
+            yield (t_event, event)
+            req_counter += 1
+        raise StopIteration()
 
-def globetraff_req_gen(topology, content_file, request_file):
+
+@register_workload('GLOBETRAFF')
+class globetraff_workload(object):
     """Parse requests from GlobeTraff workload generator
     
     Parameters
@@ -74,4 +94,24 @@ def globetraff_req_gen(topology, content_file, request_file):
     request_file : str
         The GlobeTraff request file
     """
-    raise NotImplementedError('Not yet implemented')
+    
+    def __init__(self, topology, content_file, request_file):
+        
+        self.receivers = [v for v in topology.nodes_iter() 
+                     if topology.node[v]['stack'][0] == 'receiver']
+        self.n_contents = 0
+        with open(content_file, 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for content, popularity, size, app_type in reader:
+                self.n_contents = max(self.n_contents, content)
+        self.n_contents += 1
+        self.contents = range(self.n_contents)
+        self.request_file = request_file
+        
+    def __iter__(self):
+        with open(self.request_file, 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for timestamp, content, size in reader:
+                yield (timestamp, content)
+        raise StopIteration()
+        

@@ -8,7 +8,7 @@ import functools
 import logging
 
 from icarus.util import Settings, config_logging
-from icarus.registry import results_writer_register
+from icarus.registry import RESULTS_WRITER
 from icarus.orchestration import Orchestrator
 
 
@@ -36,7 +36,7 @@ def handler(settings, orch, output, signum=None, frame=None):
         The output file
     """
     logger.error('Received signal %d. Terminating' % signum)
-    results_writer_register[settings.RESULTS_FORMAT](orch.results, output)
+    RESULTS_WRITER[settings.RESULTS_FORMAT](orch.results, output)
     logger.info('Saved intermediate results to file %s' % os.path.abspath(output))
     orch.stop()
     sys.exit(-signum)
@@ -76,5 +76,5 @@ def run(config_file, output, config_override):
     orch.run()
     logger.info('Orchestrator finished')
     results = orch.results
-    results_writer_register[settings.RESULTS_FORMAT](results, output)
+    RESULTS_WRITER[settings.RESULTS_FORMAT](results, output)
     logger.info('Saved results to file %s' % os.path.abspath(output))

@@ -19,8 +19,6 @@ COLORMAP = {'source':    'blue',
             'receiver':  'green',
             'router':    'white',
             'cache':     'red',
-            'rsn':       'yellow',
-            'cache+rsn': 'orange',
             }
 
 
@@ -36,21 +34,14 @@ def stack_map(topology):
     -------
     stack_map : dict
         Dict mapping node to stack. Options are:
-        source | receiver | router | cache | rsn | cache+rsn 
+        source | receiver | router | cache
     """
     stack = {}
     for v, (name, props) in topology.stacks().items():
         if name == 'router':
-            rsn = False
             cache = False
-            if 'rsn_size' in props and props['rsn_size'] > 0:
-                rsn = True
             if 'cache_size' in props and props['cache_size'] > 0:
                 cache = True
-            if rsn and cache:
-                name = 'cache+rsn'
-            elif rsn:
-                name = 'rsn'
             elif cache:
                 name = 'cache'
             else:

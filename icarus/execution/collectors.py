@@ -1,8 +1,9 @@
 """This module contains performance metrics loggers
 """
 from __future__ import division
-import sys
 import collections
+
+import numpy as np
 
 from icarus.registry import register_data_collector
 from icarus.tools import cdf
@@ -458,7 +459,7 @@ class PathStretchCollector(DataCollector):
             results['CDF_REQUEST'] = cdf(self.req_stretch_data)
             results['CDF_CONTENT'] = cdf(self.cont_stretch_data)
         return results
-    
+       
 
 @register_data_collector('TEST')
 class TestCollector(DataCollector):

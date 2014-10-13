@@ -6,52 +6,56 @@ the experiment by iterating through the event provided by an event generator
 and providing them to a strategy instance. 
 """
 from icarus.execution import NetworkModel, NetworkView, NetworkController, CollectorProxy
-from icarus.registry import data_collector_register, strategy_register
+from icarus.registry import DATA_COLLECTOR, STRATEGY
 
 
 __all__ = ['exec_experiment']
 
 
-def exec_experiment(topology, events, strategy, collectors):
-    """
-    Execute the simulation of a specific scenario
+def exec_experiment(topology, workload, netconf, strategy, cache_policy, collectors):
+    """Execute the simulation of a specific scenario.
     
     Parameters
     ----------
     topology : Topology
-        An FNSS topology object with the network topology used for the
-        simulation
-    events : iterable
+        The FNSS Topology object modelling the network topology on which
+        experiments are run.
+    workload : iterable
         An iterable object whose elements are (time, event) tuples, where time
         is a float type indicating the timestamp of the event to be executed
         and event is a dictionary storing all the attributes of the event to
         execute
-    strategy : 2-tuple
-        Strategy definition. It is a 2-tuple where the first element is the
-        name of the strategy and the second element is a dictionary of
-        strategy attributes
-    collectors: list of tuples
-        The collectors to be used. It is a list of 2-tuples. Each tuple has as
-        first element the name of the collector and as second element a
-        dictionary of collector parameters
+    netconf : dict
+        Dictionary of attributes to inizialize the network model
+    strategy : tree
+        Strategy definition. It is tree describing the name of the strategy
+        to use and a list of initialization attributes
+    cache_policy : tree
+        Cache policy definition. It is tree describing the name of the cache
+        policy to use and a list of initialization attributes
+    collectors: dict
+        The collectors to be used. It is a dictionary in which keys are the
+        names of collectors to use and values are dictionaries of attributes
+        for the collector they refer to.
          
     Returns
     -------
-    results : dict
-        A dictionary with the aggregated simulation results from all collectors.
+    results : Tree
+        A tree with the aggregated simulation results from all collectors
     """
-    model = NetworkModel(topology)
+    model = NetworkModel(topology, cache_policy, **netconf)
     view = NetworkView(model)
     controller = NetworkController(model)
     
-    collectors_inst = [data_collector_register[name](view, **params)
-                  for name, params in collectors]
+    collectors_inst = [DATA_COLLECTOR[name](view, **params)
+                       for name, params in collectors.items()]
     collector = CollectorProxy(view, collectors_inst)
     controller.attach_collector(collector)
     
-    str_name, str_params = strategy
-    strategy_inst = strategy_register[str_name](view, controller, **str_params)
+    strategy_name = strategy['name']
+    strategy_args = {k: v for k, v in strategy.iteritems() if k != 'name'}
+    strategy_inst = STRATEGY[strategy_name](view, controller, **strategy_args)
     
-    for time, event in events:
+    for time, event in workload:
         strategy_inst.process_event(time, **event)
     return collector.results()

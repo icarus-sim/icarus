@@ -5,11 +5,11 @@ Usage:
     python printresults.py <results-file.pickle>
 """
 import argparse
-from icarus.registry import results_reader_register
+from icarus.registry import RESULTS_READER
 
 __all__ = ['print_results']
 
-read = results_reader_register['PICKLE']
+read = RESULTS_READER['PICKLE']
 
 def print_results(path):
     """Print a resultset saved as pickle.
@@ -36,7 +36,6 @@ def print_results(path):
                 print(s.rstrip(","))
             else:
                 print("   * %s -> %s" % (str(k), str(v)))
-#            print("    * %s: %s" % (str(k), str(v)))
         print("  RESULTS:")
         for collector, data in results.items():
             if isinstance(data, dict):

@@ -31,10 +31,9 @@ def on_path_topology():
     contents = caches
     fnss.add_stack(topology, source, 'source', {'contents': contents})
     for v in caches:
-        fnss.add_stack(topology, v, 'cache', {'size': 1})
+        fnss.add_stack(topology, v, 'router', {'cache_size': 1})
     for v in receivers:
         fnss.add_stack(topology, v, 'receiver', {})
-    topology.graph['cache_policy'] = 'FIFO'
     return topology
 
 def off_path_topology():
@@ -59,11 +58,11 @@ def off_path_topology():
     contents = caches
     fnss.add_stack(topology, source, 'source', {'contents': contents})
     for v in caches:
-        fnss.add_stack(topology, v, 'cache', {'size': 1})
+        fnss.add_stack(topology, v, 'router', {'cache_size': 1})
     for v in receivers:
         fnss.add_stack(topology, v, 'receiver', {})
-    topology.graph['cache_policy'] = 'FIFO'
     return topology
+
 
 class TestHashrouting(unittest.TestCase):
 
@@ -77,7 +76,7 @@ class TestHashrouting(unittest.TestCase):
     
     def setUp(self):
         topology = off_path_topology()
-        model = NetworkModel(topology)
+        model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
         self.collector = TestCollector(self.view)
@@ -321,7 +320,7 @@ class TestOnPath(unittest.TestCase):
     
     def setUp(self):
         topology = on_path_topology()
-        model = NetworkModel(topology)
+        model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
         self.collector = TestCollector(self.view)
@@ -541,4 +540,3 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-        
