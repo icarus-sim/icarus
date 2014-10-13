@@ -1242,7 +1242,13 @@ def keyval_cache(cache):
     
     This modifies the signature and/or return types of methods *get*, *put* and
     *dump*. The new format is documented in the docstrings of the modified
-    methods of the cache instance
+    methods of the cache instance.
+    
+    This function modifies the contract of methods of Cache objects, which is
+    admittedly a bad software engineering practice . It may also lead to bugs
+    in a key-value cache implementation if the base key-only cache
+    implementation from which it derives has methods calling other methods of
+    the same instance.
 
     Parameters
     ----------
@@ -1256,15 +1262,17 @@ def keyval_cache(cache):
     """
     if not isinstance(cache, Cache):
         raise TypeError('cache must be an instance of Cache or its subclasses')
-    
+    if len(cache) > 0:
+        raise ValueError('the cache must be empty')
     cache = copy.deepcopy(cache)
-    cache._vals = {}
+    cache._val = {}
     k_put = cache.put
     k_get = cache.get
-    k_dump = cache.dump 
+    k_remove = cache.remove
+    k_dump = cache.dump
     k_clear = cache.clear
     
-    def kv_put(k, v):
+    def put(k, v):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache with the same value, it
@@ -1284,14 +1292,14 @@ def keyval_cache(cache):
             The key, value tuple of the evicted object or *None* if no contents
             were evicted.
         """
-        cache._vals[k] = v
         evicted = k_put(k)
-        if evicted:
-            val = cache._vals[evicted]
-            del cache._vals[evicted]
-            return evicted, val 
+        cache._val[k] = v
+        if evicted is not None:
+            val = cache._val.pop(evicted)
+            return evicted, val
+        
     
-    def kv_get(k):
+    def get(k):
         """Retrieve an item from the cache.
         
         Differently from *has(k)*, calling this method may change the internal
@@ -1309,37 +1317,68 @@ def keyval_cache(cache):
             The value of the requested object or *None* if it is not in the
             cache
         """
-        return cache._vals[k] if k_get(k) else None 
+        return cache._val[k] if k_get(k) else None 
     
-    def kv_dump():
+    def remove(k):
+        """Remove an item from the cache, if present
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item looked up in the cache
+
+        Returns
+        -------
+        v : any hashable type
+            The value of the deleted object or *None* if it was not in the
+            cache
+        """
+        return cache._val.pop(k) if k_remove(k) else None
+        
+    def dump():
         """Return a dump of all the elements currently in the cache possibly
         sorted according to the eviction policy.
         
-        Return
-        ------
+        Returns
+        -------
         cache_dump : list of tuples
             The list of items currently stored in the cache represented as
             key, value pairs
         """
         dump = k_dump()
-        return [(k, cache._vals[k]) for k in dump]
+        return [(k, cache._val[k]) for k in dump]
     
-    def kv_clear():
+    def clear():
         k_clear()
-        cache._vals.clear()
+        cache._val.clear()
+
+    def value(k):
+        """Return the value of item k
         
-    cache.put = kv_put
-    cache.put.__name__ = 'put'
-    
-    cache.get = kv_get
-    cache.get.__name__ = 'get'
-    
-    cache.dump = kv_dump
-    cache.dump.__name__ = 'dump'
-    
-    cache.clear = kv_clear
-    cache.clear.__name__ = 'clear'
+        Differently from *get(k)*, calling this method does not change the
+        internal state of the cache.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item looked up in the cache
+
+        Returns
+        -------
+        v : any hashable type
+            The value of the requested object or *None* if it is not in the
+            cache
+        """
+        return cache._val[k] if k in cache._val else None
+        
+    cache.put = put
+    cache.get = get
+    cache.remove = remove
+    cache.dump = dump
+    cache.clear = clear
     cache.clear.__doc__ = k_clear.__doc__
+    cache.value = value
     
     return cache
+    
     

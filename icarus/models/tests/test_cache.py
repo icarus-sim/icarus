@@ -535,11 +535,11 @@ class TestRandInsert(unittest.TestCase):
         self.assertGreater(len(rc1.put.__doc__), 0)
 
 
-class TestKetValCache(unittest.TestCase):
+class TestKeyValCache(unittest.TestCase):
     
     def test_key_val_cache(self):
         c = cache.keyval_cache(cache.FifoCache(3))
-        c.put(1,11)
+        c.put(1, 11)
         self.assertEqual(c.get(1), 11)
         c.put(1, 12)
         self.assertEqual(c.get(1), 12)
@@ -549,10 +549,34 @@ class TestKetValCache(unittest.TestCase):
         self.assertTrue(c.has(2))
         c.put(3, 31)
         k, v = c.put(4, 41)
+        self.assertEqual(c.remove(2), 21)
+        self.assertEqual(len(c), 2)
         self.assertEqual((k, v), (1, 12))
         c.clear()
         self.assertEqual(len(c), 0)
+        
+    def test_naming(self):
+        c = cache.keyval_cache(cache.FifoCache(3))
         self.assertEqual(c.get.__name__, 'get')
         self.assertEqual(c.put.__name__, 'put')
         self.assertEqual(c.dump.__name__, 'dump')
         self.assertEqual(c.clear.__name__, 'clear')
+        self.assertGreater(len(c.get.__doc__), 0)
+        self.assertGreater(len(c.put.__doc__), 0)
+        self.assertGreater(len(c.dump.__doc__), 0)
+        self.assertGreater(len(c.clear.__doc__), 0)
+        
+    def test_deepcopy(self):
+        kc = cache.LruCache(10)
+        kvc = cache.keyval_cache(kc)
+        kvc.put(1, 2)
+        self.assertFalse(kc.has(1))
+        kc.put(3)
+        self.assertFalse(kvc.has(3))
+    
+    def test_zero_val_lru(self):
+        c = cache.keyval_cache(cache.LruCache(10))
+        reqs = [(10,0), (10, 1)]
+        for k, v in reqs:
+            c.put(k, v)
+
