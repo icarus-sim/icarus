@@ -5,6 +5,7 @@ import logging
 import collections
 import copy
 import numpy as np
+import networkx as nx
 
 __all__ = [
         'Settings',
@@ -16,7 +17,8 @@ __all__ = [
         'iround',
         'step_cdf',
         'Tree',
-        'can_import'
+        'can_import',
+        'overlay_betweenness_centrality'
            ]
 
 class Tree(collections.defaultdict):
@@ -594,3 +596,48 @@ def can_import(statement):
         return True
     except ImportError:
         return False
+
+
+def overlay_betwenness_centrality(topology, origins=None, destinations=None,
+                                  normalized=True, endpoints=False):
+    """Calculate the betweenness centrality of a graph but only regarding the
+    paths from a set of origins nodes to a set of destinations node.
+    
+    Parameters
+    ----------
+    topology : fnss.Topology
+        The topology
+    origins : iterable, optional
+        The origin nodes. If not specified, nodes with *receiver* stack are
+        selected
+    destinations : iterable, optional
+        The destination nodes. If not specified, nodes with *source* stack are
+        selected
+    normalized : bool, optional
+        If *True*, returned normalized values
+    endpoints : bool, optional
+        If *True* endpoints are included in path calculation.
+        
+    Returns
+    -------
+    betw : dict
+        Dictionary of betweenness centralities keyed by node
+    """
+    if origins is None:
+        origins = [v for v, (stack, _) in topology.stacks().iteritems() if stack == 'receiver']
+    if destinations is None:
+        destinations = [v for v, (stack, _) in topology.stacks().iteritems() if stack == 'source']
+    betweenness = collections.defaultdict(int)
+    path = {v: nx.single_source_shortest_path(topology, v) for v in origins}
+    for u in path:
+        for v in path[u]:
+            if v not in destinations:
+                continue
+            sp = path[u][v] if endpoints else path[u][v][1:-1]
+            for i in sp:
+                betweenness[i] += 1
+    if normalized:
+        norm = len(origins)*len(destinations)
+        for v in betweenness:
+            betweenness[v] /= norm
+    return betweenness
