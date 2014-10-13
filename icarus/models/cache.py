@@ -839,8 +839,8 @@ class SegmentedLruCache(Cache):
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
-        if not isinstance(segments, int) or segments <= 0:
-            raise ValueError('maxlen must be a positive integer')
+        if not isinstance(segments, int) or segments <= 0 or segments > maxlen:
+            raise ValueError('segments must be an integer and 0 < segments <= maxlen')
         self._segment = [LinkedSet() for _ in range(segments)]
         quotient = self._maxlen // segments
         self._segment_maxlen = [quotient for _ in range(segments)]

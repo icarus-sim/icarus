@@ -530,14 +530,26 @@ class LeaveCopyDown(Strategy):
 
 @register_strategy('PROB_CACHE')
 class ProbCache(Strategy):
-    """ProbCache strategy [3]_
+    """ProbCache strategy [4]_
     
+    This strategy caches content objects probabilistically on a path with a
+    probability depending on various factors, including distance from source
+    and destination and caching space available on the path.
+    
+    This strategy was originally proposed in [3]_ and extended in [4]_. This
+    class implements the extended version described in [4]_. In the extended
+    version of ProbCache the :math`x/c` factor of the ProbCache equation is
+    raised to the power of :math`c`.
     
     References
     ----------
     ..[3] I. Psaras, W. Chai, G. Pavlou, Probabilistic In-Network Caching for
           Information-Centric Networks, in Proc. of ACM SIGCOMM ICN '12
           Available: http://www.ee.ucl.ac.uk/~uceeips/prob-cache-icn-sigcomm12.pdf
+    ..[4] I. Psaras, W. Chai, G. Pavlou, In-Network Cache Management and
+          Resource Allocation for Information-Centric Networks, IEEE
+          Transactions on Parallel and Distributed Systems, 22 May 2014
+          Available: http://doi.ieeecomputersociety.org/10.1109/TPDS.2013.304
     """
 
     @inheritdoc(Strategy)
@@ -579,6 +591,8 @@ class ProbCache(Strategy):
                 x += 1
             self.controller.forward_content_hop(u, v)
             if v != receiver and v in self.cache_size:
+                # The (x/c) factor raised to the power of "c" according to the
+                # extended version of ProbCache published in IEEE TPDS
                 prob_cache = float(N)/(self.t_tw * self.cache_size[v])*(x/c)**c
                 if random.random() < prob_cache:
                     self.controller.put_content(v)
@@ -587,11 +601,11 @@ class ProbCache(Strategy):
 
 @register_strategy('CL4M')
 class CacheLessForMore(Strategy):
-    """Cache less for more strategy [4]_.
+    """Cache less for more strategy [5]_.
     
     References
     ----------
-    ..[4] W. Chai, D. He, I. Psaras, G. Pavlou, Cache Less for More in
+    ..[5] W. Chai, D. He, I. Psaras, G. Pavlou, Cache Less for More in
           Information-centric Networks, in IFIP NETWORKING '12
           Available: http://www.ee.ucl.ac.uk/~uceeips/centrality-networking12.pdf
     """
