@@ -626,3 +626,130 @@ class TestKeyValCache(unittest.TestCase):
         for k, v in reqs:
             c.put(k, v)
 
+
+class TestTtlCache(unittest.TestCase):
+    
+    def test_put_dump(self):
+        curr_time = 1
+        f_time = lambda: curr_time
+        c = cache.ttl_cache(cache.FifoCache(4), f_time)
+        c.put(1, ttl=2)
+        c.put(2, ttl=5)
+        c.put(3, ttl=3)
+        self.assertEqual(c.dump(), [(3, 4), (2, 6), (1, 3)])
+        self.assertTrue(c.has(1))
+        self.assertTrue(c.has(2))
+        self.assertTrue(c.has(3))
+        curr_time = 4
+        self.assertFalse(c.has(1))
+        self.assertTrue(c.has(2))
+        self.assertTrue(c.has(3))
+        self.assertEqual(c.dump(), [(3, 4), (2, 6)])
+        c.put(3, ttl=6)
+        self.assertEqual(c.dump(), [(3, 10), (2, 6)])
+        curr_time = 11
+        self.assertEqual(c.dump(), [])
+    
+    def test_get(self):
+        curr_time = 1
+        f_time = lambda: curr_time
+        c = cache.ttl_cache(cache.FifoCache(3), f_time)
+        c.put(1, ttl=2)
+        self.assertTrue(c.get(1))
+        self.assertFalse(c.get(2))
+        self.assertTrue(c.get(1))
+        c.put(2, ttl=7)
+        self.assertTrue(c.get(1))
+        self.assertTrue(c.get(2))
+        curr_time = 4
+        self.assertFalse(c.get(1))
+        self.assertTrue(c.get(2))
+        curr_time = 15
+        self.assertFalse(c.get(1))
+        self.assertFalse(c.get(2))
+    
+    def test_eviction(self):
+        curr_time = 0
+        f_time = lambda: curr_time
+        c = cache.ttl_cache(cache.FifoCache(3), f_time)
+        self.assertIsNone(c.put(1, ttl=4))
+        self.assertIsNone(c.put(2, ttl=6))
+        self.assertIsNone(c.put(3, ttl=8))
+        self.assertEqual(c.put(4, ttl=10), 1)
+        curr_time = 7
+        self.assertIsNone(c.put(5, ttl=12))
+        
+    def test_incorrect_params(self):
+        self.assertRaises(TypeError, cache.ttl_cache, 'cache', lambda: 1)
+        self.assertRaises(TypeError, cache.ttl_cache, cache.FifoCache(4), 'function')
+        c = cache.ttl_cache(cache.FifoCache(10), lambda: 5)
+        self.assertRaises(ValueError, c.put, 1, ttl=2, expires=8)
+        
+    def test_put_stale_content(self):
+        c = cache.ttl_cache(cache.FifoCache(2), lambda: 5)
+        c.put(1, ttl= -2)
+        self.assertFalse(c.has(1))
+        c.put(2, expires=3)
+        self.assertFalse(c.has(2))
+    
+    def test_inf_ttl(self):
+        curr_time = 1
+        f_time = lambda: curr_time
+        c = cache.ttl_cache(cache.FifoCache(5), f_time)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        curr_time = 1000
+        dump = c.dump()
+        self.assertIn((1, np.infty), dump)
+        self.assertIn((2, np.infty), dump)
+        self.assertIn((3, np.infty), dump)
+        c.put(1, ttl=100)
+        curr_time = 2000
+        dump = c.dump()
+        self.assertEqual(len(dump), 3)
+        self.assertIn((1, np.infty), dump)
+        self.assertIn((2, np.infty), dump)
+        self.assertIn((3, np.infty), dump)
+        c.put(4, ttl=200)
+        dump = c.dump()
+        self.assertEqual(len(dump), 4)
+        self.assertEqual(dump[0], (4, 2200))
+        self.assertIn((1, np.infty), dump)
+        self.assertIn((2, np.infty), dump)
+        self.assertIn((3, np.infty), dump)
+        curr_time = 3000
+        dump = c.dump()
+        self.assertEqual(len(dump), 3)
+        self.assertIn((1, np.infty), dump)
+        self.assertIn((2, np.infty), dump)
+        self.assertIn((3, np.infty), dump)
+    
+    def test_clear(self):
+        curr_time = 1
+        f_time = lambda: curr_time
+        c = cache.ttl_cache(cache.FifoCache(3), f_time)
+        c.put(1, ttl=4)
+        c.put(2, ttl=5)
+        c.put(1, ttl=8)
+        c.put(3, ttl=3)
+        c.put(4, ttl=1)
+        c.clear()
+        self.assertEqual(len(c), 0)
+        self.assertEqual(c.dump(), [])
+        
+    def test_naming(self):
+        c = cache.ttl_cache(cache.FifoCache(4), lambda: 0)
+        self.assertEqual(c.get.__name__, 'get')
+        self.assertEqual(c.put.__name__, 'put')
+        self.assertEqual(c.dump.__name__, 'dump')
+        self.assertEqual(c.clear.__name__, 'clear')
+        self.assertEqual(c.has.__name__, 'has')
+        
+    def test_deepcopy(self):
+        c = cache.LruCache(10)
+        ttl_c = cache.ttl_cache(c, lambda: 0)
+        ttl_c.put(1, 2)
+        self.assertFalse(c.has(1))
+        c.put(3)
+        self.assertFalse(ttl_c.has(3))

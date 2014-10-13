@@ -24,7 +24,8 @@ __all__ = [
         'FifoCache',
         'RandEvictionCache',
         'rand_insert_cache',
-        'keyval_cache'
+        'keyval_cache',
+        'ttl_cache',
            ]
 
 
@@ -1380,4 +1381,185 @@ def keyval_cache(cache):
     
     return cache
     
+
+def ttl_cache(cache, f_time):
+    """Return a TTL cache.
     
+    This function takes as a input a cache policy and returns a new policy
+    where items, when inserted, are (optionally) labelled with their expiration
+    time and are automatically evicted when their validity expires.
+    
+    The time validity is verified against the return value of the callable
+    argument *f_time*, which is called whenever a purging is executed.
+    
+    This implementation can be used with both real time and simulated time.    
+
+    Parameters
+    ----------
+    cache : Cache
+        The instance of a cache to be changed to a TTL cache
+    f_time : callable
+        A function that returns the current time (simulated or real). The
+        return type must be a numerical value, e.g. float
+        
+    Returns
+    -------
+    cache : Cache
+        The modified cache instance
+        
+    Notes
+    -----
+    The returned TTL cache performs purging operations only when *has*, *get*,
+    *put* and *dump* operations are performed. This ensures correctness when
+    normal caches are used with common routing and caching strategies.
+    However, if other operations like *position* or *len* are executed,
+    results may take into account also expired items. In such cases, it is then
+    advisable to execute a *purge* first.  
+    """
+    if not isinstance(cache, Cache):
+        raise TypeError('cache must be an instance of Cache or its subclasses')
+    if len(cache) > 0:
+        raise ValueError('the cache must be empty')
+    if not hasattr(f_time, '__call__'):
+        raise TypeError('f_time must be callable')
+    cache = copy.deepcopy(cache)
+    
+    cache.f_time = f_time
+    cache.expiry = {}
+    
+    cache._exp_list = LinkedSet()
+    
+    c_put = cache.put
+    c_get = cache.get
+    c_has = cache.has
+    c_remove = cache.remove
+    c_dump = cache.dump
+    c_clear = cache.clear
+    
+    def _purge_till(expiry):
+        """Purge all entries expired before a certain time
+        
+        Parameters
+        ----------
+        expiry : float
+            Cutoff expiration time
+        """
+        while cache._exp_list.bottom is not None and \
+              cache.expiry[cache._exp_list.bottom] < expiry:
+            expired = cache._exp_list.pop_bottom()
+            cache.expiry.pop(expired)
+            c_remove(expired)
+        
+    def purge():
+        """Purge all expired items"""
+        cache._purge_till(cache.f_time())
+    
+    def get(k):
+        if c_get(k):
+            if cache.f_time() < cache.expiry[k]:
+                return True
+            else:
+                remove(k)
+        return False 
+    
+    def put(k, ttl=None, expires=None):
+        """Insert an item in the cache if not already inserted.
+        
+        If the element is already present in the cache, it will not be inserted
+        again but the internal state of the cache object may change.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to be inserted
+        ttl : float, optional
+            The TTL of the item, i.e. its relative expiration time
+        expires : float, optional
+            The absolute expiration time of the item. It cannot be used in
+            conjunction with ttl. If both ttl and expires are None, then the
+            inserted content has infinite TTL.
+            
+        Returns
+        -------
+        evicted : any hashable type
+            The evicted object or *None* if no contents were evicted.
+        """
+        now = cache.f_time()
+        if ttl is not None:
+            if expires is not None:
+                raise ValueError('Both expires and ttl parameters provided. '
+                             'Only one can be provided.')
+            if ttl <= 0:
+                # if TTL is not positive, then do not cache the content at all
+                return None
+            expires = now + ttl
+        else: # case where TTL is None
+            if expires is None:
+                # If both TTL and expire are None, then TTL is infinite
+                expires = np.infty
+            elif expires <= now:
+                return None
+        # Purge expired items only if cache is full for performance reasons
+        if len(cache) == cache.maxlen:
+            cache._purge_till(now)
+        evicted = c_put(k)
+        if evicted is not None:
+            cache.expiry.pop(evicted)
+            cache._exp_list.remove(evicted)
+        if k not in cache.expiry or cache.expiry[k] < expires:
+            cache.expiry[k] = expires
+            if k in cache._exp_list:
+                cache._exp_list.remove(k)
+            if len(cache._exp_list) == 0:
+                cache._exp_list.append_top(k)
+            else:
+                for i in cache._exp_list:
+                    if expires >= cache.expiry[i]:
+                        cache._exp_list.insert_above(i, k)
+                        break
+                else:
+                    cache._exp_list.append_bottom(k)
+        return evicted
+    
+    def has(k):
+        return c_has(k) and cache.f_time() <= cache.expiry[k] 
+    
+    def remove(k):
+        c_remove(k)
+        cache.expiry.pop(k)
+        cache._exp_list.remove(k)
+        
+    def dump():
+        """Return a dump of all the elements currently in the cache possibly
+        sorted according to the eviction policy.
+        
+        Return
+        ------
+        cache_dump : list of tuples
+            The list of items currently stored in the cache represented as
+            (key, expiration time) pairs
+        """
+        cache.purge()
+        dump = c_dump()
+        return [(k, cache.expiry[k]) for k in dump]
+    
+    def clear():
+        c_clear()
+        cache.expiry.clear()
+        cache._exp_list.clear()
+
+    cache._purge_till = _purge_till
+    
+    cache.get = get
+    cache.put = put
+    cache.has = has
+    cache.remove = remove
+    cache.dump = dump
+    cache.clear = clear
+    cache.purge = purge
+    cache.clear.__doc__ = c_clear.__doc__
+    
+    return cache
+
+def ttl_keyval_cache():
+    pass
