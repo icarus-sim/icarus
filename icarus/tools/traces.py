@@ -4,6 +4,8 @@ from __future__ import division
 
 import math
 import collections
+import time
+import dateutil
 
 import numpy as np
 from scipy.stats import chisquare
@@ -14,8 +16,9 @@ from icarus.tools import TruncatedZipfDist
 __all__ = [
        'frequencies',
        'zipf_fit',
+       'parse_wikibench',
        'parse_squid',
-       'parse_wikibench'
+       'parse_common_log_format'
            ]
 
 
@@ -109,9 +112,12 @@ def parse_wikibench(path):
 
 def parse_squid(path):
     """Parses traces from a Squid log file.
+    Parse a Squid log file.
     
-    Squid is one of the most common open-source Web proxies. Traces from the
-    IRCache dataset are in this format.
+    Squid is an HTTP reverse proxy. Its logs contains traces of all HTTP
+    requests served and can be used for trace-driven simulations based on
+    realistic HTTP workloads.
+    Traces from the IRCache dataset are in this format.
     
     Parameters
     ----------
@@ -154,4 +160,45 @@ def parse_squid(path):
                        hierarchy_data=hierarchy_data,
                        hostname=hostname,
                        content_type=content_type)
+    raise StopIteration()
+
+
+def parse_common_log_format(path):
+    """Parse files saved in the Common Log Format (CLF)
+    
+    Parameters
+    ----------
+    path : str
+        The path to the Common Log Format file to parse
+        
+    Returns
+    -------
+    events : iterator
+        iterator over the events parsed from the file
+        
+    Notes
+    -----
+    Common Log Format specifications:
+    http://www.w3.org/Daemon/User/Config/Logging.html#common-logfile-format
+    
+    """
+    with open(path) as f:
+        for line in f:
+            entry = line.split(" ")
+            client_addr = entry[0]
+            user_ident = entry[1]
+            auth_user = entry[2]
+            date = entry[3][1:-1]
+            request = entry[4]
+            status = int(entry[5])
+            n_bytes = int(entry[6])
+            # Convert timestamp into float
+            t = time.mktime(dateutil.parser.parse(date.replace(":", " ", 0)).timetuple())
+            event = dict(client_addr=client_addr,
+                         user_ident=user_ident,
+                         auth_user=auth_user,
+                         request=request,
+                         status=status,
+                         bytes=n_bytes)
+            yield t, event
     raise StopIteration()
