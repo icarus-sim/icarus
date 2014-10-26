@@ -347,7 +347,7 @@ def topology_garr(**kwargs):
     for v in receivers:
         fnss.add_stack(topology, v, 'receiver')
     for v in routers:
-        fnss.add_stack(topology, v, 'rotuer')
+        fnss.add_stack(topology, v, 'router')
     
     # label links as internal or external
     for u, v in topology.edges():
