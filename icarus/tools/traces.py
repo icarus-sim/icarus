@@ -16,6 +16,7 @@ from icarus.tools import TruncatedZipfDist
 __all__ = [
        'frequencies',
        'zipf_fit',
+       'parse_url_list',
        'parse_wikibench',
        'parse_squid',
        'parse_common_log_format'
@@ -52,7 +53,7 @@ def zipf_fit(obs_freqs):
     Parameters
     ----------
     obs_freqs : array
-        The array of observed frequencies
+        The array of observed frequencies sorted in descending order
     
     Returns
     -------
@@ -86,7 +87,28 @@ def zipf_fit(obs_freqs):
     exp_freqs = np.sum(obs_freqs) * TruncatedZipfDist(alpha, n).pdf
     p = chisquare(obs_freqs, exp_freqs)[1]
     return alpha, p
+
+
+def parse_url_list(path):
+    """Parse traces from a text file where each line contains a URL requested
+    without timestamp or counters
     
+    Parameters
+    ----------
+    path : str
+        The path to the trace file to parse
+    
+    Returns
+    -------
+    trace : iterator of strings
+        An iterator whereby each element is dictionary expressing all
+        attributes of an entry of the trace
+    """
+    with open(path) as f:
+        for line in f:
+            yield line
+    raise StopIteration()
+
 
 def parse_wikibench(path):
     """Parses traces from the Wikibench dataset
@@ -98,7 +120,7 @@ def parse_wikibench(path):
     
     Returns
     -------
-    trace : iterator of dict
+    trace : iterator of dicts
         An iterator whereby each element is dictionary expressing all
         attributes of an entry of the trace
     """
@@ -126,7 +148,7 @@ def parse_squid(path):
     
     Returns
     -------
-    trace : iterator of dict
+    trace : iterator of dicts
         An iterator whereby each element is dictionary expressing all
         attributes of an entry of the trace
     

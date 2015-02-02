@@ -123,6 +123,7 @@ class TruncatedZipfDist(DiscreteDist):
     def alpha(self):
         return self._alpha
 
+
 def means_confidence_interval(data, confidence=0.95):
     """Computes the confidence interval for a given set of means.
     
