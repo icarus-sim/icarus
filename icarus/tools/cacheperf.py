@@ -14,9 +14,16 @@ __all__ = [
        'che_characteristic_time',
        'che_per_content_cache_hit_ratio',
        'che_cache_hit_ratio',
+       'che_characteristic_time_simplified',
+       'che_per_content_cache_hit_ratio_simplified',
+       'che_cache_hit_ratio_simplified',
+       'laoutaris_characteristic_time',
+       'laoutaris_per_content_cache_hit_ratio',
        'laoutaris_cache_hit_ratio',
        'optimal_cache_hit_ratio',
-       'numeric_cache_hit_ratio'
+       'numeric_per_content_cache_hit_ratio',
+       'numeric_cache_hit_ratio',
+       'trace_driven_cache_hit_ratio'
           ]
 
 
@@ -31,7 +38,7 @@ def che_characteristic_time(pdf, cache_size, target=None):
     cache_size : int
         The size of the cache (in number of items)
     target : int, optional
-        The item index for which characteristic time is requested. If not
+        The item index [1,N] for which characteristic time is requested. If not
         specified, the function calculates the characteristic time of all the
         items in the population.
     
@@ -45,13 +52,13 @@ def che_characteristic_time(pdf, cache_size, target=None):
     def func_r(r, i):
         return sum(math.exp(-pdf[j]*r) for j in range(len(pdf)) if j != i) \
                - len(pdf) + 1 + cache_size
-    items = range(len(pdf)) if target is None else [target]
-    r = [fsolve(func_r, x0=50, args=(i)) for i in items]
+    items = range(len(pdf)) if target is None else [target-1]
+    r = [fsolve(func_r, x0=cache_size, args=(i)) for i in items]
     return r if target is None else r[0]
 
 
 def che_per_content_cache_hit_ratio(pdf, cache_size, target=None):
-    """Estimates the cache hit ratio of an item or of all items using the Che's
+    """Estimate the cache hit ratio of an item or of all items using the Che's
     approximation.
     
     Parameters
@@ -79,7 +86,7 @@ def che_per_content_cache_hit_ratio(pdf, cache_size, target=None):
 
 
 def che_cache_hit_ratio(pdf, cache_size):
-    """Estimates the overall cache hit ratio of an LRU cache under generic IRM
+    """Estimate the overall cache hit ratio of an LRU cache under generic IRM
     demand using the Che's approximation.
     
     Parameters
@@ -98,9 +105,84 @@ def che_cache_hit_ratio(pdf, cache_size):
     return sum(pdf[i]*ch[i] for i in range(len(pdf)))
 
 
-def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
-    """Estimates the cache hit ratio of an LRU cache under general power-law
-    demand using the Laoutaris approximation.
+def che_characteristic_time_simplified(pdf, cache_size):
+    """Return the characteristic time of an LRU cache under a given IRM
+    workload, as defined by Che et al.
+    This function computes one single characteristic time for all contents.
+    This further approximation is normally accurate for workloads with
+    reduced skewness in their popularity distribution.
+    
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    
+    Returns
+    -------
+    r : float
+        The characteristic time.
+    """
+    def func_r(r):
+        return sum(math.exp(-pdf[j]*r) for j in range(len(pdf))) \
+               - len(pdf) + 1 + cache_size
+    return fsolve(func_r, x0=cache_size)[0]
+
+
+def che_per_content_cache_hit_ratio_simplified(pdf, cache_size, target=None):
+    """Estimate the cache hit ratio of an item or of all items using the Che's
+    approximation. This version uses a single characteristic time for all
+    contents.
+    
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    target : int, optional
+        The item index for which cache hit ratio is requested. If not
+        specified, the function calculates the cache hit ratio of all the items
+        in the population.
+    
+    Returns
+    -------
+    cache_hit_ratio : array of float or float
+        If target is None, returns an array with the cache hit ratios of all
+        items in the population. If a target is specified, then it returns
+        the cache hit ratio of only the specified item.
+    """
+    items = range(len(pdf)) if target is None else [target]
+    r = che_characteristic_time_simplified(pdf, cache_size)
+    hit_ratio = [1 - math.exp(-pdf[i]*r) for i in items] 
+    return hit_ratio if target is None else hit_ratio[0]
+
+
+def che_cache_hit_ratio_simplified(pdf, cache_size):
+    """Estimate the overall cache hit ratio of an LRU cache under generic IRM
+    demand using the Che's approximation. This version uses a single
+    characteristic time for all contents.
+    
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+
+    Returns
+    -------
+    cache_hit_ratio : float
+        The overall cache hit ratio
+    """
+    ch = che_per_content_cache_hit_ratio_simplified(pdf, cache_size)
+    return sum(pdf[i]*ch[i] for i in range(len(pdf)))
+
+
+def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
+    """Estimates the Che's characteristic time of an LRU cache under general
+    power-law demand using the Laoutaris approximation.
     
     Parameters
     ----------
@@ -142,7 +224,7 @@ def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
         return x**exp if x >= 0 else -(-x)**exp
     
     def solve_3rd_order_equation(a, b, c, d):
-        """Calculates the real solutions of the 3rd order equations
+        """Calculate the real solutions of the 3rd order equations
         a*x**3 + b*x**2 + c*x + d = 0
         
         Parameters
@@ -192,7 +274,6 @@ def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
             r_x = (r1, r2, r3)
         return r_x
     # Get parameters
-    pdf = TruncatedZipfDist(alpha, population).pdf
     C = cache_size
     N = population
     # Calculate harmonics
@@ -237,11 +318,77 @@ def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
     # We select the minimum positive r greater than C
     r_c = [x for x in r_x if x > C]
     if r_c:
-        r = min(r_c)
+        return min(r_c)
     else:
         raise ValueError('Cannot compute cache hit ratio using this method. '
                          'Could not find positive values of characteristic time'
                          ' greater than the cache size.')
+ 
+
+def laoutaris_per_content_cache_hit_ratio(alpha, population, cache_size,
+                                          order=3, target=None):
+    """Estimates the per-content cache hit ratio of an LRU cache under general
+    power-law demand using the Laoutaris approximation.
+    
+    Parameters
+    ----------
+    alpha : float
+        The coefficient of the demand power-law distribution
+    population : int
+        The content population
+    cache_size : int
+        The cache size
+    order : int, optional
+        The order of the Taylor expansion. Supports only 2 and 3
+    target : int, optional
+        The item index [1,N] for which cache hit ratio is requested. If not
+        specified, the function calculates the cache hit ratio of all the items
+        in the population.
+    
+    Returns
+    -------
+    cache_hit_ratio : array of float or float
+        If target is None, returns an array with the cache hit ratios of all
+        items in the population. If a target is specified, then it returns
+        the cache hit ratio of only the specified item.
+    
+    References
+    ----------
+    http://arxiv.org/pdf/0705.1970.pdf
+    """
+    pdf = TruncatedZipfDist(alpha, population).pdf
+    r = laoutaris_characteristic_time(alpha, population, cache_size, order)
+    items = range(len(pdf)) if target is None else [target-1]
+    hit_ratio = [1 - math.exp(-pdf[i]*r) for i in items] 
+    return hit_ratio if target is None else hit_ratio[0]
+    
+
+def laoutaris_cache_hit_ratio(alpha, population, cache_size, order=3):
+    """Estimate the cache hit ratio of an LRU cache under general power-law
+    demand using the Laoutaris approximation.
+    
+    Parameters
+    ----------
+    alpha : float
+        The coefficient of the demand power-law distribution
+    population : int
+        The content population
+    cache_size : int
+        The cache size
+    order : int, optional
+        The order of the Taylor expansion. Supports only 2 and 3
+    
+    Returns
+    -------
+    cache_hit_ratio : float
+        The cache hit ratio
+    
+    References
+    ----------
+    http://arxiv.org/pdf/0705.1970.pdf
+    """
+    pdf = TruncatedZipfDist(alpha, population).pdf
+    r = laoutaris_characteristic_time(alpha, population, cache_size, order)
     return np.sum(pdf*(1 - math.e**-(r*pdf)))
 
 
@@ -268,8 +415,60 @@ def optimal_cache_hit_ratio(pdf, cache_size):
     return sum(sorted(pdf, reverse=True)[:cache_size])
 
 
+def numeric_per_content_cache_hit_ratio(pdf, cache, warmup=None, measure=None,
+                                        seed=None, target=None):
+    """Numerically compute the per-content cache hit ratio of a cache under IRM
+    stationary demand with a given pdf.
+    
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache : Cache
+        The cache object (i.e. the instance of a class subclassing
+        icarus.Cache)
+    warmup : int, optional
+        The number of warmup requests to generate. If not specified, it is set
+        to 10 times the content population
+    measure : int, optional
+        The number of measured requests to generate. If not specified, it is
+        set to 30 times the content population
+    seed : int, optional
+        The seed used to generate random numbers
+    target : int, optional
+        The item index [1, N] for which cache hit ratio is requested. If not
+        specified, the function calculates the cache hit ratio of all the items
+        in the population.
+    
+    Returns
+    -------
+    cache_hit_ratio : array of float or float
+        If target is None, returns an array with the cache hit ratios of all
+        items in the population. If a target is specified, then it returns
+        the cache hit ratio of only the specified item.
+    """
+    if warmup is None: warmup = 10*len(pdf)
+    if measure is None: measure = 30*len(pdf)
+    z = DiscreteDist(pdf, seed)
+    for _ in range(warmup):
+        content = z.rv()
+        if not cache.get(content):
+            cache.put(content)
+    cache_hits = np.zeros(len(pdf))
+    requests = np.zeros(len(pdf))
+    for _ in range(measure):
+        content = z.rv()
+        requests[content-1] += 1
+        if cache.get(content): 
+            cache_hits[content-1] += 1
+        else:
+            cache.put(content)
+    hit_ratio = np.where(requests > 0, cache_hits/requests, requests) 
+    return hit_ratio if target is None else hit_ratio[target-1]
+
+
 def numeric_cache_hit_ratio(pdf, cache, warmup=None, measure=None, seed=None):
-    """Computes numerically the cache hit ratio of a cache under IRM
+    """Numerically compute the cache hit ratio of a cache under IRM
     stationary demand with a given pdf.
     
     Parameters
@@ -307,4 +506,40 @@ def numeric_cache_hit_ratio(pdf, cache, warmup=None, measure=None, seed=None):
             cache_hits += 1
         else:
             cache.put(content)
-    return float(cache_hits)/measure
+    return cache_hits/measure
+
+
+def trace_driven_cache_hit_ratio(workload, cache, warmup_ratio=0.25):
+    """Compute cache hit ratio of a cache under an arbitrary trace-driven
+    workload.
+    
+    Parameters
+    ----------
+    workload : array-like
+        List of URLs or content identifiers extracted from a trace. This list
+        only needs to contains content identifiers and not timestamps
+    cache : Cache
+        Instance of a cache object
+    warmup_ratio : float, optional
+        Ratio of requests of the workload used to warm up the cache (i.e. whose
+        cache hit/miss results are discarded)
+    
+    Returns
+    -------
+    cache_hit_ratio : float
+        The cache hit ratio
+    """
+    if warmup_ratio < 0 or warmup_ratio > 1:
+        raise ValueError("warmup_ratio must be comprised between 0 and 1")
+    n = len(workload)
+    cache_hits = 0
+    n_warmup = int(warmup_ratio*n)
+    n_req = 0
+    for content in workload:
+        if cache.get(content):
+            if n_req >= n_warmup:
+                cache_hits += 1
+        else:
+            cache.put(content)
+        n_req += 1
+    return cache_hits/(n - n_warmup)
