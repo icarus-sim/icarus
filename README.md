@@ -1,9 +1,10 @@
 # Icarus ICN caching simulator
-Icarus is a Python-based discrete-event simulator for evaluating caching performance
-in Information Centric Networks (ICN).
+Icarus is a Python-based discrete-event simulator for evaluating caching
+performance in Information Centric Networks (ICN).
 
-Icarus is not bound to any specific ICN architecture. Its design allows users to implement
-and evalute new caching policies or caching and routing strategy with few lines of code.
+Icarus is not bound to any specific ICN architecture. Its design allows users
+to implement and evalute new caching policies or caching and routing strategy
+with few lines of code.
 
 This document explains how to configure and run the simulator.
 
@@ -18,10 +19,16 @@ located in the `scripts` folder which will take of installing all the
 dependencies. To run it, executes the following commands
 
     $ cd <YOUR ICARUS FOLDER>
-    $ cd scripts
-    $ sh ubuntusetup.sh
+    $ sh scripts/ubuntusetup.sh
 
 The script, after being launched, will ask you for superuser password.
+
+Finally, it is advisable to add Icarus path to the PYTHONPATH environment variable. This makes it possible to launch Icarus from outside the Icarus root directory or call Icarus APIs from other programs:
+
+    $ cd <YOUR ICARUS FOLDER>
+    $ export PYTHONPATH=`pwd`:$PYTHONPATH
+
+Note however that setting the PYTHONPATH this way does not persist across reboots. To make it persist you should add the export instruction to a script that your machine executes at boot or login time, e.g. `.bashrc` (if you use Bash).
 
 #### Other operating systems
 If you have other operating systems, you can install all dependencies manually. 
@@ -50,6 +57,10 @@ If you use `easy_install` run:
 
 You may need to run `pip` or `easy_install` as superuser. The installation of these packages, especially `numpy` and `scipy` may also require to install additional libraries.
 
+#### Virtual machine
+You can also run Icarus within a virtual machine. [This repository](https://github.com/icarus-sim/icarus-vm) contains scripts and documentation to set up a virtual machine with Icarus and all its dependencies.
+
+
 ### Download
 You can download a stable release in a zip or tar.gz format using the links below.
 
@@ -75,7 +86,11 @@ You can also get the development branch from the Github repository using Git. Ju
 
 To use Icarus with the currently implemented topologies and models of caching policies and strategies you need to do the following.
 
-First, create a configuration file with all the desired parameters of your simulation. You can modify the file `config.py`, which is a well documented example configuration. You can even use the configuration file as it is just to get started. Alternatively, have a look at the `examples` folder which contains examples of configuration files for various uses.
+First, create a configuration file with all the desired parameters of your
+simulation. You can modify the file `config.py`, which is a well documented
+example configuration. You can even use the configuration file as it is just
+to get started. Alternatively, have a look at the `examples` folder which
+contains examples of configuration files for various use cases.
 
 Second, run Icarus by running the script `icarus.py` using the following syntax
 
@@ -90,8 +105,8 @@ Example usage could be:
 
     $ python icarus.py --results results.pickle config.py
 
-After saved results in pickle format you can extract results in a human readable format
-using the `printresults.py` script from the `scripts` folder. Example usage could be:
+After saveing the results in pickle format you can extract them in a human
+readable format using the `printresults.py` script from the `scripts` folder. Example usage could be:
 
     $ python scripts/printresults.py results.pickle > results.txt
 
