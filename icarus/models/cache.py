@@ -955,8 +955,9 @@ class SegmentedLruCache(Cache):
         return sum(len(self._segment[i]) for i in range(seg)) + position
     
     @inheritdoc(Cache)
-    def dump(self):
-        return list(list(iter(s)) for s in self._segment)
+    def dump(self, serialized=True):
+        dump = list(list(iter(s)) for s in self._segment)
+        return sum(dump, []) if serialized else dump
     
     @inheritdoc(Cache)
     def clear(self):
