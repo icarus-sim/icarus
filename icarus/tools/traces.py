@@ -19,6 +19,7 @@ __all__ = [
        'parse_url_list',
        'parse_wikibench',
        'parse_squid',
+       'parse_youtube_umass',
        'parse_common_log_format'
            ]
 
@@ -127,8 +128,11 @@ def parse_wikibench(path):
     with open(path) as f:
         for line in f:
             entry = line.split(" ")
-            yield dict(counter=int(entry[0]), timestamp=entry[1],
-                           url=entry[2])
+            yield dict(
+                counter=int(entry[0]),
+                timestamp=entry[1],
+                url=entry[2]
+                      )
     raise StopIteration()
 
 
@@ -160,7 +164,7 @@ def parse_squid(path):
     with open(path) as f:
         for line in f:
             entry = line.split(" ")
-            time = entry[0]
+            timestamp = entry[0]
             duration = int(entry[1])
             client_addr = entry[2]
             log_tag, http_code = entry[3].split("/")
@@ -171,19 +175,75 @@ def parse_squid(path):
             client_ident = entry[7] if entry[7] != '-' else None
             hierarchy_data, hostname = entry[8].split("/")
             content_type = entry[9] if entry[9] != '-' else None
-            yield dict(time=time,
-                       duration=duration,
-                       client_addr=client_addr,
-                       log_tag=log_tag,
-                       http_code=http_code,
-                       bytes_len=bytes_len,
-                       req_method=req_method, url=url,
-                       client_ident=client_ident,
-                       hierarchy_data=hierarchy_data,
-                       hostname=hostname,
-                       content_type=content_type)
+            yield dict(
+                time=timestamp,
+                duration=duration,
+                client_addr=client_addr,
+                log_tag=log_tag,
+                http_code=http_code,
+                bytes_len=bytes_len,
+                req_method=req_method, url=url,
+                client_ident=client_ident,
+                hierarchy_data=hierarchy_data,
+                hostname=hostname,
+                content_type=content_type
+                      )
     raise StopIteration()
 
+
+def parse_youtube_umass(path):
+    """Parse YouTube collected at UMass campus network [1]_.
+    
+    These data were collected at UMass campus network over a a measurement
+    period between June 2007 and March 2008.
+    
+    This function parses the request traces, named youtube.parsed.X.Y.dat.
+    Each entry of the trace provides the following information elements:
+     * Timestamp
+     * YouTube server IP (anonymized)
+     * Client IP (anonymized)
+     * Request
+     * Video ID
+     * Content server IP
+
+    Traces are available at http://traces.cs.umass.edu/index.php/Network/Network 
+    
+    Parameters
+    ----------
+    path : str
+        The path to the trace file to parse
+    
+    Returns
+    -------
+    trace : iterator of dicts
+        An iterator whereby each element is dictionary expressing all
+        attributes of an entry of the trace
+    
+    References
+    ----------
+    ..[1] Michael Zink, Kyoungwon Suh, Yu Gu and Jim Kurose,
+          Watch Global Cache Local: YouTube Network Traces at a Campus Network - 
+          Measurements and Implications, in Proc. of IEEE MMCN'08
+    """
+    with open(path) as f:
+        for line in f:
+            entry = line.split(" ")
+            timestamp = entry[0]
+            youtube_server_addr = int(entry[1])
+            client_addr = entry[2]
+            request = entry[3]
+            video_id = entry[4]
+            content_server_addr = entry[5]
+            yield dict(
+                time=timestamp,
+                youtube_server_addr=youtube_server_addr,
+                client_addr=client_addr,
+                request=request,
+                video_id=video_id,
+                content_server_addr=content_server_addr,
+                      )
+    raise StopIteration()
+      
 
 def parse_common_log_format(path):
     """Parse files saved in the Common Log Format (CLF)
@@ -216,11 +276,13 @@ def parse_common_log_format(path):
             n_bytes = int(entry[6])
             # Convert timestamp into float
             t = time.mktime(dateutil.parser.parse(date.replace(":", " ", 0)).timetuple())
-            event = dict(client_addr=client_addr,
-                         user_ident=user_ident,
-                         auth_user=auth_user,
-                         request=request,
-                         status=status,
-                         bytes=n_bytes)
+            event = dict(
+                client_addr=client_addr,
+                user_ident=user_ident,
+                auth_user=auth_user,
+                request=request,
+                status=status,
+                bytes=n_bytes
+                        )
             yield t, event
     raise StopIteration()
