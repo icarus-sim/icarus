@@ -494,6 +494,38 @@ class Cache(object):
         """
         raise NotImplementedError('This method is not implemented')
 
+    def do(self, op, k):
+        """Utility method that performs a specified operation on a given item.
+        
+        This method allows to perform one of the different operations on an
+        item:
+         * GET: Retrieve an item
+         * PUT: Insert an item
+         * UPDATE: Update the value associated to an item
+         * DELETE: Remove an item
+        
+        
+        Parameters
+        ----------
+        op : string
+            The operation to execute: GET | PUT | UPDATE | DELETE 
+        k : any hashable type
+            The item looked up in the cache
+
+        Returns
+        -------
+        res : bool
+            Boolean value being *True* if the operation succeeded or *False*
+            otherwise.
+        """
+        res =  {
+            'GET':    self.get(k),
+            'PUT':    self.put(k),
+            'UPDATE': self.put(k),
+            'DELETE': self.remove(k)
+                }[op]
+        return res if res is not None else False
+
     @abc.abstractmethod
     def has(self, k):
         """Check if an item is in the cache without changing the internal
