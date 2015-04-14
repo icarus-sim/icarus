@@ -1008,6 +1008,11 @@ class LfuCache(Cache):
     least times in the past, i.e. the one whose associated value has the
     smallest value.
     
+    This is an implementation of an In-Cache-LFU, i.e. a cache that keeps
+    counters for items only as long as they are in cache and resets the
+    counter of an item when it is evicted. This is different from a Perfect-LFU
+    policy in which a counter is maintained also when the content is evicted.
+    
     In contrast to LRU, LFU has been shown to perform optimally under IRM
     demands. However, its implementation is computationally expensive since it
     cannot be implemented in such a way that both search and replacement tasks
@@ -1087,7 +1092,7 @@ class FifoCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen):
+    def __init__(self, maxlen, **kwargs):
         self._cache = set()
         self._maxlen = int(maxlen)
         self._d = deque()
@@ -1234,7 +1239,9 @@ class RandEvictionCache(Cache):
 
 
 def rand_insert_cache(cache, p, seed=None):
-    """It modifies the instance of a cache object such that items are
+    """Return a random insertion cache
+    
+    It modifies the instance of a cache object such that items are
     inserted randomly instead of deterministically.
     
     This function modifies the behavior of the *put* method of a given cache
