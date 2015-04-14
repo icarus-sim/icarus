@@ -126,7 +126,7 @@ def che_characteristic_time_simplified(pdf, cache_size):
     """
     def func_r(r):
         return sum(math.exp(-pdf[j]*r) for j in range(len(pdf))) \
-               - len(pdf) + 1 + cache_size
+               - len(pdf) + cache_size
     return fsolve(func_r, x0=cache_size)[0]
 
 
