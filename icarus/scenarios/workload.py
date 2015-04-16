@@ -16,7 +16,8 @@ from icarus.registry import register_workload
 
 __all__ = [
         'stationary_workload',
-        'globetraff_workload'
+        'globetraff_workload',
+        'trace_driven_workload'
            ]
 
 @register_workload('STATIONARY')
@@ -96,7 +97,8 @@ class globetraff_workload(object):
     """
     
     def __init__(self, topology, content_file, request_file):
-        
+        """Constructor
+        """
         self.receivers = [v for v in topology.nodes_iter() 
                      if topology.node[v]['stack'][0] == 'receiver']
         self.n_contents = 0
@@ -114,4 +116,40 @@ class globetraff_workload(object):
             for timestamp, content, size in reader:
                 yield (timestamp, content)
         raise StopIteration()
+
+@register_workload('TRACE_DRIVEN')
+class trace_driven_workload(object):
+    """Parse requests from a generic request list file.
+    
+    This file lists for each line the ID of a requested content. The output
+    workload maps randomly requests of the trace file to receiver nodes of the
+    topology
+    """
+    def __init__(self, topology, reqs_file, contents_file, n_contents, n_warmup, n_measured, rate=12.0):
+        self.buffering = 64*1024*1024 # Set high buffering to avoid frequent one-line reads
+        self.n_contents = n_contents
+        self.n_warmup = n_warmup
+        self.n_measured = n_measured
+        self.reqs_file = reqs_file
+        self.rate = rate
+        self.receivers = [v for v in topology.nodes_iter() 
+                          if topology.node[v]['stack'][0] == 'receiver']
+        self.contents = []
+        with open(contents_file, 'r', buffering=self.buffering) as f:
+            for content in f:
+                self.contents.append(content)
         
+    def __iter__(self):
+        req_counter = 0
+        t_event = 0.0
+        with open(self.reqs_file, 'r', buffering=self.buffering) as f:
+            for content in f:
+                t_event += (random.expovariate(self.rate))
+                receiver = random.choice(self.receivers)
+                log = (req_counter >= self.n_warmup)
+                event = {'receiver': receiver, 'content': content, 'log': log}
+                yield (t_event, event)
+                req_counter += 1
+                if(req_counter >= self.n_warmup + self.n_measured):
+                    raise StopIteration()
+            raise ValueError("Trace did not contain enough requests")
