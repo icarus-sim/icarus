@@ -9,10 +9,20 @@ import collections
 from fnss.util import random_from_pdf
 from icarus.registry import register_content_placement
 
+
 __all__ = ['uniform_content_placement', 'weighted_content_placement']
 
 
 def apply_content_placement(placement, topology):
+    """Apply a placement to a topology
+    
+    Parameters
+    ----------
+    placement : dict of sets
+        Set of contents to be assigned to nodes keyed by node identifier
+    topology : Topology
+        The topology
+    """
     for v, contents in placement.iteritems():
         topology.node[v]['stack'][1]['contents'] = contents
 
@@ -45,9 +55,9 @@ def uniform_content_placement(topology, contents, seed=None):
     """
     random.seed(seed)
     source_nodes = get_sources(topology)
-    content_placement = collections.defaultdict(list)
+    content_placement = collections.defaultdict(set)
     for c in contents:
-        content_placement[random.choice(source_nodes)].append(c)
+        content_placement[random.choice(source_nodes)].add(c)
     apply_content_placement(content_placement, topology)
 
 @register_content_placement('WEIGHTED')
@@ -79,8 +89,8 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     random.seed(seed)
     norm_factor = float(sum(source_weights.values()))
     source_pdf = dict((k, v/norm_factor) for k, v in source_weights.iteritems())
-    content_placement = collections.defaultdict(list)
+    content_placement = collections.defaultdict(set)
     for c in contents:
-        content_placement[random_from_pdf(source_pdf)].append(c)
+        content_placement[random_from_pdf(source_pdf)].add(c)
     apply_content_placement(content_placement, topology)
     

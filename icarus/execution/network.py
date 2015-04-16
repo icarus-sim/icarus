@@ -253,10 +253,18 @@ class NetworkModel(object):
         self.cache_size = {}
         
         # Dictionary of link types (internal/external)
-        self.link_type = nx.get_edge_attributes(topology.to_directed(), 'type')
-        
-        self.link_delay = fnss.get_delays(topology.to_directed())
-        
+        self.link_type = nx.get_edge_attributes(topology, 'type')
+        self.link_delay = fnss.get_delays(topology)
+        # Instead of this manual assignment, I could have converted the
+        # topology to directed before extracting type and link delay but that
+        # requires a deep copy of the topology that can take long time if
+        # many content source mappings are included in the topology
+        if not topology.is_directed():
+            for (u, v), link_type in self.link_type.items():
+                self.link_type[(v, u)] = link_type
+            for (u, v), delay in self.link_delay.items():
+                self.link_delay[(v, u)] = delay
+                
         # Initialize attributes
         for node in topology.nodes_iter():
             stack_name, stack_props = fnss.get_stack(topology, node)
