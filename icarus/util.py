@@ -18,7 +18,9 @@ __all__ = [
         'step_cdf',
         'Tree',
         'can_import',
-        'overlay_betweenness_centrality'
+        'overlay_betweenness_centrality',
+        'paths_to_edges',
+        'multicast_tree',
            ]
 
 class Tree(collections.defaultdict):
@@ -641,3 +643,15 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
         for v in betweenness:
             betweenness[v] /= norm
     return betweenness
+
+
+def paths_to_edges(path):
+    return [(path[i], path[i+1]) for i in range(len(path)-1)]
+
+def multicast_tree(shortest_paths, source, destinations):
+    tree = set()
+    for d in destinations:
+        if d == source:
+            continue
+        tree.union(set(paths_to_edges(shortest_paths[source][d])))
+    return tree
