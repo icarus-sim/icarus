@@ -87,6 +87,9 @@ class NetworkView(object):
             included)
         """
         return self.model.shortest_path[s][t]
+    
+    def all_pairs_shortest_paths(self):
+        return self.model.shortest_path
 
     def link_type(self, u, v):
         """Return the type of link *(u, v)*.
