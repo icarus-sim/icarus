@@ -1,6 +1,8 @@
 """This module contains functions for creating or importing topologies for the
 experiments.
 """
+from __future__ import division
+
 from os import path
 
 import networkx as nx
@@ -17,6 +19,7 @@ __all__ = [
         'topology_tiscali',
         'topology_wide',
         'topology_garr',
+        'topology_generic_rocketfuel_latency'
            ]
 
 
@@ -568,3 +571,51 @@ def topology_tiscali2(**kwargs):
         else:
             topology.edge[u][v]['type'] = 'internal'
     return IcnTopology(topology)
+
+
+@register_topology_factory('ROCKET_FUEL')
+def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
+    """Parse a generic RocketFuel topology with annotated latencies
+    
+    To each node of the parsed topology it is attached an artificial receiver
+    node. To the routers with highest degree it is also attached a source node. 
+    
+    Parameters
+    ----------
+    asn : int
+        AS number
+    source_ratio : float
+        Ratio between number of source nodes (artificially attached) and routers
+    ext_delay : float
+        Delay on external nodes
+    """
+    if source_ratio < 0 or source_ratio > 1:
+        raise ValueError('source_ratio must be comprised between 0 and 1')
+    f_topo = path.join(TOPOLOGY_RESOURCES_DIR, 'rocketfuel-latency', str(asn), 'latencies.intra')
+    topology = fnss.parse_rocketfuel_isp_latency(f_topo).to_undirected()
+    topology = list(nx.connected_component_subgraphs(topology))[0]
+    # Note: I don't need to filter out nodes with degree 1 cause they all have
+    # a greater degree value but we compute degree to decide where to attach sources
+    routers = topology.nodes()
+    deg = nx.degree(topology)
+    routers = sorted(routers, key=lambda k: deg[k], reverse=True)
+    # Source attachment
+    n_sources = int(source_ratio*len(routers))
+    sources = ['src_%d' % i for i in range(n_sources)]
+    for i in range(len(sources)):
+        topology.add_edge(sources[i], routers[i], delay=ext_delay)
+    
+    # attach artificial receiver nodes to ICR candidates
+    receivers = ['rec_%d' % i for i in range(len(routers))]
+    for i in range(len(routers)):
+        topology.add_edge(receivers[i], routers[i], delay=0)
+    # Deploy stacks on nodes
+    topology.graph['icr_candidates'] = routers
+    for v in sources:
+        fnss.add_stack(topology, v, 'source')
+    for v in receivers:
+        fnss.add_stack(topology, v, 'receiver')
+    for v in routers:
+        fnss.add_stack(topology, v, 'router')
+    return topology
+    
