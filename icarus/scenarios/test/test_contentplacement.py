@@ -62,8 +62,8 @@ class TestWeighted(unittest.TestCase):
         fnss.add_stack(t, 2, 'source')
         fnss.add_stack(t, 3, 'receiver')
         contentplacement.weighted_content_placement(t, range(10), {1: 0.7, 2: 0.3})
-        c1 = t.node[1]['stack'][1]['contents']
-        c2 = t.node[2]['stack'][1]['contents']
+        c1 = t.node[1]['stack'][1]['contents'] if 'contents' in t.node[1]['stack'][1] else set()
+        c2 = t.node[2]['stack'][1]['contents'] if 'contents' in t.node[2]['stack'][1] else set()
         self.assertEqual(len(c1) + len(c2), 10)
         
     
