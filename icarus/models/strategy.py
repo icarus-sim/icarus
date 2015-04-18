@@ -256,9 +256,9 @@ class HashroutingMulticast(Hashrouting):
                         fork_node = cache_path[i-1]
                         break
                 else: fork_node = cache
-                self.controller.forward_content_path(source, fork_node)
-                self.controller.forward_content_path(fork_node, receiver)
-                self.controller.forward_content_path(fork_node, cache)
+                self.controller.forward_content_path(source, fork_node, main_path=True)
+                self.controller.forward_content_path(fork_node, receiver, main_path=True)
+                self.controller.forward_content_path(fork_node, cache, main_path=False)
                 self.controller.put_content(cache)
         self.controller.end_session()
 
@@ -319,10 +319,10 @@ class HashroutingHybridAM(Hashrouting):
                         fork_node = cache_path[i-1]
                         break
                 else: fork_node = cache
-                self.controller.forward_content_path(source, receiver)
+                self.controller.forward_content_path(source, receiver, main_path=True)
                 # multicast to cache only if stretch is under threshold
                 if len(self.view.shortest_path(fork_node, cache)) - 1 < self.max_stretch:
-                    self.controller.forward_content_path(fork_node, cache)
+                    self.controller.forward_content_path(fork_node, cache, main_path=False)
                     self.controller.put_content(cache)
         self.controller.end_session()
         
@@ -390,12 +390,12 @@ class HashroutingHybridSM(Hashrouting):
                 # because of easier packet processing
                 if symmetric_path_len <= multicast_path_len: # use symmetric delivery
                     # Symmetric delivery
-                    self.controller.forward_content_path(source, cache)
-                    self.controller.forward_content_path(cache, receiver)
+                    self.controller.forward_content_path(source, cache, main_path=True)
+                    self.controller.forward_content_path(cache, receiver, main_path=True)
                 else:
                     # Multicast delivery
-                    self.controller.forward_content_path(source, receiver)
-                    self.controller.forward_content_path(fork_node, cache)
+                    self.controller.forward_content_path(source, receiver, main_path=True)
+                    self.controller.forward_content_path(fork_node, cache, main_path=False)
                 self.controller.end_session()
 
 

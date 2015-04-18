@@ -345,7 +345,7 @@ class NetworkController(object):
         if self.collector is not None and self.session['log']:
             self.collector.start_session(timestamp, receiver, content)
     
-    def forward_request_path(self, s, t, path=None):
+    def forward_request_path(self, s, t, path=None, main_path=True):
         """Forward a request from node *s* to node *t* over the provided path.
                 
         Parameters
@@ -359,12 +359,10 @@ class NetworkController(object):
         """
         if path is None:
             path = self.model.shortest_path[s][t]
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.forward_request_hop(u, v)
     
-    def forward_content_path(self, u, v, path=None):
+    def forward_content_path(self, u, v, path=None, main_path=True):
         """Forward a content from node *s* to node *t* over the provided path.
                 
         Parameters
@@ -378,12 +376,10 @@ class NetworkController(object):
         """
         if path is None:
             path = self.model.shortest_path[u][v]
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.forward_content_hop(u, v)
     
-    def forward_request_hop(self, u, v):
+    def forward_request_hop(self, u, v, main_path=True):
         """Forward a request over link  u -> v.
                 
         Parameters
@@ -394,9 +390,9 @@ class NetworkController(object):
             Destination node
         """
         if self.collector is not None and self.session['log']:
-            self.collector.request_hop(u, v)
+            self.collector.request_hop(u, v, main_path)
     
-    def forward_content_hop(self, u, v):
+    def forward_content_hop(self, u, v, main_path=True):
         """Forward a content over link  u -> v.
                 
         Parameters
@@ -407,7 +403,7 @@ class NetworkController(object):
             Destination node
         """
         if self.collector is not None and self.session['log']:
-            self.collector.content_hop(u, v)
+            self.collector.content_hop(u, v, main_path)
     
     def put_content(self, node):
         """Store content in the specified node.

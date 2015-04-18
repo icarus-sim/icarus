@@ -77,7 +77,7 @@ class DataCollector(object):
         """
         pass
     
-    def request_hop(self, u, v):
+    def request_hop(self, u, v, main_path=True):
         """Reports that a request has traversed the link *(u, v)*
         
         Parameters
@@ -86,10 +86,14 @@ class DataCollector(object):
             Origin node
         v : any hashable type
             Destination node
+        main_path : bool
+            If True, indicates that link link is on the main path that will
+            lead to hit a content. It is normally used to calculate latency
+            correctly in multicast cases.
         """
         pass
     
-    def content_hop(self, u, v):
+    def content_hop(self, u, v, main_path=True):
         """Reports that a content has traversed the link *(u, v)*
         
         Parameters
@@ -98,6 +102,10 @@ class DataCollector(object):
             Origin node
         v : any hashable type
             Destination node
+        main_path : bool
+            If True, indicates that this link is being traversed by content
+            that will be delivered to the receiver. This is needed to
+            calculate latency correctly in multicast cases
         """
         pass
     
@@ -169,14 +177,14 @@ class CollectorProxy(DataCollector):
             c.server_hit(node)
     
     @inheritdoc(DataCollector)
-    def request_hop(self, u, v):
+    def request_hop(self, u, v, main_path=True):
         for c in self.collectors['request_hop']:
-            c.request_hop(u, v)
+            c.request_hop(u, v, main_path)
     
     @inheritdoc(DataCollector)
-    def content_hop(self, u, v):
+    def content_hop(self, u, v, main_path=True):
         for c in self.collectors['content_hop']:
-            c.content_hop(u, v)
+            c.content_hop(u, v, main_path)
     
     @inheritdoc(DataCollector)
     def end_session(self, success=True):
@@ -221,11 +229,11 @@ class LinkLoadCollector(DataCollector):
         self.t_end = timestamp
     
     @inheritdoc(DataCollector)
-    def request_hop(self, u, v):
+    def request_hop(self, u, v, main_path=True):
         self.req_count[(u, v)] += 1
     
     @inheritdoc(DataCollector)
-    def content_hop(self, u, v):
+    def content_hop(self, u, v, main_path=True):
         self.cont_count[(u, v)] += 1
     
     @inheritdoc(DataCollector)
@@ -277,12 +285,14 @@ class LatencyCollector(DataCollector):
         self.sess_latency = 0.0
     
     @inheritdoc(DataCollector)
-    def request_hop(self, u, v):
-        self.sess_latency += self.view.link_delay(u, v)
+    def request_hop(self, u, v, main_path=True):
+        if main_path:
+            self.sess_latency += self.view.link_delay(u, v)
     
     @inheritdoc(DataCollector)
-    def content_hop(self, u, v):
-        self.sess_latency += self.view.link_delay(u, v)
+    def content_hop(self, u, v, main_path=True):
+        if main_path:
+            self.sess_latency += self.view.link_delay(u, v)
     
     @inheritdoc(DataCollector)
     def end_session(self, success=True):
@@ -425,11 +435,11 @@ class PathStretchCollector(DataCollector):
         self.sess_count += 1
 
     @inheritdoc(DataCollector)
-    def request_hop(self, u, v):
+    def request_hop(self, u, v, main_path=True):
         self.req_path_len += 1
     
     @inheritdoc(DataCollector)
-    def content_hop(self, u, v):
+    def content_hop(self, u, v, main_path=True):
         self.cont_path_len += 1
     
     @inheritdoc(DataCollector)
@@ -492,11 +502,11 @@ class TestCollector(DataCollector):
         self.session['serving_node'] = node
 
     @inheritdoc(DataCollector)
-    def request_hop(self, u, v):
+    def request_hop(self, u, v, main_path=True):
         self.session['request_hops'].append((u, v))
     
     @inheritdoc(DataCollector)
-    def content_hop(self, u, v):
+    def content_hop(self, u, v, main_path=True):
         self.session['content_hops'].append((u, v))
     
     @inheritdoc(DataCollector)
