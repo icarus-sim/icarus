@@ -603,12 +603,12 @@ def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
     n_sources = int(source_ratio*len(routers))
     sources = ['src_%d' % i for i in range(n_sources)]
     for i in range(len(sources)):
-        topology.add_edge(sources[i], routers[i], delay=ext_delay)
+        topology.add_edge(sources[i], source_attachments[i], delay=ext_delay, type='external')
     
     # attach artificial receiver nodes to ICR candidates
     receivers = ['rec_%d' % i for i in range(len(routers))]
     for i in range(len(routers)):
-        topology.add_edge(receivers[i], routers[i], delay=0)
+        topology.add_edge(receivers[i], routers[i], delay=0, type='internal')
     # Set weights to latency values
     for u, v in topology.edges_iter():
         topology.edge[u][v]['weight'] = topology.edge[u][v]['delay']
@@ -620,5 +620,5 @@ def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
         fnss.add_stack(topology, v, 'receiver')
     for v in routers:
         fnss.add_stack(topology, v, 'router')
-    return topology
+    return IcnTopology(topology)
     
