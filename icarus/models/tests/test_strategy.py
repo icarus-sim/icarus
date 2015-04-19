@@ -361,7 +361,7 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-
+        
     def test_lce_different_content(self):
         hr = strategy.LeaveCopyEverywhere(self.view, self.controller)
         # receiver 0 requests 2, expect miss
@@ -605,3 +605,59 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        
+    def test_random_choice(self):
+        hr = strategy.RandomChoice(self.view, self.controller)
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(len(loc), 2)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        self.assertEqual(4, summary['serving_node'])
+        
+    def test_random_bernoulli(self):
+        hr = strategy.RandomBernoulli(self.view, self.controller)
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        self.assertEqual(4, summary['serving_node'])
+        
+    def test_random_bernoulli_p_0(self):
+        hr = strategy.RandomBernoulli(self.view, self.controller, p=0)
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertNotIn(1, loc)
+        self.assertNotIn(2, loc)
+        self.assertNotIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        self.assertEqual(4, summary['serving_node'])
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertNotIn(1, loc)
+        self.assertNotIn(2, loc)
+        self.assertNotIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        self.assertEqual(4, summary['serving_node'])
+        
+    def test_random_bernoulli_p_1(self):
+        hr = strategy.RandomBernoulli(self.view, self.controller, p=1)
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertIn(1, loc)
+        self.assertIn(2, loc)
+        self.assertIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        self.assertEqual(4, summary['serving_node'])
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertIn(1, loc)
+        self.assertIn(2, loc)
+        self.assertIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        self.assertEqual(1, summary['serving_node'])
+        
