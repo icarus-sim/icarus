@@ -3,8 +3,6 @@
 from __future__ import division
 import collections
 
-import numpy as np
-
 from icarus.registry import register_data_collector
 from icarus.tools import cdf
 from icarus.util import Tree, inheritdoc
@@ -158,8 +156,8 @@ class CollectorProxy(DataCollector):
             List of instances of DataCollector that will be notified of events
         """
         self.view = view
-        self.collectors = dict((e,[c for c in collectors if e in type(c).__dict__])
-                               for e in self.EVENTS)
+        self.collectors = {e: [c for c in collectors if e in type(c).__dict__]
+                           for e in self.EVENTS}
     
     @inheritdoc(DataCollector)
     def start_session(self, timestamp, receiver, content):
@@ -316,7 +314,7 @@ class CacheHitRatioCollector(DataCollector):
     requests served by a cache.
     """
     
-    def __init__(self, view, off_path_hits=True, per_node=True, content_hits=False):
+    def __init__(self, view, off_path_hits=False, per_node=False, content_hits=False):
         """Constructor
         
         Parameters

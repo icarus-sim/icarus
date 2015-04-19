@@ -60,6 +60,7 @@ def uniform_content_placement(topology, contents, seed=None):
         content_placement[random.choice(source_nodes)].add(c)
     apply_content_placement(content_placement, topology)
 
+
 @register_content_placement('WEIGHTED')
 def weighted_content_placement(topology, contents, source_weights, seed=None):
     """Places content objects to source nodes randomly according to the weight

@@ -6,6 +6,7 @@ import networkx as nx
 import fnss
 
 from icarus.registry import CACHE_POLICY
+from icarus.util import path_links
 
 __all__ = [
     'NetworkModel',
@@ -89,6 +90,13 @@ class NetworkView(object):
         return self.model.shortest_path[s][t]
     
     def all_pairs_shortest_paths(self):
+        """Return all pairs shortest paths
+        
+        Return
+        ------
+        all_pairs_shortest_paths : dict of lists
+            Shortest paths between all pairs
+        """
         return self.model.shortest_path
 
     def link_type(self, u, v):
@@ -286,7 +294,7 @@ class NetworkModel(object):
                     self.cache_size[node] = 1
                     
         policy_name = cache_policy['name']
-        policy_args = {k: v for k, v in cache_policy.items() if k != 'name'}
+        policy_args = {k: v for k, v in cache_policy.iteritems() if k != 'name'}
         # The actual cache objects storing the content
         self.cache = {node: CACHE_POLICY[policy_name](self.cache_size[node], **policy_args)
                           for node in self.cache_size}

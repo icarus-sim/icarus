@@ -515,7 +515,7 @@ def trace_driven_cache_hit_ratio(workload, cache, warmup_ratio=0.25):
     
     Parameters
     ----------
-    workload : array-like
+    workload : list or array
         List of URLs or content identifiers extracted from a trace. This list
         only needs to contains content identifiers and not timestamps
     cache : Cache
