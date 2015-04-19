@@ -26,6 +26,7 @@ __all__ = [
        'CacheLessForMore',
        'RandomBernoulli',
        'RandomChoice',
+       'NearestReplicaRouting',
            ]
 
 #TODO: Implement BaseOnPath to reduce redundant code
@@ -712,7 +713,55 @@ class CacheLessForMore(Strategy):
                 self.controller.put_content(v)
         self.controller.end_session()  
         
+@register_strategy('NRR')
+class NearestReplicaRouting(Strategy):
+    """Ideal Nearest Replica Routing (NRR) strategy.
+    
+    In this strategy, a request is forwarded to the topologically close node
+    holding a copy of the requested item. This strategy is ideal, as it is
+    implemented assuming that each node knows the nearest replica of a content
+    without any signalling
+    
+    On the return path, content can be caching according to a variety of
+    metacaching policies. LCE and LCD are currently supported.
+    """
+
+    @inheritdoc(Strategy)
+    def __init__(self, view, controller, metacaching, **kwargs):
+        super(NearestReplicaRouting, self).__init__(view, controller)
+        if metacaching not in ('LCE', 'LCD'):
+            raise ValueError("Metacaching policy %s not supported" % metacaching)
+        self.metacaching = metacaching
         
+    @inheritdoc(Strategy)
+    def process_event(self, time, receiver, content, log):
+        # get all required data
+        locations = self.view.content_locations(content)
+        nearest_replica = min(locations, 
+                              key=lambda s: sum(self.view.shortest_path(receiver, s)))
+        # Route request to nearest replica
+        self.controller.start_session(time, receiver, content, log)
+        self.controller.forward_request_path(receiver, nearest_replica)
+        self.controller.get_content(nearest_replica)
+        # Now we need to return packet and we have options
+        path = list(reversed(self.view.shortest_path(receiver, nearest_replica)))
+        if self.metacaching == 'LCE':
+            for u, v in path_links(path):
+                self.controller.forward_content_hop(u, v)
+                if self.view.has_cache(v) and not self.view.cache_lookup(v, content):
+                    self.controller.put_content(v)
+        elif self.metacaching == 'LCD':
+            copied = False
+            for u, v in path_links(path):
+                self.controller.forward_content_hop(u, v)
+                if not copied and v != receiver and self.view.has_cache(v):
+                    self.controller.put_content(v)
+                    copied = True
+        else:
+            raise ValueError('Metacaching policy %s not supported'
+                             % self.metacaching)
+        self.controller.end_session()
+
 
 @register_strategy('RAND_BERNOULLI')
 class RandomBernoulli(Strategy):

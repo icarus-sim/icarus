@@ -63,6 +63,30 @@ def off_path_topology():
         fnss.add_stack(topology, v, 'receiver', {})
     return topology
 
+def nrr_topology():
+    """Return topology for testing NRR caching strategies
+    """
+    # Topology sketch
+    #
+    # 0 ---- 2----- 4 
+    #        |       \
+    #        |        6
+    #        |       /
+    # 1 ---- 3 ---- 5  
+    #
+    topology = fnss.Topology()
+    topology.add_path([0, 2, 4, 6, 5, 3, 1])
+    topology.add_edge(2, 3)
+    receivers = (0, 1)
+    source = (6) 
+    caches = (2, 3, 4, 5)
+    contents = (1, 2, 3, 4)
+    fnss.add_stack(topology, source, 'source', {'contents': contents})
+    for v in caches:
+        fnss.add_stack(topology, v, 'router', {'cache_size': 1})
+    for v in receivers:
+        fnss.add_stack(topology, v, 'receiver', {})
+    return topology
 
 class TestHashrouting(unittest.TestCase):
 
@@ -661,3 +685,133 @@ class TestOnPath(unittest.TestCase):
         summary = self.collector.session_summary()
         self.assertEqual(1, summary['serving_node'])
         
+
+class TestNrr(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass    
+    
+    def setUp(self):
+        topology = nrr_topology()
+        model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
+        self.view = NetworkView(model)
+        self.controller = NetworkController(model)
+        self.collector = TestCollector(self.view)
+        self.controller.attach_collector(self.collector)
+        
+    def tearDown(self):
+        pass
+    
+    def test_lce(self):
+        hr = strategy.NearestReplicaRouting(self.view, self.controller, metacaching='LCE')
+        # receiver 0 requests 2, expect miss
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(3, len(loc))
+        self.assertIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertNotIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(0, 2), (2, 4), (4, 6)]
+        exp_cont_hops = [(6, 4), (4, 2), (2, 0)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(6, summary['serving_node'])
+        # receiver 0 requests 2, expect hit
+        hr.process_event(1, 1, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(4, len(loc))
+        self.assertIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(1, 3), (3, 2)]
+        exp_cont_hops = [(2, 3), (3, 1)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(2, summary['serving_node'])
+        hr.process_event(1, 1, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(4, len(loc))
+        self.assertIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(1, 3)]
+        exp_cont_hops = [(3, 1)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(3, summary['serving_node'])
+        
+
+    def test_lcd(self):
+        hr = strategy.NearestReplicaRouting(self.view, self.controller, metacaching='LCD')
+        # receiver 0 requests 2, expect miss
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(2, len(loc))
+        self.assertNotIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertNotIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(0, 2), (2, 4), (4, 6)]
+        exp_cont_hops = [(6, 4), (4, 2), (2, 0)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(6, summary['serving_node'])
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(3, len(loc))
+        self.assertIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertNotIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(0, 2), (2, 4)]
+        exp_cont_hops = [(4, 2), (2, 0)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(4, summary['serving_node'])
+        # receiver 0 requests 2, expect hit
+        hr.process_event(1, 1, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(4, len(loc))
+        self.assertIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(1, 3), (3, 2)]
+        exp_cont_hops = [(2, 3), (3, 1)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(2, summary['serving_node'])
+        hr.process_event(1, 1, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(4, len(loc))
+        self.assertIn(2, loc)
+        self.assertIn(4, loc)
+        self.assertIn(6, loc)
+        self.assertIn(3, loc)
+        self.assertNotIn(5, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(1, 3)]
+        exp_cont_hops = [(3, 1)]
+        self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
+        self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
+        self.assertEqual(3, summary['serving_node'])
