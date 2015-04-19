@@ -47,7 +47,7 @@ def frequencies(data):
     return np.asarray(sorted(collections.Counter(data).values(), reverse=True))
 
 
-def zipf_fit(obs_freqs):
+def zipf_fit(obs_freqs, need_sorting=False):
     """Returns the value of the Zipf's distribution alpha parameter that best
     fits the data provided and the p-value of the fit test.
     
@@ -55,6 +55,9 @@ def zipf_fit(obs_freqs):
     ----------
     obs_freqs : array
         The array of observed frequencies sorted in descending order
+    need_sorting : bool, optional
+        If True, indicates that obs_freqs is not sorted and this function will
+        sort it. If False, assume that the array is already sorted
     
     Returns
     -------
@@ -75,6 +78,9 @@ def zipf_fit(obs_freqs):
                           "You either don't have scipy install or you have a "
                           "version too old (required 0.12 onwards)")
     obs_freqs = np.asarray(obs_freqs)
+    if need_sorting:
+        # Sort in descending order
+        obs_freqs = -np.sort(-obs_freqs)
     n = len(obs_freqs)
     def log_likelihood(alpha):
         return np.sum(obs_freqs * (alpha * np.log(np.arange(1.0, n+1)) + \
