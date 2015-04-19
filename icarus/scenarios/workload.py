@@ -15,13 +15,14 @@ from icarus.tools import TruncatedZipfDist
 from icarus.registry import register_workload
 
 __all__ = [
-        'stationary_workload',
-        'globetraff_workload',
-        'trace_driven_workload'
+        'StationaryWorkload',
+        'GlobetraffWorkload',
+        'TraceDrivenWorkload'
            ]
 
+
 @register_workload('STATIONARY')
-class stationary_workload(object):
+class StationaryWorkload(object):
     """This function generates events on the fly, i.e. instead of creating an 
     event schedule to be kept in memory, returns an iterator that generates
     events when needed.
@@ -83,7 +84,7 @@ class stationary_workload(object):
 
 
 @register_workload('GLOBETRAFF')
-class globetraff_workload(object):
+class GlobetraffWorkload(object):
     """Parse requests from GlobeTraff workload generator
     
     Parameters
@@ -118,7 +119,7 @@ class globetraff_workload(object):
         raise StopIteration()
 
 @register_workload('TRACE_DRIVEN')
-class trace_driven_workload(object):
+class TraceDrivenWorkload(object):
     """Parse requests from a generic request list file.
     
     This file lists for each line the ID of a requested content. The output
