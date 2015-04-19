@@ -8,7 +8,7 @@ import collections
 import networkx as nx
 
 from icarus.registry import register_strategy
-from icarus.util import inheritdoc
+from icarus.util import inheritdoc, multicast_tree, path_links
 
 
 __all__ = [
@@ -20,6 +20,7 @@ __all__ = [
        'HashroutingHybridAM',
        'HashroutingHybridSM',
        'NoCache',
+       'Edge',
        'LeaveCopyEverywhere',
        'LeaveCopyDown',
        'CacheLessForMore',
@@ -428,6 +429,56 @@ class NoCache(Strategy):
         self.controller.forward_content_path(source, receiver)
         self.controller.end_session()
 
+
+@register_strategy('EDGE')
+class Edge(Strategy):
+    """Edge caching strategy.
+    
+    In this strategy only a cache at the edge is looked up before forwarding
+    a content request to the original source.
+    
+    In practice, this is like an LCE but it only queries the first cache it
+    finds in the path. It is assumed to be used with a topology where each
+    PoP has a cache but it simulates a case where the cache is actually further
+    down the access network and it is not looked up for transit traffic passing
+    through the PoP but only for PoP-originated requests.
+    """
+
+    @inheritdoc(Strategy)
+    def __init__(self, view, controller):
+        super(Edge, self).__init__(view, controller)
+
+    @inheritdoc(Strategy)
+    def process_event(self, time, receiver, content, log):
+        # get all required data
+        source = self.view.content_source(content)
+        path = self.view.shortest_path(receiver, source)
+        # Route requests to original source and queries caches on the path
+        self.controller.start_session(time, receiver, content, log)
+        edge_cache = None
+        for u, v in path_links(path):
+            self.controller.forward_request_hop(u, v)
+            if self.view.has_cache(v):
+                edge_cache = v
+                if self.controller.get_content(v):
+                    serving_node = v
+                else:
+                    # Cache miss, get content from source
+                    self.controller.forward_request_path(v, source)
+                    self.controller.get_content(source)
+                    serving_node = source
+                break
+        else:
+            # No caches on the path at all, get it from source
+            self.controller.get_content(v)
+            serving_node = v
+            
+        # Return content
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
+        self.controller.forward_content_path(serving_node, receiver, path)
+        if serving_node == source:
+            self.controller.put_content(edge_cache)
+        self.controller.end_session()
 
 
 @register_strategy('LCE')

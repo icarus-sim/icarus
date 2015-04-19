@@ -415,7 +415,72 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-        
+
+    def test_edge(self):
+        hr = strategy.Edge(self.view, self.controller)
+        # receiver 0 requests 2, expect miss
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(len(loc), 2)
+        self.assertIn(1, loc)
+        self.assertNotIn(2, loc)
+        self.assertNotIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(0, 1), (1, 2), (2, 3), (3, 4)]
+        exp_cont_hops = [(4, 3), (3, 2), (2, 1), (1, 0)]
+        req_hops = summary['request_hops']
+        cont_hops = summary['content_hops']
+        self.assertSetEqual(set(exp_req_hops), set(req_hops))
+        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
+        self.assertEqual(4, summary['serving_node'])
+        # receiver 0 requests 2, expect hit
+        hr.process_event(1, 0, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(len(loc), 2)
+        self.assertIn(1, loc)
+        self.assertNotIn(2, loc)
+        self.assertNotIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(0, 1)]
+        exp_cont_hops = [(1, 0)]
+        req_hops = summary['request_hops']
+        cont_hops = summary['content_hops']
+        self.assertSetEqual(set(exp_req_hops), set(req_hops))
+        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
+        self.assertEqual(1, summary['serving_node'])
+        hr.process_event(1, 5, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(len(loc), 3)
+        self.assertIn(1, loc)
+        self.assertIn(2, loc)
+        self.assertNotIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(5, 2), (2, 3), (3, 4)]
+        exp_cont_hops = [(4, 3), (3, 2), (2, 5)]
+        req_hops = summary['request_hops']
+        cont_hops = summary['content_hops']
+        self.assertSetEqual(set(exp_req_hops), set(req_hops))
+        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
+        self.assertEqual(4, summary['serving_node'])
+        hr.process_event(1, 5, 2, True)
+        loc = self.view.content_locations(2)
+        self.assertEquals(len(loc), 3)
+        self.assertIn(1, loc)
+        self.assertIn(2, loc)
+        self.assertNotIn(3, loc)
+        self.assertIn(4, loc)
+        summary = self.collector.session_summary()
+        exp_req_hops = [(5, 2)]
+        exp_cont_hops = [(2, 5)]
+        req_hops = summary['request_hops']
+        cont_hops = summary['content_hops']
+        self.assertSetEqual(set(exp_req_hops), set(req_hops))
+        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
+        self.assertEqual(2, summary['serving_node'])
+
     def test_lcd(self):
         hr = strategy.LeaveCopyDown(self.view, self.controller)
         # receiver 0 requests 2, expect miss
