@@ -79,7 +79,7 @@ def topology_binary_tree(**kwargs):
     routers = [v for v in topology.nodes_iter()
               if topology.node[v]['depth'] > 0
               and topology.node[v]['depth'] < h]
-    topology.graph['icr_candidates'] = routers
+    topology.graph['icr_candidates'] = set(routers)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -118,7 +118,7 @@ def topology_path(n=3, **kwargs):
     receivers = [0]    
     routers = range(1, n-1)
     sources = [n-1]
-    topology.graph['icr_candidates'] = routers
+    topology.graph['icr_candidates'] = set(routers)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -169,7 +169,7 @@ def topology_geant(**kwargs):
         sources.append(u)
     routers = [v for v in topology.nodes() if v not in sources + receivers]
     # add stacks to nodes
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -251,7 +251,7 @@ def topology_tiscali(**kwargs):
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
     
     # Deploy stacks
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -298,7 +298,7 @@ def topology_wide(**kwargs):
     fnss.set_weights_constant(topology, 1.0)
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
     # Deploy stacks
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -344,7 +344,7 @@ def topology_garr(**kwargs):
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
 
     # Deploy stacks
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -404,7 +404,7 @@ def topology_garr2(**kwargs):
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
     
     # Deploy stacks
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -463,7 +463,7 @@ def topology_geant2(**kwargs):
     # Select as ICR candidates the top 50% routers for betweenness centrality
     icr_candidates = routers[len(routers)//2:] 
     # add stacks to nodes
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -553,7 +553,7 @@ def topology_tiscali2(**kwargs):
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
     
     # deploy stacks
-    topology.graph['icr_candidates'] = icr_candidates
+    topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
@@ -613,7 +613,7 @@ def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
     for u, v in topology.edges_iter():
         topology.edge[u][v]['weight'] = topology.edge[u][v]['delay']
     # Deploy stacks on nodes
-    topology.graph['icr_candidates'] = routers
+    topology.graph['icr_candidates'] = set(routers)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
     for v in receivers:
