@@ -19,7 +19,7 @@ __all__ = [
         'Tree',
         'can_import',
         'overlay_betweenness_centrality',
-        'paths_to_edges',
+        'path_links',
         'multicast_tree',
            ]
 
@@ -645,13 +645,44 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
     return betweenness
 
 
-def paths_to_edges(path):
+def path_links(path):
+    """Convert a path expressed as list of nodes into a path expressed as a
+    list of edges.
+    
+    Parameters
+    ----------
+    path : list
+        List of nodes
+        
+    Returns
+    -------
+    path : list
+        List of edges
+    """
     return [(path[i], path[i+1]) for i in range(len(path)-1)]
 
+
 def multicast_tree(shortest_paths, source, destinations):
+    """Return a multicast tree expressed as a set of edges, without any
+    ordering
+    
+    Parameters
+    ----------
+    shortest_paths : dict of dicts
+        Return all pairs shortest paths
+    source : any hashable object
+        The source node of the multicast tree
+    destinations : iterable
+        All destinations of the multicast tree
+        
+    Return
+    ------
+    multicast_tree : set
+        Set of edges
+    """
     tree = set()
     for d in destinations:
         if d == source:
             continue
-        tree.union(set(paths_to_edges(shortest_paths[source][d])))
+        tree.union(set(path_links(shortest_paths[source][d])))
     return tree
