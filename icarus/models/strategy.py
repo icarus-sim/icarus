@@ -411,9 +411,8 @@ class NoCache(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True, params=None):
+    def __init__(self, view, controller, **kwargs):
         super(NoCache, self).__init__(view, controller)
-        self.symm_paths = symm_paths
     
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -425,9 +424,8 @@ class NoCache(Strategy):
         self.controller.forward_request_path(receiver, source)
         self.controller.get_content(source)
         # Route content back to receiver
-        path = list(reversed(path)) if self.symm_paths \
-                        else self.view.shortest_path(source, receiver)
-        self.controller.forward_content_path(source, receiver)
+        path = list(reversed(path))
+        self.controller.forward_content_path(source, receiver, path)
         self.controller.end_session()
 
 
@@ -491,9 +489,8 @@ class LeaveCopyEverywhere(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True):
+    def __init__(self, view, controller, **kwargs):
         super(LeaveCopyEverywhere, self).__init__(view, controller)
-        self.symm_paths = symm_paths
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -502,9 +499,7 @@ class LeaveCopyEverywhere(Strategy):
         path = self.view.shortest_path(receiver, source)
         # Route requests to original source and queries caches on the path
         self.controller.start_session(time, receiver, content, log)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_request_hop(u, v)
             if self.view.has_cache(v):
                 if self.controller.get_content(v):
@@ -514,11 +509,8 @@ class LeaveCopyEverywhere(Strategy):
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path = list(reversed(path[:hop + 1])) if self.symm_paths \
-                        else self.view.shortest_path(serving_node, receiver)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
+        for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if self.view.has_cache(v):
                 # insert content
@@ -542,9 +534,8 @@ class LeaveCopyDown(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True):
+    def __init__(self, view, controller, **kwargs):
         super(LeaveCopyDown, self).__init__(view, controller)
-        self.symm_paths = symm_paths
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -553,26 +544,22 @@ class LeaveCopyDown(Strategy):
         path = self.view.shortest_path(receiver, source)
         # Route requests to original source and queries caches on the path
         self.controller.start_session(time, receiver, content, log)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_request_hop(u, v)
             if self.view.has_cache(v):
                 if self.controller.get_content(v):
                     serving_node = v
                     break
+        else:
             # No cache hits, get content from source
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path = list(reversed(path[:hop + 1])) if self.symm_paths \
-                        else self.view.shortest_path(serving_node, receiver)
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
         # Leave a copy of the content only in the cache one level down the hit
         # caching node
         copied = False
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if not copied and v != receiver and self.view.has_cache(v):
                 self.controller.put_content(v)
@@ -605,9 +592,8 @@ class ProbCache(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True, t_tw=10):
+    def __init__(self, view, controller, t_tw=10):
         super(ProbCache, self).__init__(view, controller)
-        self.symm_paths = symm_paths
         self.t_tw = t_tw
         self.cache_size = view.cache_nodes(size=True)
     
@@ -626,12 +612,12 @@ class ProbCache(Strategy):
                 if self.controller.get_content(v):
                     serving_node = v
                     break
+        else:
             # No cache hits, get content from source
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path = list(reversed(path[:hop + 1])) if self.symm_paths \
-                        else self.view.shortest_path(serving_node, receiver)
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
         c = len([v for v in path if self.view.has_cache(v)])
         x = 0.0
         for hop in range(1, len(path)):
@@ -663,9 +649,8 @@ class CacheLessForMore(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True, use_ego_betw=False):
+    def __init__(self, view, controller, use_ego_betw=False, **kwargs):
         super(CacheLessForMore, self).__init__(view, controller)
-        self.symm_paths = symm_paths
         topology = view.topology()
         if use_ego_betw:
             self.betw = dict((v, nx.betweenness_centrality(nx.ego_graph(topology, v))[v])
@@ -680,20 +665,18 @@ class CacheLessForMore(Strategy):
         path = self.view.shortest_path(receiver, source)
         # Route requests to original source and queries caches on the path
         self.controller.start_session(time, receiver, content, log)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_request_hop(u, v)
             if self.view.has_cache(v):
                 if self.controller.get_content(v):
                     serving_node = v
                     break
-            # No cache hits, get content from source
+        # No cache hits, get content from source
+        else:
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path = list(reversed(path[:hop + 1])) if self.symm_paths \
-                        else self.view.shortest_path(serving_node, receiver)
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
         # get the cache with maximum betweenness centrality
         # if there are more than one cache with max betw then pick the one
         # closer to the receiver
@@ -705,14 +688,13 @@ class CacheLessForMore(Strategy):
                     max_betw = self.betw[v]
                     designated_cache = v
         # Forward content
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if v == designated_cache:
                 self.controller.put_content(v)
         self.controller.end_session()  
         
+
 @register_strategy('NRR')
 class NearestReplicaRouting(Strategy):
     """Ideal Nearest Replica Routing (NRR) strategy.
@@ -772,9 +754,8 @@ class RandomBernoulli(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True, p=0.2):
+    def __init__(self, view, controller, p=0.2, **kwargs):
         super(RandomBernoulli, self).__init__(view, controller)
-        self.symm_paths = symm_paths
         self.p = p
     
     @inheritdoc(Strategy)
@@ -784,23 +765,19 @@ class RandomBernoulli(Strategy):
         path = self.view.shortest_path(receiver, source)
         # Route requests to original source and queries caches on the path
         self.controller.start_session(time, receiver, content, log)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_request_hop(u, v)
             if self.view.has_cache(v):
                 if self.controller.get_content(v):
                     serving_node = v
                     break
+        else:
             # No cache hits, get content from source
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path = list(reversed(path[:hop + 1])) if self.symm_paths \
-                        else self.view.shortest_path(serving_node, receiver)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        path =  list(reversed(self.view.shortest_path(receiver, serving_node)))
+        for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if v != receiver and self.view.has_cache(v):
                 if random.random() < self.p:
@@ -816,9 +793,8 @@ class RandomChoice(Strategy):
     """
 
     @inheritdoc(Strategy)
-    def __init__(self, view, controller, symm_paths=True, params=None):
+    def __init__(self, view, controller, **kwargs):
         super(RandomChoice, self).__init__(view, controller)
-        self.symm_paths = symm_paths
     
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -827,25 +803,21 @@ class RandomChoice(Strategy):
         path = self.view.shortest_path(receiver, source)
         # Route requests to original source and queries caches on the path
         self.controller.start_session(time, receiver, content, log)
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_request_hop(u, v)
             if self.view.has_cache(v):
                 if self.controller.get_content(v):
                     serving_node = v
                     break
+        else:
             # No cache hits, get content from source
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path = list(reversed(path[:hop + 1])) if self.symm_paths \
-                        else self.view.shortest_path(serving_node, receiver)
+        path =  list(reversed(self.view.shortest_path(receiver, serving_node)))
         caches = [v for v in path[1:-1] if self.view.has_cache(v)]
         designated_cache = random.choice(caches) if len(caches) > 0 else None
-        for hop in range(1, len(path)):
-            u = path[hop - 1]
-            v = path[hop]
+        for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if v == designated_cache:
                 self.controller.put_content(v)
