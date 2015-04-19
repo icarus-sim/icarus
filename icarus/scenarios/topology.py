@@ -609,6 +609,9 @@ def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
     receivers = ['rec_%d' % i for i in range(len(routers))]
     for i in range(len(routers)):
         topology.add_edge(receivers[i], routers[i], delay=0)
+    # Set weights to latency values
+    for u, v in topology.edges_iter():
+        topology.edge[u][v]['weight'] = topology.edge[u][v]['delay']
     # Deploy stacks on nodes
     topology.graph['icr_candidates'] = routers
     for v in sources:

@@ -243,7 +243,7 @@ class NetworkModel(object):
         
         # Shortest paths of the network
         self.shortest_path = shortest_path if shortest_path is not None \
-                             else symmetrify_paths(nx.all_pairs_shortest_path(topology))
+                             else symmetrify_paths(nx.all_pairs_dijkstra_path(topology))
         
         # Network topology
         self.topology = topology
