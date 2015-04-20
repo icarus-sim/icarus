@@ -57,7 +57,7 @@ class StationaryWorkload(object):
         dictionary of event attributes.
     """
     def __init__(self, topology, n_contents, alpha, rate=12.0,
-                    n_warmup=10**5, n_measured=4*10**5, seed=None):
+                    n_warmup=10**5, n_measured=4*10**5, seed=None, **kwargs):
         self.receivers = [v for v in topology.nodes_iter()
                      if topology.node[v]['stack'][0] == 'receiver']
         self.zipf = TruncatedZipfDist(alpha, n_contents)
@@ -97,7 +97,7 @@ class GlobetraffWorkload(object):
         The GlobeTraff request file
     """
     
-    def __init__(self, topology, content_file, request_file):
+    def __init__(self, topology, content_file, request_file, **kwargs):
         """Constructor
         """
         self.receivers = [v for v in topology.nodes_iter() 
@@ -126,7 +126,7 @@ class TraceDrivenWorkload(object):
     workload maps randomly requests of the trace file to receiver nodes of the
     topology
     """
-    def __init__(self, topology, reqs_file, contents_file, n_contents, n_warmup, n_measured, rate=12.0):
+    def __init__(self, topology, reqs_file, contents_file, n_contents, n_warmup, n_measured, rate=12.0, **kwargs):
         self.buffering = 64*1024*1024 # Set high buffering to avoid frequent one-line reads
         self.n_contents = n_contents
         self.n_warmup = n_warmup
