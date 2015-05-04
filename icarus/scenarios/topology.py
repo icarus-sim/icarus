@@ -47,14 +47,14 @@ class IcnTopology(fnss.Topology):
                 }
         
     def sources(self):
-        return [v for v in self
-                if 'stack' in self.node[v]
-                and self.node[v]['stack'][0] == 'source']
+        return set(v for v in self
+                   if 'stack' in self.node[v]
+                   and self.node[v]['stack'][0] == 'source')
         
     def receivers(self):
-        return [v for v in self
-                if 'stack' in self.node[v]
-                and self.node[v]['stack'][0] == 'receiver']
+        return set(v for v in self
+                   if 'stack' in self.node[v]
+                   and self.node[v]['stack'][0] == 'receiver')
 
 @register_topology_factory('BINARY_TREE')
 def topology_binary_tree(**kwargs):
