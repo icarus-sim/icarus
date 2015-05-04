@@ -210,14 +210,7 @@ def run_scenario(settings, params, curr_exp, n_exp):
             return None
         workload = WORKLOAD[workload_name](topology, **workload_spec)
         
-        contpl_spec = tree['content_placement']
-        contpl_name = contpl_spec.pop('name')
-        if contpl_name not in CONTENT_PLACEMENT:
-            logger.error('No content placement implementation named %s was found.'
-                         % contpl_name)
-            return None
-        CONTENT_PLACEMENT[contpl_name](topology, workload.contents, **contpl_spec)
-        
+        # Assign caches to nodes
         if 'cache_placement' in tree:
             cachepl_spec = tree['cache_placement']
             cachepl_name = cachepl_spec.pop('name')
@@ -230,7 +223,19 @@ def run_scenario(settings, params, curr_exp, n_exp):
             # the whole network
             cachepl_spec['cache_budget'] = workload.n_contents * network_cache
             CACHE_PLACEMENT[cachepl_name](topology, **cachepl_spec)
-              
+
+        # Assign contents to sources
+        # If there are many contents, after doing this, performing operations
+        # requiring a topology deep copy, i.e. to_directed/undirected, will
+        # take long.
+        contpl_spec = tree['content_placement']
+        contpl_name = contpl_spec.pop('name')
+        if contpl_name not in CONTENT_PLACEMENT:
+            logger.error('No content placement implementation named %s was found.'
+                         % contpl_name)
+            return None
+        CONTENT_PLACEMENT[contpl_name](topology, workload.contents, **contpl_spec)
+
         # caching and routing strategy definition
         strategy = tree['strategy']
         if strategy['name'] not in STRATEGY:
