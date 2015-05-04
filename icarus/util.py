@@ -684,5 +684,5 @@ def multicast_tree(shortest_paths, source, destinations):
     for d in destinations:
         if d == source:
             continue
-        tree.union(set(path_links(shortest_paths[source][d])))
+        tree = tree.union(set(path_links(shortest_paths[source][d])))
     return tree

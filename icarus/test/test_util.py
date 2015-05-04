@@ -7,6 +7,7 @@ else:
     except ImportError:
         raise ImportError("The unittest2 package is needed to run the tests.") 
 del sys
+import networkx as nx
 import fnss
 
 import icarus.util as util
@@ -43,3 +44,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual("2d 1h 3m 9s", util.timestr(49*3600 + 189, True))
         self.assertEqual("0s", util.timestr(0, True))
         self.assertEqual("0m", util.timestr(0, False))
+        
+    def test_multicast_tree(self):
+        topo = fnss.Topology()
+        topo.add_path([2,1,3,4])
+        sp = nx.all_pairs_shortest_path(topo)
+        tree = util.multicast_tree(sp, 1, [2, 3])
+        self.assertSetEqual(set(tree), set([(1, 2), (1, 3)]))
