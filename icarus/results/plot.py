@@ -139,7 +139,7 @@ def plot_lines(resultset, desc, filename, plotdir):
         The limits of the y axis. If not specified, they're automatically
         selected by Matplotlib
     """
-    plt.figure()
+    fig = plt.figure()
     if 'title' in desc:
         plt.title(desc['title'])
     if 'xlabel' in desc:
@@ -205,6 +205,7 @@ def plot_lines(resultset, desc, filename, plotdir):
             legend_args['loc'] = desc['legend_loc']
         plt.legend(legend, prop={'size': LEGEND_SIZE}, **legend_args)
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    plt.close(fig)
 
 
 def plot_bar_chart(resultset, desc, filename, plotdir):
@@ -315,7 +316,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
         The upper limit of the y axis. If not specified, it is automatically
         selected by Matplotlib
     """
-    plt.figure()
+    fig = plt.figure()
     if 'title' in desc:
         plt.title(desc['title'])
     plt.subplot(111)
@@ -419,6 +420,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     if 'ymax' in desc:
         plt.ylim(ymax=desc['ymax'])
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    plt.close(fig)
 
 
 def plot_cdf(resultset, desc, filename, plotdir):
@@ -515,7 +517,7 @@ def plot_cdf(resultset, desc, filename, plotdir):
      * plotempty : bool, optional
          If *True*, plot and save graph even if empty. Default is *True* 
     """
-    plt.figure()
+    fig = plt.figure()
     if 'title' in desc:
         plt.title(desc['title'])
     if 'xlabel' in desc:
@@ -577,3 +579,4 @@ def plot_cdf(resultset, desc, filename, plotdir):
         plt.legend(legend, prop={'size': LEGEND_SIZE}, **legend_args)
     plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    plt.close(fig)
