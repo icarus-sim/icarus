@@ -126,7 +126,7 @@ def plot_lines(resultset, desc, filename, plotdir):
          specified, it is not plotted. If you wish to plot it with the
          name of the line, set it to put yvals or ymetrics, depending on which
          one is used
-     * legend_loc : str
+     * legend_loc : str, optional
          Legend location, e.g. 'upper left'
      * legend_args : dict, optional
          Optional legend arguments, such as ncol
@@ -201,7 +201,9 @@ def plot_lines(resultset, desc, filename, plotdir):
     if 'legend' in desc:
         legend = [desc['legend'][l] for l in yvals]
         legend_args = desc['legend_args'] if 'legend_args' in desc else {}
-        plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'], **legend_args)
+        if 'legend_loc' in desc:
+            legend_args['loc'] = desc['legend_loc']
+        plt.legend(legend, prop={'size': LEGEND_SIZE}, **legend_args)
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
 
 
@@ -303,7 +305,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
          specified, it is not plotted. If you wish to plot it with the
          name of the line, set it to put yvals or ymetrics, depending on which
          one is used
-     * legend_loc : str
+     * legend_loc : str, optional
          Legend location, e.g. 'upper left'
      * legend_args : dict, optional
          Optional legend arguments, such as ncol
@@ -407,9 +409,10 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     if 'legend' in desc:
         legend = [desc['legend'][l] for l in yvals] if 'legend'in desc else yvals
         legend_args = desc['legend_args'] if 'legend_args' in desc else {}
+        if 'legend_loc' in desc:
+            legend_args['loc'] = desc['legend_loc']
         plt.legend([elem[x] for x in yvals], legend,
                    prop={'size': LEGEND_SIZE},
-                   loc=desc['legend_loc'],
                    **legend_args)
     xmin, _ = plt.xlim()
     plt.xlim(xmin, left - separation + border)
@@ -505,7 +508,7 @@ def plot_cdf(resultset, desc, filename, plotdir):
          specified, it is not plotted. If you wish to plot it with the
          name of the line, set it to put yvals or ymetrics, depending on which
          one is used
-     * legend_loc : str
+     * legend_loc : str, optional
          Legend location, e.g. 'upper left'
      * legend_args : dict, optional
          Optional legend arguments, such as ncol
@@ -569,6 +572,8 @@ def plot_cdf(resultset, desc, filename, plotdir):
     if 'legend' in desc:
         legend = [desc['legend'][l] for l in desc['yvals']]
         legend_args = desc['legend_args'] if 'legend_args' in desc else {}
-        plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'], **legend_args)
+        if 'legend_loc' in desc:
+            legend_args['loc'] = desc['legend_loc']
+        plt.legend(legend, prop={'size': LEGEND_SIZE}, **legend_args)
     plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
