@@ -64,6 +64,17 @@ class DataCollector(object):
         """
         pass
 
+    def cache_miss(self, node):
+        """Reports that the cache at node *node* has been looked up for 
+        requested content but there was a cache miss.
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node whose cache served the content
+        """
+        pass
+
     def server_hit(self, node):
         """Reports that the requested content has been served by the server at
         node *node*.
@@ -142,7 +153,7 @@ class CollectorProxy(DataCollector):
     dispatching events of interests to concrete collectors.
     """
     
-    EVENTS = ('start_session', 'end_session', 'cache_hit', 'server_hit',
+    EVENTS = ('start_session', 'end_session', 'cache_hit', 'cache_miss', 'server_hit',
               'request_hop', 'content_hop', 'results')
     
     def __init__(self, view, collectors):
@@ -168,6 +179,11 @@ class CollectorProxy(DataCollector):
     def cache_hit(self, node):
         for c in self.collectors['cache_hit']:
             c.cache_hit(node)
+
+    @inheritdoc(DataCollector)
+    def cache_miss(self, node):
+        for c in self.collectors['cache_miss']:
+            c.cache_miss(node)
 
     @inheritdoc(DataCollector)
     def server_hit(self, node):
@@ -314,7 +330,7 @@ class CacheHitRatioCollector(DataCollector):
     requests served by a cache.
     """
     
-    def __init__(self, view, off_path_hits=False, per_node=False, content_hits=False):
+    def __init__(self, view, off_path_hits=False, per_node=True, content_hits=False):
         """Constructor
         
         Parameters
@@ -489,11 +505,16 @@ class TestCollector(DataCollector):
     @inheritdoc(DataCollector)
     def start_session(self, timestamp, receiver, content):
         self.session = dict(timestamp=timestamp, receiver=receiver,
-                            content=content, request_hops=[], content_hops=[])
+                            content=content, cache_misses=[],
+                            request_hops=[], content_hops=[])
 
     @inheritdoc(DataCollector)
     def cache_hit(self, node):
         self.session['serving_node'] = node
+    
+    @inheritdoc(DataCollector)
+    def cache_miss(self, node):
+        self.session['cache_misses'].append(node)
 
     @inheritdoc(DataCollector)
     def server_hit(self, node):

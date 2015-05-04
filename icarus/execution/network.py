@@ -452,6 +452,9 @@ class NetworkController(object):
             if cache_hit:
                 if self.session['log']:
                     self.collector.cache_hit(node)
+            else:
+                if self.session['log']:
+                    self.collector.cache_miss(node)
             return cache_hit
         name, props = fnss.get_stack(self.model.topology, node)
         if name == 'source' and self.session['content'] in props['contents']:
