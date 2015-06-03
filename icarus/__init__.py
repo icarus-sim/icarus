@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import sys
 if sys.version_info[:2] < (2, 6):
     m = "Python version 2.6 or later is required for Icarus (%d.%d detected)."
@@ -29,8 +31,12 @@ __modules_to_register = [
                          ]
 
 for m in __modules_to_register:
-    exec('import %s' % m)
-    exec('del %s' % m) 
+    # This try/catch is needed to support reload(icarus)
+    try:
+        exec('import %s' % m)
+        exec('del %s' % m) 
+    except AttributeError:
+        pass
 del m
 
 # Imports
