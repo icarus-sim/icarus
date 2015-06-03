@@ -39,7 +39,7 @@ __all__ = [
 # which is citing as source of this data, measurements from this IMC'06 paper:
 # http://www.mpi-sws.org/~druschel/publications/ds2-imc.pdf
 INTERNAL_LINK_DELAY = 2
-EXTERNAL_LINK_DELAY = 3 * 34
+EXTERNAL_LINK_DELAY = 34
 
 # Path where all topologies are stored
 TOPOLOGY_RESOURCES_DIR = path.abspath(path.join(path.dirname(__file__), 
@@ -610,7 +610,7 @@ def topology_tiscali2(**kwargs):
 
 
 @register_topology_factory('ROCKET_FUEL')
-def topology_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
+def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_DELAY, **kwargs):
     """Parse a generic RocketFuel topology with annotated latencies
     
     To each node of the parsed topology it is attached an artificial receiver
