@@ -52,7 +52,7 @@ class Orchestrator(object):
         self.n_fail = 0
         self.summary_freq = summary_freq
         self._stop = False
-        if settings.PARALLEL_EXECUTION:
+        if self.settings.PARALLEL_EXECUTION:
             self.pool = mp.Pool(settings.N_PROCESSES)
     
     def stop(self):
@@ -71,9 +71,6 @@ class Orchestrator(object):
         methods returns only after all experiments are executed.
         """
         # Create queue of experiment configurations
-        if 'EXPERIMENT_QUEUE' not in self.settings:
-            logger.error('No EXPERIMENT_QUEUE setting found. Exiting')
-            sys.exit(-1)
         queue = collections.deque(self.settings.EXPERIMENT_QUEUE)
         # Calculate number of experiments and number of processes
         self.n_exp = len(queue) * self.settings.N_REPLICATIONS 
