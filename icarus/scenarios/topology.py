@@ -1,5 +1,15 @@
-"""This module contains functions for creating or importing topologies for the
-experiments.
+"""Functions for creating or importing topologies for experiments.
+
+To create a custom topology, create a function returning an instance of the
+`IcnTopology` class. An IcnTopology is simply a subclass of a Topology class
+provided by FNSS.
+
+A valid ICN topology must have the following attributes:
+ * Each node must have one stack among: source, receiver, router
+ * The topology must have an attribute called `icr_candidates` which is a set
+   of router nodes on which a cache may be possibly deployed. Caches are not
+   deployed directly at topology creation, instead they are deployed by a 
+   cache placement algorithm.
 """
 from __future__ import division
 
@@ -31,15 +41,28 @@ __all__ = [
 INTERNAL_LINK_DELAY = 2
 EXTERNAL_LINK_DELAY = 3 * 34
 
-
+# Path where all topologies are stored
 TOPOLOGY_RESOURCES_DIR = path.abspath(path.join(path.dirname(__file__), 
                                                 path.pardir, path.pardir, 
                                                 'resources', 'topologies'))
 
 
 class IcnTopology(fnss.Topology):
+    """Class modelling an ICN topology
+    
+    An ICN topology is a simple FNSS Topology with addition methods that
+    return sets of caching nodes, sources and receivers.
+    """
     
     def cache_nodes(self):
+        """Return a dictionary mapping nodes with a cache and respective cache
+        size
+        
+        Returns
+        -------
+        cache_nodes : dict
+            Dictionary mapping node identifiers and cache size
+        """
         return {v: self.node[v]['stack'][1]['cache_size']
                 for v in self
                 if 'stack' in self.node[v]
@@ -47,11 +70,25 @@ class IcnTopology(fnss.Topology):
                 }
         
     def sources(self):
+        """Return a set of source nodes
+        
+        Returns
+        -------
+        sources : set
+            Set of source nodes
+        """
         return set(v for v in self
                    if 'stack' in self.node[v]
                    and self.node[v]['stack'][0] == 'source')
         
     def receivers(self):
+        """Return a set of receiver nodes
+        
+        Returns
+        -------
+        receivers : set
+            Set of receiver nodes
+        """
         return set(v for v in self
                    if 'stack' in self.node[v]
                    and self.node[v]['stack'][0] == 'receiver')

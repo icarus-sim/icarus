@@ -1,3 +1,5 @@
+"""Registry keeping track of all registered pluggable components"""
+
 # Dictionary storying all cache policy implementations keyed by ID
 CACHE_POLICY = {}
 
@@ -53,6 +55,7 @@ def register_decorator(register):
             return function
         return _decorator
     return decorator
+
 
 register_cache_policy = register_decorator(CACHE_POLICY)
 register_strategy = register_decorator(STRATEGY)

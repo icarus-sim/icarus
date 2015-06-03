@@ -1,5 +1,4 @@
-"""Functions for importing and analyzing traffic traces  
-"""
+"""Functions for importing and analyzing traffic traces"""
 from __future__ import division
 
 import math

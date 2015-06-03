@@ -50,7 +50,7 @@ def stack_map(topology):
     return stack
 
 
-def draw_stack_deployment(topology, plotdir, filename):
+def draw_stack_deployment(topology, filename, plotdir):
     """Draw a topology with different node colors according to stack
     
     Parameters
@@ -69,7 +69,7 @@ def draw_stack_deployment(topology, plotdir, filename):
     plt.savefig(plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight'))
     
 
-def draw_network_load(topology, result, plotdir, filename):
+def draw_network_load(topology, result, filename, plotdir):
     """Draw topology with node colors according to stack and node size and link
     color according to server/cache hits and link loads.
     

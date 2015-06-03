@@ -1,4 +1,8 @@
-"""Implements cache placement strategies
+"""Cache placement strategies
+
+This module provides algorithms for performing cache placement, i.e. given
+a cumulative cache size and a topology where each possible node candidate is
+labelled, these functions deploy caching space to the nodes of the topology. 
 """
 from __future__ import division
 import networkx as nx

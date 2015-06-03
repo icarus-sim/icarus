@@ -20,6 +20,12 @@ class ResultSet(object):
     """This class can be used to store results from different experiments,
     accessed and filtered.
     
+    A result set is basically a list of results, one per each experiment. Each
+    entry of the resultset is a 2-tuple referring to a single experiment.
+    In this 2-tuple: 
+     * the first element is a tree with all parameters of the experiment
+     * the second element is a tree with all results of the experiment 
+    
     All operations that write data are thread-safe so that this object can 
     be shared by different processes.
     """
@@ -48,6 +54,11 @@ class ResultSet(object):
     
     def __iter__(self):
         """Returns iterator over the resultset
+        
+        Returns
+        -------
+        iter : iterator
+            Iterator over the resultset
         """
         return iter(self._results)
         

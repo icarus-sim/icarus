@@ -1,4 +1,16 @@
 """Network Model-View-Controller (MVC)
+
+This module contains classes providing an abstraction of the network shown to
+the strategy implementation. The network is modelled using an MVC design
+pattern.
+
+A strategy performs actions on the network by calling methods of the 
+`NetworkController`, that in turns updates  the `NetworkModel` instance that
+updates the `NetworkView` instance. The strategy can get updated information
+about the network status by calling methods of the `NetworkView` instance.
+
+The `NetworkController` is also responsible to notify a `DataCollectorProxy`
+of all relevant events.
 """
 import logging
 
@@ -17,12 +29,39 @@ __all__ = [
 logger = logging.getLogger('orchestration')
 
 def symmetrify_paths(shortest_paths):
+    """Make paths symmetric
+    
+    Given a dictionary of all-pair shortest paths, it edits shortest paths to
+    ensure that all path are symmetric, e.g., path(u,v) = path(v,u)
+    
+    Parameters
+    ----------
+    shortest_paths : dict of dict
+        All pairs shortest paths
+        
+    Returns
+    -------
+    shortest_paths : dict of dict
+        All pairs shortest paths, with all paths symmetric
+    
+    Notes
+    -----
+    This function modifies the shortest paths dictionary provided
+    """
     for u in shortest_paths:
         for v in shortest_paths[u]:
             shortest_paths[u][v] = list(reversed(shortest_paths[v][u]))
     return shortest_paths
 
+
 class NetworkView(object):
+    """Network view
+    
+    This class provides an interface that strategies and data collectors can
+    use to know updated information about the status of the network.
+    For example the network view provides information about shortest paths,
+    characteristics of links and currently cached objects in nodes.
+    """
     
     def __init__(self, model):
         """Constructor
@@ -224,14 +263,16 @@ class NetworkView(object):
         if node in self.model.cache:
             return self.model.cache[node].dump()
 
-         
 
 class NetworkModel(object):
-    """Models the internal state of the network
+    """Models the internal state of the network.
+    
+    This object should never be edited by strategies directly, but only through
+    calls to the network controller.
     """
     
     def __init__(self, topology, cache_policy, shortest_path=None):
-        """Constructors
+        """Constructor
         
         Parameters
         ----------
@@ -301,7 +342,12 @@ class NetworkModel(object):
 
 
 class NetworkController(object):
-    """Network controller"""
+    """Network controller
+    
+    This class is in charge of executing operations on the network model on
+    behalf of a strategy implementation. It is also in charge of notifying
+    data collectors of relevant events.
+    """
     
     def __init__(self, model):
         """Constructor

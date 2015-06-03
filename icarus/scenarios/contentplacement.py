@@ -81,7 +81,6 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     cache_placement : dict
         Dictionary mapping content objects to source nodes
 
-    
     Notes
     -----
     A deterministic placement of objects (e.g., for reproducing results) can be

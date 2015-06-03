@@ -1,12 +1,21 @@
 """Traffic workloads
 
 Every traffic workload to be used with Icarus must be modelled as an iterable
-class, i.e. a class with at least an __init__ method (through which it is
-initialized, with values taken from the configuration file) and an __iter__
+class, i.e. a class with at least an `__init__` method (through which it is
+initialized, with values taken from the configuration file) and an `__iter__`
 method that is called to return a new event.
 
-Each workload must expose the 'contents' attribute which is an iterable of
-all content identifiers. This is need for content placement
+Each call to the `__iter__` method must return a 2-tuple in which the first
+element is the timestamp at which the event occurs and the second is a
+dictionary, describing the event, which must contain at least the three
+following attributes:
+ * receiver: The name of the node issuing the request 
+ * content: The name of the content for which the request is issued
+ * log: A boolean value indicating whether this request should be logged or not
+   for measurement purposes.
+
+Each workload must expose the `contents` attribute which is an iterable of
+all content identifiers. This is needed for content placement.
 """
 import random
 import csv
@@ -55,14 +64,14 @@ class StationaryWorkload(object):
         The number of content object
     alpha : float
         The Zipf alpha parameter
-    beta : float
+    beta : float, optional
         Parameter indicating
-    rate : float
+    rate : float, optional
         The mean rate of requests per second
-    n_warmup : int
+    n_warmup : int, optional
         The number of warmup requests (i.e. requests executed to fill cache but
         not logged)
-    n_measured : int
+    n_measured : int, optional
         The number of logged requests after the warmup
     
     Returns
@@ -72,7 +81,7 @@ class StationaryWorkload(object):
         the timestamp at which the event occurs and the second element is a
         dictionary of event attributes.
     """
-    def __init__(self, topology, n_contents, alpha, beta=0, rate=12.0,
+    def __init__(self, topology, n_contents, alpha, beta=0, rate=1.0,
                     n_warmup=10**5, n_measured=4*10**5, seed=None, **kwargs):
         if alpha < 0:
             raise ValueError('alpha must be positive')
@@ -135,6 +144,8 @@ class GlobetraffWorkload(object):
         The GlobeTraff content file
     request_file : str
         The GlobeTraff request file
+    beta : float, optional
+        Spatial skewness of requests rates
         
     Returns
     -------
@@ -216,9 +227,9 @@ class TraceDrivenWorkload(object):
         not logged)
     n_measured : int
         The number of logged requests after the warmup
-    rate : float
+    rate : float, optional
         The network-wide mean rate of requests per second
-    beta : float
+    beta : float, optional
         Spatial skewness of requests rates
         
     Returns
@@ -228,13 +239,14 @@ class TraceDrivenWorkload(object):
         the timestamp at which the event occurs and the second element is a
         dictionary of event attributes.
     """
+    
     def __init__(self, topology, reqs_file, contents_file, n_contents,
-                 n_warmup, n_measured, rate=12.0, beta=0, **kwargs):
+                 n_warmup, n_measured, rate=1.0, beta=0, **kwargs):
         """Constructor"""
         if beta < 0:
             raise ValueError('beta must be positive')
-        
-        self.buffering = 64*1024*1024 # Set high buffering to avoid one-line reads
+        # Set high buffering to avoid one-line reads
+        self.buffering = 64*1024*1024
         self.n_contents = n_contents
         self.n_warmup = n_warmup
         self.n_measured = n_measured

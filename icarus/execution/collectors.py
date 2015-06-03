@@ -1,4 +1,13 @@
-"""This module contains performance metrics loggers
+"""Performance metrics loggers
+
+This module contains all data collectors that record events while simulations
+are being executed and compute performance metrics.
+
+Currently implemented data collectors allow users to measure cache hit ratio,
+latency, path stretch and link load.
+
+To create a new data collector, it is sufficient to create a new class
+inheriting from the `DataCollector` class and override all required methods.
 """
 from __future__ import division
 import collections

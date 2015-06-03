@@ -1,8 +1,7 @@
-"""Contains the code that orchestrates the execution of all experiments.
+"""Orchestrate the execution of all experiments.
 
-The orchestrator is responsible for designing experiments with all combinations
-of parameters specified in the user-provided settings, schedule experiment
-execution on various
+The orchestrator is responsible for scheduling experiments specified in the
+user-provided settings.
 """
 from __future__ import division
 import time

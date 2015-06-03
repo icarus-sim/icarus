@@ -45,7 +45,7 @@ class Tree(collections.defaultdict):
         if data is None:
             data = {}
         elif not isinstance(data, Tree):
-            # If data is not a Tree try to castto dict and iteratively recurse
+            # If data is not a Tree try to cast to dict and iteratively recurse
             # it to convert each node to a tree
             data = dict(data)
             for k in data:
@@ -73,6 +73,11 @@ class Tree(collections.defaultdict):
         super(Tree, self).__setitem__(k, v)
     
     def update(self, e):
+        """Update tree from e, similarly to dict.update
+        
+        Parameters
+        ----------
+        """
         if not isinstance(e, Tree):
             e = Tree(e)
         super(Tree, self).update(e)
@@ -144,6 +149,14 @@ class Tree(collections.defaultdict):
         return str(self)
     
     def __str__(self, dictonly=False):
+        """Return a string representation of the tree
+        
+        Parameters
+        ----------
+        dictonly : bool, optional
+            If True, just return a representation of a corresponding dictionary
+        
+        """
         s = "{" if dictonly else "Tree({"
         for k, v in self.items():
             s += "%s: " % str(k)
@@ -182,6 +195,7 @@ class Tree(collections.defaultdict):
     def empty(self):
         """Return True if the tree is empty, False otherwise"""
         return len(self) == 0
+
 
 class Settings(object):
     """Object storing all settings"""
@@ -403,6 +417,7 @@ class AnyValue(object):
             Always False
         """
         return False
+
 
 class SequenceNumber(object):
     """This class models an increasing sequence number.

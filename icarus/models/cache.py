@@ -607,7 +607,6 @@ class Cache(object):
         raise NotImplementedError('This method is not implemented')
 
 
-
 @register_cache_policy('NULL')
 class NullCache(Cache):
     """Implementation of a null cache.
@@ -1175,10 +1174,14 @@ class FifoCache(Cache):
 class RandEvictionCache(Cache):
     """Random eviction cache implementation.
     
-    This class implements a cache whereby the item to evict in case of a full
-    cache is randomly selected. It generally yields poor performance in terms
-    of cache hits but is sometimes used as baseline and for this reason it has
-    been implemented here.
+    This class implements a cache replacement policies which randomly select
+    an item to evict when the cache is full. It generally yields poor
+    performance in terms of cache hits, especially with non-stationary
+    workloads but is sometimes used as baseline and for this reason it has been
+    implemented here.
+    
+    In case of stationary IRM workloads, the RAND eviction policy provably
+    achieves the same cache hit ratio of the FIFO replacement policy. 
     """
     
     @inheritdoc(Cache)
@@ -1338,7 +1341,6 @@ def keyval_cache(cache):
             val = cache._val.pop(evicted)
             return evicted, val
         
-    
     def get(k):
         """Retrieve an item from the cache.
         
