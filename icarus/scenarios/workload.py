@@ -140,10 +140,10 @@ class GlobetraffWorkload(object):
     ----------
     topology : fnss.Topology
         The topology to which the workload refers
-    content_file : str
-        The GlobeTraff content file
-    request_file : str
+    reqs_file : str
         The GlobeTraff request file
+    contents_file : str
+        The GlobeTraff content file
     beta : float, optional
         Spatial skewness of requests rates
         
@@ -155,20 +155,20 @@ class GlobetraffWorkload(object):
         dictionary of event attributes.
     """
     
-    def __init__(self, topology, content_file, request_file, beta=0, **kwargs):
+    def __init__(self, topology, reqs_file, contents_file, beta=0, **kwargs):
         """Constructor"""
         if beta < 0:
             raise ValueError('beta must be positive')
         self.receivers = [v for v in topology.nodes_iter() 
                      if topology.node[v]['stack'][0] == 'receiver']
         self.n_contents = 0
-        with open(content_file, 'r') as f:
+        with open(contents_file, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for content, popularity, size, app_type in reader:
                 self.n_contents = max(self.n_contents, content)
         self.n_contents += 1
         self.contents = range(self.n_contents)
-        self.request_file = request_file
+        self.request_file = reqs_file
         self.beta = beta
         if beta != 0:
             degree = nx.degree(self.topology)
