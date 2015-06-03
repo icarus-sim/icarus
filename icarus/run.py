@@ -94,7 +94,7 @@ def run(config_file, output, config_override):
     settings = Settings()
     settings.read_from(config_file)
     if config_override:
-        for k, v in config_override.iteritems():
+        for k, v in config_override.items():
             try:
                 v = eval(v)
             except NameError:

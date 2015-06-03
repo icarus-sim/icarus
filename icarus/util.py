@@ -58,7 +58,7 @@ class Tree(collections.defaultdict):
 
     def __iter__(self, root=[]):
         it = collections.deque()
-        for k_child, v_child in self.iteritems():
+        for k_child, v_child in self.items():
             base = copy.copy(root)
             base.append(k_child)
             if isinstance(v_child, Tree):
@@ -641,9 +641,9 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
         Dictionary of betweenness centralities keyed by node
     """
     if origins is None:
-        origins = [v for v, (stack, _) in topology.stacks().iteritems() if stack == 'receiver']
+        origins = [v for v, (stack, _) in topology.stacks().items() if stack == 'receiver']
     if destinations is None:
-        destinations = [v for v, (stack, _) in topology.stacks().iteritems() if stack == 'source']
+        destinations = [v for v, (stack, _) in topology.stacks().items() if stack == 'source']
     betweenness = collections.defaultdict(int)
     path = {v: nx.single_source_shortest_path(topology, v) for v in origins}
     for u in path:

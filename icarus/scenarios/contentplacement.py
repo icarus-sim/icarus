@@ -23,7 +23,7 @@ def apply_content_placement(placement, topology):
     topology : Topology
         The topology
     """
-    for v, contents in placement.iteritems():
+    for v, contents in placement.items():
         topology.node[v]['stack'][1]['contents'] = contents
 
 def get_sources(topology):
@@ -88,7 +88,7 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     """
     random.seed(seed)
     norm_factor = float(sum(source_weights.values()))
-    source_pdf = dict((k, v/norm_factor) for k, v in source_weights.iteritems())
+    source_pdf = dict((k, v/norm_factor) for k, v in source_weights.items())
     content_placement = collections.defaultdict(set)
     for c in contents:
         content_placement[random_from_pdf(source_pdf)].add(c)

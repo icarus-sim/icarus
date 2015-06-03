@@ -203,7 +203,7 @@ def cdf(data):
     if len(data) < 1:
         raise TypeError("data must have at least one element")
     freq_dict = collections.Counter(data) 
-    sorted_unique_data = np.sort(freq_dict.keys())
+    sorted_unique_data = np.sort(list(freq_dict.keys()))
     freqs = np.zeros(len(sorted_unique_data))
     for i in range(len(freqs)):
         freqs[i] = freq_dict[sorted_unique_data[i]]
