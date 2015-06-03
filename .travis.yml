@@ -1,39 +1,41 @@
+# After changing this file, check it on:
+#   http://lint.travis-ci.org/
 language: python
 
 # Python versions to be tested
 python:
   - "2.7"
-  # - "3.2"
-  # - "3.3"
+  - "3.3"
+  - "3.4"
 
 env:
   global:
-    - PIP_WHEEL_INSTALL="pip install --quiet --use-wheel --no-index --find-links=http://sunpy.cadair.com/wheelhouse/"
-    - PIP_INSTALL="pip install --quiet --upgrade"
+    - PIP_INSTALL="pip install --upgrade"
 
 before_install:
-  - $PIP_INSTALL setuptools
-  - $PIP_INSTALL pip
-  - $PIP_INSTALL wheel
-
-
-install:
   # For Ubuntu 12.04 VMs
-  # Do not install Scipy via apt-get because Ubuntu 12.04 version (0.9.0) is too old (required 0.12.0)
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
-  - $PIP_WHEEL_INSTALL numpy scipy matplotlib
-
-  - $PIP_INSTALL networkx
-  - $PIP_INSTALL fnss
-
+  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran clang ant doxygen
+  # - sudo $PIP_INSTALL setuptools
+  # - sudo $PIP_INSTALL pip
+  # Install Miniconda: it's the simplest way to get up-to-date versions of NumPy, SciPy and Matplotlib
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda update --yes conda
+  # The next couple lines fix a crash with multiprocessing on Travis
+  - sudo rm -rf /dev/shm
+  - sudo ln -s /run/shm /dev/shm
   # For Ubuntu 14.04 VMs (when it'll be avaialable)
   # - sudo apt-get -qq install python-numpy python-scipy python-matplotlib python-networkx
   # - $PIP_INSTALL fnss
 
-before_script:
-  - $PIP_WHEEL_INSTALL nose
+install:
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
+  - $PIP_INSTALL pip
+  - $PIP_INSTALL networkx
+  - $PIP_INSTALL fnss
 
-# command to run tests
 script:
   - "nosetests"
