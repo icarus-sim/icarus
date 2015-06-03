@@ -218,8 +218,9 @@ class TestTree(unittest.TestCase):
         self.assertIsInstance(tree_2, Tree)
     
     def test_str(self):
-        tree = Tree({1: {2: 1}, 2: 3, 4: {2: 3}})
-        self.assertEqual(str(tree), "Tree({1: {2: 1}, 2: 3, 4: {2: 3}})")
+        tree = Tree({'a': {'b': 'a'}, 'b': 'c', 'd': {'b': 'c'}})
+        self.assertEqual(eval(str(tree)), tree)
+    
     
     def test_match(self):
         t = {'a': {'b': 1}, 'c': 2, 'd': {'e': 3}}

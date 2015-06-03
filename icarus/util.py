@@ -159,8 +159,18 @@ class Tree(collections.defaultdict):
         """
         s = "{" if dictonly else "Tree({"
         for k, v in self.items():
-            s += "%s: " % str(k)
-            s += "%s, " % (v.__str__(True) if isinstance(v, Tree) else str(v))
+            if isinstance(k, str):
+                k = "'%s'" % k
+            else:
+                k = str(k)
+            
+            if isinstance(v, Tree):
+                v = v.__str__(True)
+            elif isinstance(v, str):
+                v = "'%s'" % v
+            else:
+                v = str(v)
+            s += "%s: %s, " % (k, v)
         s = s.rstrip(", ")
         s += "}" if dictonly else "})"
         return s
