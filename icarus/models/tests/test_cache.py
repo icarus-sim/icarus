@@ -219,6 +219,36 @@ class TestLinkedSet(unittest.TestCase):
         self.assertRaises(ValueError, cache.LinkedSet, iterable=[1, 1, 2])
         self.assertRaises(ValueError, cache.LinkedSet, iterable=[1, None, None])
         self.assertIsNotNone(cache.LinkedSet(iterable=[1, 0, None]))
+
+
+class TestCache(unittest.TestCase):
+
+    def test_do(self):
+        c = cache.FifoCache(2)
+        self.assertEquals(len(c), 0)
+        c.do('PUT', 1)
+        self.assertEquals(len(c), 1)
+        c.do('UPDATE', 1)
+        self.assertEquals(len(c), 1)
+        self.assertTrue(c.do('GET', 1))
+        c.do('PUT', 2)
+        self.assertTrue(c.do('GET', 2))
+        self.assertEquals(len(c), 2)
+        self.assertEquals(c.dump(), [2, 1])
+        c.do('PUT', 3)
+        self.assertEquals(len(c), 2)
+        self.assertEquals(c.dump(), [3, 2])
+        self.assertTrue(c.do('GET', 2))
+        self.assertTrue(c.do('GET', 3))
+        self.assertFalse(c.do('GET', 1))
+        c.do('DELETE', 3)
+        self.assertFalse(c.do('GET', 3))
+        self.assertEquals(c.dump(), [2])
+        c.do('DELETE', 2)
+        self.assertFalse(c.do('GET', 2))
+        self.assertEquals(c.dump(), [])
+    
+
 class TestLruCache(unittest.TestCase):
 
     def test_lru(self):

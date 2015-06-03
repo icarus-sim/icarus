@@ -30,19 +30,18 @@ __all__ = [
 
 
 class LinkedSet(object):
-    """A doubly-linked set, i.e. a set whose entries are ordered and stored in
-    a doubly-linked list.
+    """A doubly-linked set, i.e., a set whose entries are ordered and stored
+    as a doubly-linked list.
     
     This data structure is designed to efficiently implement a number of cache
-    eviction policies such as LRU and derivatives like segmented LRU.
+    replacement policies such as LRU and derivatives such as Segmented LRU.
         
     It provides O(1) time complexity for the following operations: searching,
     remove from any position, move to top, move to bottom, insert after or
     before a given item.
     """
     class _Node(object):
-        """Class implementing a node of the linked list
-        """
+        """Class implementing a node of the linked list"""
         
         def __init__(self, val, up=None, down=None):
             """Constructor
@@ -494,7 +493,7 @@ class Cache(object):
         """
         raise NotImplementedError('This method is not implemented')
 
-    def do(self, op, k):
+    def do(self, op, k, *args, **kwargs):
         """Utility method that performs a specified operation on a given item.
         
         This method allows to perform one of the different operations on an
@@ -503,7 +502,6 @@ class Cache(object):
          * PUT: Insert an item
          * UPDATE: Update the value associated to an item
          * DELETE: Remove an item
-        
         
         Parameters
         ----------
@@ -519,11 +517,11 @@ class Cache(object):
             otherwise.
         """
         res =  {
-            'GET':    self.get(k),
-            'PUT':    self.put(k),
-            'UPDATE': self.put(k),
-            'DELETE': self.remove(k)
-                }[op]
+            'GET':    self.get,
+            'PUT':    self.put,
+            'UPDATE': self.put,
+            'DELETE': self.remove
+                }[op](k, *args, **kwargs)
         return res if res is not None else False
 
     @abc.abstractmethod
