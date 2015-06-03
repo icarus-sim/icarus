@@ -23,13 +23,13 @@ from icarus.registry import register_topology_factory
 
 __all__ = [
         'IcnTopology',
-        'topology_binary_tree',
+        'topology_tree',
         'topology_path',
         'topology_geant',
         'topology_tiscali',
         'topology_wide',
         'topology_garr',
-        'topology_generic_rocketfuel_latency'
+        'topology_rocketfuel_latency'
            ]
 
 
@@ -93,22 +93,27 @@ class IcnTopology(fnss.Topology):
                    if 'stack' in self.node[v]
                    and self.node[v]['stack'][0] == 'receiver')
 
-@register_topology_factory('BINARY_TREE')
-def topology_binary_tree(**kwargs):
-    """Returns a tree topology
+
+@register_topology_factory('TREE')
+def topology_tree(k, h, delay=1, **kwargs):
+    """Returns a tree topology, with a source at the root, receivers at the 
+    leafs and caches at all intermediate nodes.
     
     Parameters
     ----------
-    seed : int, optional
-        The seed used for random number generation
+    h : height 
+        The height of the tree
+    k : branching factor
+        The branching factor of the tree
+    delay : float
+        The link delay in milliseconds
         
     Returns
     -------
-    topology : fnss.Topology
+    topology : IcnTopology
         The topology object
     """
-    h = 5       # depth of the tree
-    topology = fnss.k_ary_tree_topology(2, h)
+    topology = fnss.k_ary_tree_topology(k, h)
     receivers = [v for v in topology.nodes_iter()
                  if topology.node[v]['depth'] == h]
     sources = [v for v in topology.nodes_iter()
@@ -125,32 +130,30 @@ def topology_binary_tree(**kwargs):
         fnss.add_stack(topology, v, 'router')
     # set weights and delays on all links
     fnss.set_weights_constant(topology, 1.0)
-    fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
-    # label links as internal or external
+    fnss.set_delays_constant(topology, delay, 'ms')
+    # label links as internal
     for u, v in topology.edges_iter():
-        if u in sources or v in sources:
-            topology.edge[u][v]['type'] = 'external'
-            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms', [(u, v)])
-        else:
-            topology.edge[u][v]['type'] = 'internal'
+        topology.edge[u][v]['type'] = 'internal'
     return IcnTopology(topology)
 
 
 @register_topology_factory('PATH')
-def topology_path(n=3, **kwargs):
-    """Return a scenario based on path topology
+def topology_path(n, delay=1, **kwargs):
+    """Return a path topology with a receiver on node `0` and a source at node
+    'n-1'
     
     Parameters
     ----------
-    seed : int, optional
-        The seed used for random number generation
+    n : int (>=3)
+        The number of nodes
+    delay : float
+        The link delay in milliseconds
         
     Returns
     -------
-    topology : fnss.Topology
+    topology : IcnTopology
         The topology object
     """
-    # 240 nodes in the main component
     topology = fnss.line_topology(n)
     receivers = [0]    
     routers = range(1, n-1)
@@ -164,14 +167,10 @@ def topology_path(n=3, **kwargs):
         fnss.add_stack(topology, v, 'router')
     # set weights and delays on all links
     fnss.set_weights_constant(topology, 1.0)
-    fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
+    fnss.set_delays_constant(topology, delay, 'ms')
     # label links as internal or external
     for u, v in topology.edges_iter():
-        if u in sources or v in sources:
-            topology.edge[u][v]['type'] = 'external'
-            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms', [(u, v)])
-        else:
-            topology.edge[u][v]['type'] = 'internal'
+        topology.edge[u][v]['type'] = 'internal'
     return IcnTopology(topology)
 
 
@@ -611,7 +610,7 @@ def topology_tiscali2(**kwargs):
 
 
 @register_topology_factory('ROCKET_FUEL')
-def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
+def topology_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
     """Parse a generic RocketFuel topology with annotated latencies
     
     To each node of the parsed topology it is attached an artificial receiver
@@ -631,16 +630,27 @@ def topology_generic_rocketfuel_latency(asn, source_ratio, ext_delay, **kwargs):
     f_topo = path.join(TOPOLOGY_RESOURCES_DIR, 'rocketfuel-latency', str(asn), 'latencies.intra')
     topology = fnss.parse_rocketfuel_isp_latency(f_topo).to_undirected()
     topology = list(nx.connected_component_subgraphs(topology))[0]
+    # First mark all current links as inernal
+    for u,v in topology.edges_iter():
+        topology.edge[u][v]['type'] = 'internal'
     # Note: I don't need to filter out nodes with degree 1 cause they all have
     # a greater degree value but we compute degree to decide where to attach sources
     routers = topology.nodes()
-    deg = nx.degree(topology)
-    routers = sorted(routers, key=lambda k: deg[k], reverse=True)
     # Source attachment
     n_sources = int(source_ratio*len(routers))
     sources = ['src_%d' % i for i in range(n_sources)]
+    deg = nx.degree(topology)
+    
+    # Attach sources based on their degree purely, but they may end up quite clustered 
+    routers = sorted(routers, key=lambda k: deg[k], reverse=True)
     for i in range(len(sources)):
-        topology.add_edge(sources[i], source_attachments[i], delay=ext_delay, type='external')
+        topology.add_edge(sources[i], routers[i], delay=ext_delay, type='external')
+    
+    # Here let's try attach them via cluster
+#     clusters = compute_clusters(topology, n_sources, distance=None, n_iter=1000)
+#     source_attachments = [max(cluster, key=lambda k: deg[k]) for cluster in clusters]
+#     for i in range(len(sources)):
+#         topology.add_edge(sources[i], source_attachments[i], delay=ext_delay, type='external')
     
     # attach artificial receiver nodes to ICR candidates
     receivers = ['rec_%d' % i for i in range(len(routers))]
