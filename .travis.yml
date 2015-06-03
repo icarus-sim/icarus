@@ -16,8 +16,7 @@ before_install:
   # For Ubuntu 12.04 VMs
   - sudo apt-get update -qq
   - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran clang ant doxygen
-  # - sudo $PIP_INSTALL setuptools
-  # - sudo $PIP_INSTALL pip
+  - sudo $PIP_INSTALL pip
   # Install Miniconda: it's the simplest way to get up-to-date versions of NumPy, SciPy and Matplotlib
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -32,8 +31,7 @@ before_install:
   # - $PIP_INSTALL fnss
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
-  - $PIP_INSTALL pip
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose dateutil pandas statsmodels
   - $PIP_INSTALL networkx
   - $PIP_INSTALL fnss
 
