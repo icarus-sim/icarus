@@ -81,7 +81,7 @@ class TestCheApproximation(unittest.TestCase):
             self.assertGreaterEqual(t, self.cache_size)
 
     def test_che_characteristic_time_simplified(self):
-        t = cacheperf.che_characteristic_time(self.pdf, self.cache_size)
+        t = cacheperf.che_characteristic_time_simplified(self.pdf, self.cache_size)
         self.assertGreaterEqual(t, self.cache_size)
         
     def test_che_cache_hit_ratio(self):
