@@ -142,7 +142,7 @@ class ResultSet(object):
         ----------
         condition : dict
             Dictionary listing all parameters and values to be matched in the
-            results set. Each parameter, i.e. each key of the dictionary must
+            results set. Each parameter, i.e., each key of the dictionary must
             be an iterable object containing the path in the parameters tree
             to the required parameter 
         metrics : dict, optional
