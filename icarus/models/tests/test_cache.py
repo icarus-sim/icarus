@@ -1,5 +1,6 @@
 from __future__ import division
 import sys
+from icarus.models.cache import insert_after_k_hits_cache
 if sys.version_info[:2] >= (2, 7):
     import unittest
 else:
@@ -559,7 +560,94 @@ class TestLfuCache(unittest.TestCase):
         self.assertEqual(len(c), 3)
         self.assertEqual(c.dump(), [4, 3, 1])
 
-        
+
+class TestInsertAfterKHits(unittest.TestCase):
+    
+    def test_put_get_no_memory(self):
+        c = cache.LruCache(2)
+        c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertTrue(c.get(1))
+
+    def test_put_get_mixed_no_memory(self):
+        c = cache.LruCache(2)
+        c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertFalse(c.get(2))
+        c.put(2)
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertFalse(c.get(2))
+        c.put(2)
+        self.assertFalse(c.get(2))
+        c.put(2)
+        self.assertTrue(c.get(2))
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertTrue(c.get(1))
+        self.assertTrue(c.get(2))
+
+    def test_put_get_mixed_memory(self):
+        c = cache.LruCache(2)
+        c = cache.insert_after_k_hits_cache(c, k=2, memory=2)
+        self.assertEqual(0, len(c._metacache_queue))
+        self.assertEqual(0, len(c._metacache_hits))
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertEqual(1, len(c._metacache_queue))
+        self.assertEqual(1, len(c._metacache_hits))
+        self.assertFalse(c.get(2))
+        c.put(2)
+        self.assertEqual(2, len(c._metacache_queue))
+        self.assertEqual(2, len(c._metacache_hits))
+        self.assertFalse(c.get(3))
+        c.put(3)
+        self.assertEqual(2, len(c._metacache_queue))
+        self.assertEqual(2, len(c._metacache_hits))
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertEqual(2, len(c._metacache_queue))
+        self.assertEqual(2, len(c._metacache_hits))
+        # This fails because memory wiped out record for 1
+        self.assertFalse(c.get(1))
+        self.assertFalse(c.get(3))
+        c.put(3)
+        self.assertEqual(1, len(c._metacache_queue))
+        self.assertEqual(1, len(c._metacache_hits))
+        self.assertTrue(c.get(3))
+        self.assertFalse(c.get(1))
+        c.put(1)
+        self.assertTrue(c.get(1))
+        self.assertEqual(0, len(c._metacache_queue))
+        self.assertEqual(0, len(c._metacache_hits))
+
+    def test_deepcopy(self):
+        c = cache.LruCache(10)
+        rc = cache.insert_after_k_hits_cache(c, k=3)
+        rc.put(1)
+        self.assertFalse(c.has(1))
+        c.put(3)
+        self.assertFalse(rc.has(3))
+
+    def test_naming(self):
+        c = cache.insert_after_k_hits_cache(cache.FifoCache(3), k=3)
+        self.assertEqual(c.get.__name__, 'get')
+        self.assertEqual(c.put.__name__, 'put')
+        self.assertEqual(c.dump.__name__, 'dump')
+        self.assertEqual(c.clear.__name__, 'clear')
+        self.assertGreater(len(c.get.__doc__), 0)
+        self.assertGreater(len(c.put.__doc__), 0)
+        self.assertGreater(len(c.dump.__doc__), 0)
+        self.assertGreater(len(c.clear.__doc__), 0)
+
+
+
 class TestRandInsert(unittest.TestCase):
     
     def test_rand_insert(self):

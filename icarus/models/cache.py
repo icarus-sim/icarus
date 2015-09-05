@@ -3,7 +3,7 @@
 This module contains the implementations of all the cache replacement policies
 provided by Icarus.
 """
-from collections import deque
+from collections import deque, defaultdict
 import random
 import abc
 import copy
@@ -23,6 +23,7 @@ __all__ = [
         'LfuCache',
         'FifoCache',
         'RandEvictionCache',
+        'insert_after_k_hits_cache',
         'rand_insert_cache',
         'keyval_cache',
         'ttl_cache',
@@ -838,6 +839,7 @@ class LruCache(Cache):
         self._cache.clear()
 
 
+
 @register_cache_policy('SLRU')
 class SegmentedLruCache(Cache):
     """Segmented Least Recently Used (LRU) cache eviction policy.
@@ -1239,6 +1241,71 @@ class RandEvictionCache(Cache):
         self._cache.clear()
 
 
+def insert_after_k_hits_cache(cache, k=2, memory=None):
+    """Return a cache inserting items only after k requests.
+    
+    This methods allows to implement a variant of k-LRU and k-RANDOM policies,
+    which insert items in the main cache only at the k-th request. However,
+    proper k-LRU and k-RANDOM policies, keep a separate queue of fixed size
+    for items being hit the same number of times. For example, let's say k=3,
+    then there is a fixed size queue storing all items being hit 1 time and 
+    another queue for items being hit 2 times. In this implementation there is
+    a unique FIFO queue keeping all items being hit < k times. 
+    The size of this queue is equal to the value of memory parameter. If 
+    memory is None, then this queue is infinite.
+    
+    In the most common case of k=2, this difference of implementation does 
+    not matter.
+    
+    Parameters
+    ----------
+    cache : Cache
+        The instance of a cache to be applied random insertion
+    k : int, optional
+        The number of hits after which the item is inserted
+    memory : int, optional
+        The size of the metacache just storing the reference to the item and
+        the number of hits, without storing the item itself.
+        
+    Returns
+    -------
+    cache : Cache
+        The modified cache instance      
+    """
+    if k < 1:
+        raise ValueError("k must be positive")
+    if k == 1:
+        # This is a corner case, as I always insert at first attempt.
+        return cache
+    hits = {}
+    if memory is not None:
+        queue = LinkedSet()
+    c_put = cache.put
+    def put(item):
+        if item in hits:
+            hits[item] += 1
+            if hits[item] < k:
+                return None
+            else:
+                hits.pop(item)
+                if memory is not None:
+                    queue.remove(item)
+                return c_put(item)
+        else:
+            hits[item] = 1
+            if memory is not None:
+                queue.append_top(item)
+                if len(queue) > memory:
+                    evicted = queue.pop_bottom()
+                    hits.pop(evicted)
+            return None
+    cache.put = put
+    cache.put.__doc__ = c_put.__doc__
+    cache._metacache_hits = hits
+    if memory is not None:
+        cache._metacache_queue = queue
+    return cache     
+    
 
 def rand_insert_cache(cache, p, seed=None):
     """Return a random insertion cache
