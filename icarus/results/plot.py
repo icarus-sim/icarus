@@ -6,6 +6,7 @@ import os
 import collections
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 from icarus.util import Tree, step_cdf
@@ -115,6 +116,10 @@ def plot_lines(resultset, desc, filename, plotdir):
          The scale of x axis. Default value is 'linear'
      * yscale : ('linear' | 'log'), optional
          The scale of y axis. Default value is 'linear'
+     * xticks : list, optional
+         Values to display as x-axis ticks.
+     * yticks : list, optional
+         Values to display as y-axis ticks.
      * line_style : dict, optional
          Dictionary mapping each value of yvals with a line style
      * plot_args : dict, optional
@@ -140,6 +145,7 @@ def plot_lines(resultset, desc, filename, plotdir):
         selected by Matplotlib
     """
     fig = plt.figure()
+    _, ax1 = plt.subplots()
     if 'title' in desc:
         plt.title(desc['title'])
     if 'xlabel' in desc:
@@ -153,6 +159,14 @@ def plot_lines(resultset, desc, filename, plotdir):
     if 'filter' not in desc or desc['filter'] is None:
         desc['filter'] = {}
     xvals = sorted(desc['xvals'])
+    if 'xticks' in desc:
+        ax1.set_xticks(desc['xticks'])
+        ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax1.set_xticklabels([str(xtick) for xtick in desc['xticks']])
+    if 'yticks' in desc:
+        ax1.set_yticks(desc['yticks'])
+        ax1.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax1.set_yticklabels([str(ytick) for ytick in desc['yticks']])
     ymetrics = desc['ymetrics']
     ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
     ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
@@ -176,10 +190,11 @@ def plot_lines(resultset, desc, filename, plotdir):
             if ycondnames is not None:
                 condition.setval(ycondnames[i], ycondvals[i])
             data = [v.getval(ymetrics[i])
-                    for _, v in resultset.filter(condition)]
+                    for _, v in resultset.filter(condition)
+                    if v.getval(ymetrics[i]) is not None]
             confidence = desc['confidence'] if 'confidence' in desc else 0.95 
             means[j], err[j] = means_confidence_interval(data, confidence)
-        yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
+        yerr = None if 'errorbar' in desc and not desc['errorbar'] or all(err == 0) else err
         fmt = desc['line_style'][yvals[i]] if 'line_style' in desc \
               and yvals[i] in desc['line_style'] else '-'
         # This check is to prevent crashing when trying to plot arrays of nan
@@ -386,8 +401,9 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
                 condition.setval(desc['xparam'], desc['xvals'][i])
                 if ycondnames is not None:
                     condition.setval(ycondnames[l], ycondvals[l])
-                data = [v.getval(ymetrics[l])
-                            for _, v in resultset.filter(condition)]
+                data = [v.getval(ymetrics[i])
+                        for _, v in resultset.filter(condition)
+                        if v.getval(ymetrics[i]) is not None]
                 confidence = desc['confidence'] if 'confidence' in desc else 0.95 
                 meanval, err = means_confidence_interval(data, confidence)
                 yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
@@ -549,7 +565,9 @@ def plot_cdf(resultset, desc, filename, plotdir):
         condition = Tree(desc['filter'])
         if ycondnames is not None:
             condition.setval(ycondnames[i], ycondvals[i])      
-        data = [v.getval(ymetrics[i]) for _, v in resultset.filter(condition)]
+        data = [v.getval(ymetrics[i])
+                for _, v in resultset.filter(condition)
+                if v.getval(ymetrics[i]) is not None]
         # If there are more than 1 CDFs in the resultset, take the first one
         if data:
             x_cdf, y_cdf = data[0]
