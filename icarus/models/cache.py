@@ -1239,6 +1239,7 @@ class RandEvictionCache(Cache):
         self._cache.clear()
 
 
+
 def rand_insert_cache(cache, p, seed=None):
     """Return a random insertion cache
     

@@ -558,7 +558,7 @@ class TestLfuCache(unittest.TestCase):
         c.remove(5)
         self.assertEqual(len(c), 3)
         self.assertEqual(c.dump(), [4, 3, 1])
-        
+
         
 class TestRandInsert(unittest.TestCase):
     
