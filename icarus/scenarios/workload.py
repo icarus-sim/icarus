@@ -28,7 +28,8 @@ from icarus.registry import register_workload
 __all__ = [
         'StationaryWorkload',
         'GlobetraffWorkload',
-        'TraceDrivenWorkload'
+        'TraceDrivenWorkload',
+        'YCSBWorkload'
            ]
 
 
@@ -189,6 +190,7 @@ class GlobetraffWorkload(object):
                 yield (timestamp, event)
         raise StopIteration()
 
+
 @register_workload('TRACE_DRIVEN')
 class TraceDrivenWorkload(object):
     """Parse requests from a generic request trace.
@@ -283,3 +285,76 @@ class TraceDrivenWorkload(object):
                 if(req_counter >= self.n_warmup + self.n_measured):
                     raise StopIteration()
             raise ValueError("Trace did not contain enough requests")
+
+
+@register_workload('YCSB')
+class YCSBWorkload(object):
+    """Yahoo! Cloud Serving Benchmark (YCSB)
+    
+    The YCSB is a set of reference workloads used to benchmark databases and,
+    more generally any storage/caching systems. It comprises five workloads:
+    
+    +------------------+------------------------+------------------+
+    | Workload         | Operations             | Record selection |
+    +------------------+------------------------+------------------+
+    | A - Update heavy | Read: 50%, Update: 50% | Zipfian          |
+    | B - Read heavy   | Read: 95%, Update: 5%  | Zipfian          |
+    | C - Read only    | Read: 100%             | Zipfian          |
+    | D - Read latest  | Read: 95%, Insert: 5%  | Latest           |
+    | E - Short ranges | Scan: 95%, Insert 5%   | Zipfian/Uniform  |
+    +------------------+------------------------+------------------+
+
+    Notes
+    -----
+    At the moment only workloads A, B and C are implemented, since they are the
+    most relevant for caching systems.
+    """
+    
+    def __init__(self, workload, n_contents, n_warmup, n_measured, alpha=0.99, seed=None, **kwargs):
+        """Constructor
+        
+        Parameters
+        ----------
+        workload : str
+            Workload identifier. Currently supported: "A", "B", "C"
+        n_contents : int
+            Number of content items
+        n_warmup : int, optional
+            The number of warmup requests (i.e. requests executed to fill cache but
+            not logged)
+        n_measured : int, optional
+            The number of logged requests after the warmup
+        alpha : float, optional
+            Parameter of Zipf distribution
+        seed : int, optional
+            The seed for the random generator
+        """
+        
+        if workload not in ("A", "B", "C", "D", "E"):
+            raise ValueError("Incorrect workload ID [A-B-C-D-E]")
+        elif workload in ("D", "E"):
+            raise NotImplementedError("Workloads D and E not yet implemented")
+        self.workload = workload
+        if seed is not None:
+            random.seed(seed)
+        self.zipf = TruncatedZipfDist(alpha, n_contents)
+        self.n_warmup = n_warmup
+        self.n_measured = n_measured
+
+    def __iter__(self):
+        """Return an iterator over the workload"""
+        req_counter = 0
+        while req_counter < self.n_warmup + self.n_measured:
+            rand = random.random()
+            op = {
+                  "A": "READ" if rand < 0.5 else "UPDATE",
+                  "B": "READ" if rand < 0.95 else "UPDATE",
+                  "C": "READ"
+                  }[self.workload]
+            item = int(self.zipf.rv())
+            log = (req_counter >= self.n_warmup)
+            event = {'op': op, 'item': item, 'log': log}
+            yield event
+            req_counter += 1
+        raise StopIteration()
+    
