@@ -63,7 +63,7 @@ class TestYCBS(unittest.TestCase):
 
     def test_c(self):
         n_items = 5
-        event = list(workload.YCSBWorkload("B", n_items, 1, 2))
+        event = list(workload.YCSBWorkload("C", n_items, 1, 2))
         self.assertEqual(len(event), 3)
         ev_1 = event[0]
         self.assertFalse(event[0]['log'])
