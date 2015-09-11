@@ -23,6 +23,7 @@ __all__ = [
        'optimal_cache_hit_ratio',
        'numeric_per_content_cache_hit_ratio',
        'numeric_cache_hit_ratio',
+       'numeric_cache_hit_ratio_2_layers',
        'trace_driven_cache_hit_ratio'
           ]
 
@@ -507,6 +508,65 @@ def numeric_cache_hit_ratio(pdf, cache, warmup=None, measure=None, seed=None):
         else:
             cache.put(content)
     return cache_hits/measure
+
+
+def numeric_cache_hit_ratio_2_layers(pdf, l1_cache, l2_cache,
+                                     warmup=None, measure=None, seed=None):
+    """Numerically compute the cache hit ratio of a two-layer cache under IRM
+    stationary demand with a given pdf.
+    
+    Differently from the numeric_cache_hit_ratio function, this function
+    allows users to compute the hits at layer 1, layer 2 and overall.
+    
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache : Cache
+        The cache object (i.e. the instance of a class subclassing
+        icarus.Cache)
+    warmup : int, optional
+        The number of warmup requests to generate. If not specified, it is set
+        to 10 times the content population
+    measure : int, optional
+        The number of measured requests to generate. If not specified, it is
+        set to 30 times the content population
+    seed : int, optional
+        The seed used to generate random numbers
+
+    Returns
+    -------
+    cache_hit_ratio : dict
+        Dictionary with keys "l1_hits", "l2_hits" and "total_hits" 
+    """
+    if warmup is None: warmup = 10*len(pdf)
+    if measure is None: measure = 30*len(pdf)
+    z = DiscreteDist(pdf, seed)
+    for _ in range(warmup):
+        content = z.rv()
+        if not l1_cache.get(content):
+            if not l2_cache.get(content):
+                l2_cache.put(content)
+            l1_cache.put(content)
+    l1_hits = 0
+    l1_misses = 0
+    l2_hits = 0
+    for _ in range(measure):
+        content = z.rv()
+        if l1_cache.get(content): 
+            l1_hits += 1
+        else:
+            l1_misses += 1
+            if l2_cache.get(content):
+                l2_hits += 1
+            else:
+                l2_cache.put(content)
+            l1_cache.put(content)
+    return {
+        'l1_hits': l1_hits/measure,
+        'l2_hits': l2_hits/measure,
+        'total_hits': (l1_hits+l2_hits)/measure
+           }
 
 
 def trace_driven_cache_hit_ratio(workload, cache, warmup_ratio=0.25):
