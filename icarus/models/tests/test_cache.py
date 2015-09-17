@@ -515,10 +515,10 @@ class TestRandCache(unittest.TestCase):
             self.assertTrue(c.has(v))
 
 
-class TestLfuCache(unittest.TestCase):
+class TestInCacheLfuCache(unittest.TestCase):
 
     def test_lfu(self):
-        c = cache.LfuCache(4)
+        c = cache.InCacheLfuCache(4)
         self.assertEquals(len(c), 0)
         c.put(1)
         self.assertEquals(len(c), 1)
@@ -544,22 +544,60 @@ class TestLfuCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
-        
-    def test_remove(self):
-        c = cache.FifoCache(4)
-        c.put(1)
-        c.put(2)
-        c.put(3)
-        c.remove(2)
-        self.assertEqual(len(c), 2)
-        self.assertEqual(c.dump(), [3, 1])
-        c.put(4)
-        c.put(5)
-        self.assertEqual(c.dump(), [5, 4, 3, 1])
-        c.remove(5)
-        self.assertEqual(len(c), 3)
-        self.assertEqual(c.dump(), [4, 3, 1])
 
+
+class TestPerfectLfuCache(unittest.TestCase):
+
+    def test_lfu(self):
+        c = cache.PerfectLfuCache(3)
+        self.assertEquals(len(c), 0)
+        c.put(1)
+        self.assertEquals(len(c), 1)
+        c.put(2)
+        self.assertEquals(len(c), 2)
+        c.put(3)
+        self.assertEquals(len(c), 3)
+        self.assertEquals(len(c.dump()), 3)
+        for v in (1, 2, 3):
+            self.assertTrue(c.has(v))
+        c.get(1)
+        c.get(1)
+        c.get(1)
+        c.get(1)
+        c.get(1)
+        c.get(2)
+        c.get(2)
+        c.get(2)
+        c.get(2)
+        c.get(3)
+        c.get(3)
+        c.get(3)
+        c.get(5) 
+        c.put(5)    # This does not removes 3
+        self.assertEquals(c.dump(), [1, 2, 3])
+        c.get(5)
+        c.get(5)
+        c.get(5)
+        c.get(5)
+        c.get(5)
+        # Now 5 has been requested frequently enough to be included in cache
+        # and replace 3
+        c.put(5)
+        self.assertEquals(c.dump(), [5, 1, 2])
+        # Now 5 has been requested 2 times, but 3 was requested 3 times. If I
+        # reinsert 3, 3 is kept and 5 discarded
+        c.get(3)
+        c.get(3)
+        c.get(3)
+        c.get(3)
+        c.get(3)
+        # Now 3 has been requested enough times to be inserted and evict 2
+        c.put(3)
+        self.assertEquals(c.dump(), [3, 5, 1])
+        c.clear()
+        self.assertEquals(len(c), 0)
+        self.assertEquals(c.dump(), [])
+        
 
 class TestInsertAfterKHits(unittest.TestCase):
     

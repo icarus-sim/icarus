@@ -20,7 +20,8 @@ __all__ = [
         'NullCache',
         'LruCache',
         'SegmentedLruCache',
-        'LfuCache',
+        'InCacheLfuCache',
+        'PerfectLfuCache',
         'FifoCache',
         'RandEvictionCache',
         'insert_after_k_hits_cache',
@@ -997,9 +998,9 @@ class SegmentedLruCache(Cache):
             s.clear()
 
 
-@register_cache_policy('LFU')
-class LfuCache(Cache):
-    """Least Frequently Used (LFU) cache implementation
+@register_cache_policy('IN_CACHE_LFU')
+class InCacheLfuCache(Cache):
+    """In-cache Least Frequently Used (LFU) cache implementation
     
     The LFU replacement policy keeps a counter associated each item. Such
     counters are increased when the associated item is requested. Upon
@@ -1012,8 +1013,8 @@ class LfuCache(Cache):
     counter of an item when it is evicted. This is different from a Perfect-LFU
     policy in which a counter is maintained also when the content is evicted.
     
-    In contrast to LRU, LFU has been shown to perform optimally under IRM
-    demands. However, its implementation is computationally expensive since it
+    In-cache LFU performs better than LRU under IRM demands.
+    However, its implementation is computationally expensive since it
     cannot be implemented in such a way that both search and replacement tasks
     can be executed in constant time. This makes it particularly unfit for
     large caches and line speed operations.
@@ -1060,7 +1061,7 @@ class LfuCache(Cache):
             self._cache[k] = (1, self.t)
             if len(self._cache) > self._maxlen:
                 evicted = min(self._cache, key=lambda x: self._cache[x])
-                del self._cache[evicted]
+                self._cache.pop(evicted)
                 return evicted
         return None
     
@@ -1076,6 +1077,98 @@ class LfuCache(Cache):
     def clear(self):
         self._cache.clear()
 
+
+
+@register_cache_policy('PERFECT_LFU')
+class PerfectLfuCache(Cache):
+    """Perfect Least Frequently Used (LFU) cache implementation
+    
+    The LFU replacement policy keeps a counter associated each item. Such
+    counters are increased when the associated item is requested. Upon
+    insertion of a new item, the cache evicts the one which was requested the
+    least times in the past, i.e. the one whose associated value has the
+    smallest value.
+    
+    This is an implementation of a Perfect-LFU, i.e. a cache that keeps
+    counters for every item, even for those not in the cache.
+    
+    In contrast to LRU, Perfect-LFU has been shown to perform optimally under
+    IRM demands. However, its implementation is computationally expensive since
+    it cannot be implemented in such a way that both search and replacement
+    tasks can be executed in constant time. This makes it particularly unfit
+    for large caches and line speed operations.
+    """
+    
+    @inheritdoc(Cache)
+    def __init__(self, maxlen, **kwargs):
+        # Dict storing counter for all contents, not only those in cache
+        self._counter = {}
+        # Set storing only items currently in cache
+        self._cache = set()
+        self.t = 0
+        self._maxlen = int(maxlen)
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+    
+    @property
+    @inheritdoc(Cache)
+    def maxlen(self):
+        return self._maxlen
+    
+    @inheritdoc(Cache)
+    def dump(self):
+        return sorted(self._cache, key=lambda x: self._counter[x], reverse=True) 
+
+    @inheritdoc(Cache)
+    def has(self, k):
+        return k in self._cache
+
+    @inheritdoc(Cache)
+    def get(self, k):
+        self.t += 1
+        if k in self._counter:
+            freq, t = self._counter[k]
+            self._counter[k] = freq + 1, t
+        else:
+            self._counter[k] = 1, self.t
+        if self.has(k):
+            return True
+        else:
+            return False
+
+    @inheritdoc(Cache)
+    def put(self, k):
+        if not self.has(k):
+            if k in self._counter:
+                freq, t = self._counter[k]
+                self._counter[k] = (freq + 1, t)
+            else:
+                # If I always call a get before a put, this line should never
+                # be executed
+                self._counter[k] = (1, self.t)
+            self._cache.add(k)
+            if len(self._cache) > self._maxlen:
+                evicted = min(self._cache, key=lambda x: self._counter[x])
+                self._cache.remove(evicted)
+                return evicted
+        return None
+    
+    @inheritdoc(Cache)
+    def remove(self, k):
+        if k in self._cache:
+            self._cache.pop(k)
+            return True
+        else:
+            return False
+        
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()
+        self._counter.clear()
 
 
 @register_cache_policy('FIFO')

@@ -38,9 +38,9 @@ class TestNumericCacheHitRatio(unittest.TestCase):
         h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.LruCache(r*self.n))
         self.assertLess(np.abs(h - r), 0.01)
 
-    def test_lfu_cache(self):
+    def test_in_cache_lfu_cache(self):
         r = 0.1
-        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.LfuCache(r*self.n))
+        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.InCacheLfuCache(r*self.n))
         self.assertLess(np.abs(h - r), 0.01)
 
     def test_fifo_cache(self):
