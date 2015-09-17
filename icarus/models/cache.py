@@ -23,6 +23,7 @@ __all__ = [
         'InCacheLfuCache',
         'PerfectLfuCache',
         'FifoCache',
+        'ClimbCache',
         'RandEvictionCache',
         'insert_after_k_hits_cache',
         'rand_insert_cache',
@@ -840,7 +841,6 @@ class LruCache(Cache):
         self._cache.clear()
 
 
-
 @register_cache_policy('SLRU')
 class SegmentedLruCache(Cache):
     """Segmented Least Recently Used (LRU) cache eviction policy.
@@ -1262,6 +1262,114 @@ class FifoCache(Cache):
         self._cache.clear()
         self._d.clear()
 
+
+@register_cache_policy('CLIMB')
+class ClimbCache(Cache):
+    """CLIMB cache implementation
+    
+    According to this policy, items are organized in a list. When an item in
+    the cache is requested it is moved one position up the list; if already
+    on top, nothing is done. When a new item is inserted, it replaces the one
+    at the bottom of the list.
+    """
+      
+    @inheritdoc(Cache)
+    def __init__(self, maxlen, **kwargs):
+        self._cache = LinkedSet()
+        self._maxlen = int(maxlen)
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+    
+    @property
+    @inheritdoc(Cache)
+    def maxlen(self):
+        return self._maxlen
+    
+    @inheritdoc(Cache)
+    def dump(self):
+        return list(iter(self._cache))
+
+    def position(self, k):
+        """Return the current position of an item in the cache. Position *0*
+        refers to the head of cache, while position *maxlen - 1* refers to the
+        tail of the cache.
+        
+        This method does not change the internal state of the cache.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item looked up in the cache
+            
+        Returns
+        -------
+        position : int
+            The current position of the item in the cache
+        """
+        if not k in self._cache:
+            raise ValueError('The item %s is not in the cache' % str(k))
+        return self._cache.index(k)
+
+    @inheritdoc(Cache)
+    def has(self, k):
+        return k in self._cache
+            
+    @inheritdoc(Cache)
+    def get(self, k):
+        # search content over the list
+        # if it has it move it one position up, otherwise return false
+        if k not in self._cache:
+            return False
+        self._cache.move_up(k)
+        return True
+    
+    def put(self, k):
+        """Insert an item in the cache if not already inserted.
+        
+        If the element is already present in the cache, it will pushed one
+        position up.
+        
+        Parameters
+        ----------
+        k : any hashable type
+            The item to be inserted
+            
+        Returns
+        -------
+        evicted : any hashable type
+            The evicted object or *None* if no contents were evicted.
+        """
+        # if content in cache, move one position up, no eviction
+        if k in self._cache:
+            self._cache.move_up(k)
+            return None
+        # Note: I am not  sure of the implementation in the case of cache not
+        # yet full. In this implementation I am inserting an item to the bottom
+        # of the cache when the cache is not full, but I am not sure if I
+        # should insert the element on top in this case. I could not find any
+        # reference to this in literature. Anyway, I think this should not have
+        # an impact on steady state performance
+        if len(self._cache) == self._maxlen:
+            evicted =  self._cache.pop_bottom()
+        else:
+            evicted = None
+        self._cache.append_bottom(k)
+        return evicted
+
+    @inheritdoc(Cache)
+    def remove(self, k):
+        if k not in self._cache:
+            return False
+        self._cache.remove(k)
+        return True
+
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()
 
 @register_cache_policy('RAND')
 class RandEvictionCache(Cache):

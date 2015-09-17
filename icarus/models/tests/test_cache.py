@@ -468,7 +468,66 @@ class TestFifoCache(unittest.TestCase):
         c.remove(5)
         self.assertEqual(len(c), 3)
         self.assertEqual(c.dump(), [4, 3, 1])
+
+
+
+class TestClimbCache(unittest.TestCase):
+
+    def test_climb(self):
+        c = cache.ClimbCache(4)
+        c.put(1)
+        self.assertEquals(len(c), 1)
+        c.put(2)
+        self.assertEquals(len(c), 2)
+        c.put(3)
+        self.assertEquals(len(c), 3)
+        c.put(5)
+        self.assertEquals(len(c), 4)
+        self.assertEquals(c.dump(), [1, 2, 3, 5])
+        self.assertEquals(c.put(4), 5)
+        self.assertEquals(c.dump(), [1, 2, 3, 4])
+        self.assertEquals(c.put(4), None)
+        self.assertEquals(c.dump(), [1, 2, 4, 3])
+        self.assertEquals(c.put(4), None)
+        self.assertEquals(c.dump(), [1, 4, 2, 3])
+        self.assertEquals(c.put(4), None)
+        self.assertEquals(c.dump(), [4, 1, 2, 3])
+        self.assertEquals(c.put(4), None)
+        self.assertEquals(c.dump(), [4, 1, 2, 3])
+        self.assertEquals(c.put(5), 3)
+        self.assertEquals(c.dump(), [4, 1, 2, 5])
         
+    def test_remove(self):
+        c = cache.ClimbCache(4)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        c.remove(2)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(c.dump(), [1, 3])
+        c.put(4)
+        c.put(5)
+        self.assertEqual(c.dump(), [1, 3, 4, 5])
+        c.remove(5)
+        self.assertEqual(len(c), 3)
+        self.assertEqual(c.dump(), [1, 3, 4])
+        c.remove(1)
+        self.assertEqual(len(c), 2)
+        self.assertEqual(c.dump(), [3, 4])
+        
+    def test_position(self):
+        c = cache.ClimbCache(4)
+        c.put(1)
+        c.put(2)
+        c.put(3)
+        c.put(4)
+        self.assertEqual(c.dump(), [1, 2, 3, 4])
+        self.assertEqual(c.position(1), 0)
+        self.assertEqual(c.position(2), 1)
+        self.assertEqual(c.position(3), 2)
+        self.assertEqual(c.position(4), 3)
+
+
 
 class TestRandCache(unittest.TestCase):
     
