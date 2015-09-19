@@ -138,6 +138,25 @@ class NetworkView(object):
         """
         return self.model.shortest_path
 
+    def cluster(self, v):
+        """Return cluster to which a node belongs, if any
+        
+        Parameters
+        ----------
+        v : any hashable type
+            Node
+        
+        Returns
+        -------
+        cluster : int
+            Cluster to which the node belongs, None if the topology is not
+            clustered or the node does not belong to any cluster
+        """
+        if 'cluster' in self.model.topology.node[v]:
+            return self.model.topology.node[v]['cluster']
+        else:
+            return None
+
     def link_type(self, u, v):
         """Return the type of link *(u, v)*.
         
