@@ -18,7 +18,7 @@ import networkx as nx
 import fnss
 
 from icarus.registry import CACHE_POLICY
-from icarus.util import path_links
+from icarus.util import path_links, iround
 
 __all__ = [
     'NetworkModel',
@@ -246,6 +246,37 @@ class NetworkView(object):
         """
         if node in self.model.cache:
             return self.model.cache[node].has(content)
+        
+    def local_cache_lookup(self, node, content):
+        """Check if the local cache of a node has a content object, without
+        changing the internal state of the cache.
+        
+        The local cache is an area of the cache of a node reserved for 
+        uncoordinated caching. This is currently used only by hybrid 
+        hash-routing strategies.
+        
+        This method is meant to be used by data collectors to calculate
+        metrics. It should not be used by strategies to look up for contents
+        during the simulation. Instead they should use
+        `NetworkController.get_content_local_cache`.
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node identifier
+        content : any hashable type
+            The content identifier
+            
+        Returns
+        -------
+        has_content : bool
+            *True* if the cache of the node has the content, *False* otherwise.
+            If the node does not have a cache, return *None*
+        """
+        if node in self.model.local_cache:
+            return self.model.local_cache[node].has(content)
+        else:
+            return False
 
     def cache_dump(self, node):
         """Returns the dump of the content of a cache in a specific node
@@ -339,6 +370,10 @@ class NetworkModel(object):
         # The actual cache objects storing the content
         self.cache = {node: CACHE_POLICY[policy_name](self.cache_size[node], **policy_args)
                           for node in self.cache_size}
+        
+        # This is for a local un-coordinated cache (currently used only by
+        # Hashrouting with edge cache)
+        self.local_cache = {}
 
 
 class NetworkController(object):
@@ -550,4 +585,71 @@ class NetworkController(object):
     def restore_node(self, v):
         raise NotImplementedError('Method not yet implemented')
     
+    def reserve_local_cache(self, ratio=0.1):
+        """Reserve a fraction of cache as local.
+        
+        This method reserves a fixed fraction of the cache of each caching node
+        to act as local uncoodinated cache. Methods `get_content` and 
+        `put_content` will only operated to the coordinated cache. The reserved
+        local cache can be accessed with methods `get_content_local_cache` and
+        `put_content_local_cache`.
+        
+        This function is currently used only by hybrid hash-routing strategies.
+        
+        Parameters
+        ----------
+        ratio : float
+            The ratio of cache space to be reserved as local cache.
+        """
+        if ratio < 0 or ratio > 1:
+            raise ValueError("ratio must be between 0 and 1")
+        for v, c in self.model.cache.items():
+            maxlen = iround(c.maxlen*(1-ratio))
+            if maxlen > 0:
+                self.model.cache[v] = type(c)(maxlen)
+            else:
+                # If the coordinated cache size is zero, then remove cache
+                # from that location
+                if v in self.model.cache:
+                    self.model.cache.pop(v)
+            local_maxlen = iround(c.maxlen*(ratio))
+            if local_maxlen > 0:
+                self.model.local_cache[v] = type(c)(local_maxlen)
+    
+    def get_content_local_cache(self, node):
+        """Get content from local cache of node (if any)
+        
+        Get content from a local cache of a node. Local cache must be
+        initialized with the `reserve_local_cache` method.
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node to query
+        """
+        if node not in self.model.local_cache:
+            return False
+        cache_hit = self.model.local_cache[node].get(self.session['content'])
+        if cache_hit:
+            if self.session['log']:
+                self.collector.cache_hit(node)
+        else:
+            if self.session['log']:
+                self.collector.cache_miss(node)
+        return cache_hit
+
+    def put_content_local_cache(self, node):
+        """Put content into local cache of node (if any)
+        
+        Put content into a local cache of a node. Local cache must be
+        initialized with the `reserve_local_cache` method.
+        
+        Parameters
+        ----------
+        node : any hashable type
+            The node to query
+        """
+        if node in self.model.local_cache:
+            return self.model.local_cache[node].put(self.session['content'])            
+        
 
