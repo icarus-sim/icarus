@@ -343,9 +343,9 @@ class NetworkModel(object):
         # requires a deep copy of the topology that can take long time if
         # many content source mappings are included in the topology
         if not topology.is_directed():
-            for (u, v), link_type in self.link_type.items():
+            for (u, v), link_type in list(self.link_type.items()):
                 self.link_type[(v, u)] = link_type
-            for (u, v), delay in self.link_delay.items():
+            for (u, v), delay in list(self.link_delay.items()):
                 self.link_delay[(v, u)] = delay
                 
         # Initialize attributes
@@ -603,7 +603,7 @@ class NetworkController(object):
         """
         if ratio < 0 or ratio > 1:
             raise ValueError("ratio must be between 0 and 1")
-        for v, c in self.model.cache.items():
+        for v, c in list(self.model.cache.items()):
             maxlen = iround(c.maxlen*(1-ratio))
             if maxlen > 0:
                 self.model.cache[v] = type(c)(maxlen)
