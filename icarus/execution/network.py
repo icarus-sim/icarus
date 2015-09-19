@@ -229,7 +229,7 @@ class NetworkView(object):
         This method is meant to be used by data collectors to calculate
         metrics. It should not be used by strategies to look up for contents
         during the simulation. Instead they should use
-        NetworkController.get_content
+        `NetworkController.get_content`
         
         Parameters
         ----------
@@ -445,6 +445,10 @@ class NetworkController(object):
             Destination node
         path : list, optional
             The path to use. If not provided, shortest path is used
+        main_path : bool, optional
+            If *True*, indicates that link path is on the main path that will
+            lead to hit a content. It is normally used to calculate latency
+            correctly in multicast cases. Default value is *True*
         """
         if path is None:
             path = self.model.shortest_path[s][t]
@@ -462,6 +466,11 @@ class NetworkController(object):
             Destination node
         path : list, optional
             The path to use. If not provided, shortest path is used
+        main_path : bool, optional
+            If *True*, indicates that this path is being traversed by content
+            that will be delivered to the receiver. This is needed to
+            calculate latency correctly in multicast cases. Default value is
+            *True*
         """
         if path is None:
             path = self.model.shortest_path[u][v]
@@ -477,6 +486,10 @@ class NetworkController(object):
             Origin node
         v : any hashable type
             Destination node
+        main_path : bool, optional
+            If *True*, indicates that link link is on the main path that will
+            lead to hit a content. It is normally used to calculate latency
+            correctly in multicast cases. Default value is *True*
         """
         if self.collector is not None and self.session['log']:
             self.collector.request_hop(u, v, main_path)
@@ -490,6 +503,11 @@ class NetworkController(object):
             Origin node
         v : any hashable type
             Destination node
+        main_path : bool, optional
+            If *True*, indicates that this link is being traversed by content
+            that will be delivered to the receiver. This is needed to
+            calculate latency correctly in multicast cases. Default value is
+            *True*
         """
         if self.collector is not None and self.session['log']:
             self.collector.content_hop(u, v, main_path)

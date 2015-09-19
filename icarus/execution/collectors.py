@@ -104,10 +104,10 @@ class DataCollector(object):
             Origin node
         v : any hashable type
             Destination node
-        main_path : bool
-            If True, indicates that link link is on the main path that will
+        main_path : bool, optional
+            If *True*, indicates that link link is on the main path that will
             lead to hit a content. It is normally used to calculate latency
-            correctly in multicast cases.
+            correctly in multicast cases. Default value is *True*
         """
         pass
     
@@ -120,10 +120,11 @@ class DataCollector(object):
             Origin node
         v : any hashable type
             Destination node
-        main_path : bool
-            If True, indicates that this link is being traversed by content
+        main_path : bool, optional
+            If *True*, indicates that this link is being traversed by content
             that will be delivered to the receiver. This is needed to
-            calculate latency correctly in multicast cases
+            calculate latency correctly in multicast cases. Default value is
+            *True*
         """
         pass
     
