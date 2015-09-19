@@ -1,9 +1,12 @@
+from __future__ import division
+
 import unittest
 
 import numpy as np
 
 import icarus.tools.cacheperf as cacheperf
 import icarus.models as cache
+import icarus.scenarios as scenarios
 import icarus.tools.stats as stats
 
 
@@ -185,3 +188,51 @@ class TestOptimalCacheHitRatio(unittest.TestCase):
     def test_unsorted_pdf(self):
         h = cacheperf.optimal_cache_hit_ratio([0.1, 0.5, 0.4], 2)
         self.assertAlmostEqual(0.9, h)
+
+class TestHashrouting(unittest.TestCase):
+
+    def test_arbitrary(self):
+        topologies = [
+            1221,
+            1239,
+            1755,
+            3257,
+            3967,
+            6461,
+        ]
+        n_contents = 10000
+        network_cache = 0.1
+        hit_ratio = 0.2
+
+        results = {
+            1221: 104.43627218934938,
+            1239: 129.9188933590089,
+            3257: 102.65934570425449,
+            1755: 94.2634958382883,
+            6461: 168.74678558156853,
+            3967: 132.65163549797435
+        }
+
+        for asn in topologies:
+            # Set up topology
+            topo = scenarios.topology_rocketfuel_latency(asn, source_ratio=0.1)
+            scenarios.uniform_cache_placement(topo, n_contents*network_cache)
+            sources = topo.sources()
+            receivers = topo.receivers()
+            req_rates = {v: 1/len(receivers) for v in receivers}
+            source_content_ratio = {v: 1/len(sources) for v in sources}
+            # Run experiment and validate results
+            latency = cacheperf.hashrouting_model(topo, 'SYMM', hit_ratio, source_content_ratio, req_rates)
+            self.assertAlmostEqual(results[asn], latency)
+
+    def test_mesh(self):
+        l = cacheperf.hashrouting_model_mesh(10, 5, 0.1, 1, 1.5)
+        self.assertAlmostEqual(5.4, l)
+
+    def test_ring(self):
+        l = cacheperf.hashrouting_model_ring(2, 0.1, 2, 3)
+        self.assertAlmostEqual(9.2, l)
+        l = cacheperf.hashrouting_model_ring(5, 0.1, 2, 3)
+        self.assertAlmostEqual(14.52, l)
+        l = cacheperf.hashrouting_model_ring(8, 0.1, 2, 3)
+        self.assertAlmostEqual(20.6, l)

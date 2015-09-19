@@ -10,6 +10,10 @@ from icarus.tools import DiscreteDist, TruncatedZipfDist
 import numpy as np
 
 from scipy.optimize import fsolve
+import networkx as nx
+
+from icarus.util import path_links
+from icarus.tools import TruncatedZipfDist, DiscreteDist
 
 
 __all__ = [
@@ -32,7 +36,10 @@ __all__ = [
        'numeric_per_content_cache_hit_ratio',
        'numeric_cache_hit_ratio',
        'numeric_cache_hit_ratio_2_layers',
-       'trace_driven_cache_hit_ratio'
+       'trace_driven_cache_hit_ratio',
+       'hashrouting_model',
+       'hashrouting_model_ring',
+       'hashrouting_model_mesh',
           ]
 
 
@@ -816,3 +823,161 @@ def trace_driven_cache_hit_ratio(workload, cache, warmup_ratio=0.25):
             cache.put(content)
         n_req += 1
     return cache_hits / (n - n_warmup)
+
+
+def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
+                      req_rates, paths=None):
+    """Compute overall latency of hashrouting over an arbitrary topology
+
+    Parameters
+    ----------
+    topology : Topology
+        The topology
+    routing : str ('SYMM | 'MULTICAST')
+        Content routing strategy
+    hit_ratio : float
+        Average cache hit ratio of the system of hash-routed caches
+    source_content_ratio : dict
+        Ratio of contents that each source serve
+    req_rates : dict
+        Rate of requests for each requester
+    paths : dict of dicts, optional
+        Network paths
+
+    Returns
+    -------
+    latency : float
+        The average content retrieval latency
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
+           Operator-managed Content Caching, to appear in IEEE Transactions on
+           Network and Service Management (TNSM)
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
+    """
+    if routing not in ('SYMM', 'MULTICAST'):
+        raise ValueError("Routing {} not supported".format(routing))
+    if math.fabs(sum(source_content_ratio.values()) - 1) > 0.0001:
+        raise ValueError("The sum of source_content_ratio values must be 1")
+    if paths is None:
+        paths = dict(nx.all_pairs_dijkstra_path(topology))
+    latencies = {}
+    for u in paths:
+        latencies[u] = {}
+        for v in paths[u]:
+            links = path_links(paths[u][v])
+            latencies[u][v] = sum(topology.edges[i, j]['delay'] for i, j in links)
+    # Get all caching nodes
+    caches = topology.cache_nodes()
+    overall_req_rate = sum(req_rates.values())
+
+    req_ratios = {k: v / overall_req_rate for k, v in req_rates.iteritems()}
+    # Calculate overall latency
+
+    # This is the latency component between receivers and caches
+    if routing == 'SYMM':
+        latency = (1 / len(caches)) * \
+                  sum(rate * (latencies[recv][cache] + latencies[cache][recv])
+                      for recv, rate in req_ratios.iteritems() for cache in caches)
+        # This is the latency component between caches and sources
+        latency += ((1 - hit_ratio) / len(caches)) * \
+                   sum(ratio * (latencies[cache][source] + latencies[source][cache])
+                       for cache in caches
+                       for source, ratio in source_content_ratio.iteritems())
+    elif routing == 'MULTICAST':
+        # Latency leg receiver-cache
+        latency = (1 / len(caches)) * \
+          sum(rate * (latencies[recv][cache])
+              for recv, rate in req_ratios.iteritems() for cache in caches)
+        # Latency leg cache-receiver (hit case)
+        latency += (hit_ratio / len(caches)) * \
+          sum(rate * (latencies[cache][recv])
+              for recv, rate in req_ratios.iteritems() for cache in caches)
+        # Latency leg caches-sources (miss case)
+        latency += ((1 - hit_ratio) / len(caches)) * \
+                    sum(ratio * (latencies[cache][source])
+                        for cache in caches
+                        for source, ratio in source_content_ratio.iteritems())
+        # Latency leg sources-receivers (miss case)
+        latency += (1 - hit_ratio) * \
+                    sum(source_ratio * req_ratio * (latencies[source][receiver])
+                        for receiver, req_ratio in req_ratios.iteritems()
+                        for source, source_ratio in source_content_ratio.iteritems())
+    else:
+        # Should never reach this block anyway
+        raise ValueError("Routing {} not supported".format(routing))
+    return latency
+
+
+def hashrouting_model_mesh(n, m, h, delay_int, delay_ext):
+    """Compute latency of hashrouting over a mesh topology
+
+    Parameters
+    ----------
+    n : int
+        The number of nodes in the mesh
+    m : int
+        The number of nodes directly connected with an origin
+    h : float
+        The cumulative cache hit ratio of the network
+    delay_int : float
+        The latency on an internal link
+    delay_ext : float
+        The latency on an external link
+
+    Returns
+    -------
+    latency : float
+        The average content retrieval latency
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
+           Operator-managed Content Caching, to appear in IEEE Transactions on
+           Network and Service Management (TNSM)
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
+    """
+    if m > n:
+        raise ValueError("m must be no greater than n")
+    if h < 0 or h > 1:
+        raise ValueError("h must be comprised between 0 and 1")
+    return 2*(((n-1)/n)*delay_int + (1-h)*(((n-m)/n)*delay_int + delay_ext))
+
+
+def hashrouting_model_ring(n, h, delay_int, delay_ext):
+    """Compute latency of hashrouting over a mesh topology
+
+    Parameters
+    ----------
+    n : int
+        The number of nodes in the mesh
+    h : float
+        The cumulative cache hit ratio of the network
+    delay_int : float
+        The latency on an internal link
+    delay_ext : float
+        The latency on an external link
+
+    Returns
+    -------
+    latency : float
+        The average content retrieval latency
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
+           Operator-managed Content Caching, to appear in IEEE Transactions on
+           Network and Service Management (TNSM)
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
+    """
+    if h < 0 or h > 1:
+        raise ValueError("h must be comprised between 0 and 1")
+    avg_hop = (n**2 - 1)/(4*n) if n % 2 == 1 else n/4
+    return 2*(avg_hop*delay_int + (1-h)*(avg_hop*delay_int + delay_ext))
