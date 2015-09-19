@@ -25,6 +25,8 @@ __all__ = [
         'IcnTopology',
         'topology_tree',
         'topology_path',
+        'topology_ring',
+        'topology_mesh',
         'topology_geant',
         'topology_tiscali',
         'topology_wide',
@@ -101,9 +103,9 @@ def topology_tree(k, h, delay=1, **kwargs):
     
     Parameters
     ----------
-    h : height 
+    h : int 
         The height of the tree
-    k : branching factor
+    k : int
         The branching factor of the tree
     delay : float
         The link delay in milliseconds
@@ -171,6 +173,104 @@ def topology_path(n, delay=1, **kwargs):
     # label links as internal or external
     for u, v in topology.edges_iter():
         topology.edge[u][v]['type'] = 'internal'
+    return IcnTopology(topology)
+
+
+@register_topology_factory('RING')
+def topology_ring(n, delay_int=1, delay_ext=5, **kwargs):
+    """Returns a ring topology
+    
+    This topology is comprised of a ring of *n* nodes. Each of these nodes is
+    attached to a receiver. In addition one router is attached to a source.
+    Therefore, this topology has in fact 2n + 1 nodes.
+    
+    It models the case of a metro ring network, with many receivers and one
+    only source towards the core network.
+    
+    Parameters
+    ----------
+    n : int 
+        The number of routers in the ring
+    delay_int : float
+        The internal link delay in milliseconds
+    delay_ext : float
+        The external link delay in milliseconds
+        
+    Returns
+    -------
+    topology : IcnTopology
+        The topology object
+    """
+    topology = fnss.ring_topology(n)
+    routers = range(n)
+    receivers = range(n, 2*n)
+    source = 2*n
+    internal_links = zip(routers, receivers)
+    external_links = [(routers[0], source)]
+    for u, v in internal_links:
+        topology.add_edge(u, v, type='internal')
+    for u, v in external_links:
+        topology.add_edge(u, v, type='external')
+    topology.graph['icr_candidates'] = set(routers)
+    fnss.add_stack(topology, source, 'source')
+    for v in receivers:
+        fnss.add_stack(topology, v, 'receiver')
+    for v in routers:
+        fnss.add_stack(topology, v, 'router')
+    # set weights and delays on all links
+    fnss.set_weights_constant(topology, 1.0)
+    fnss.set_delays_constant(topology, delay_int, 'ms', internal_links)
+    fnss.set_delays_constant(topology, delay_ext, 'ms', external_links)
+    return IcnTopology(topology)
+
+
+@register_topology_factory('MESH')
+def topology_mesh(n, m, delay_int=1, delay_ext=5, **kwargs):
+    """Returns a ring topology
+    
+    This topology is comprised of a mesh of *n* nodes. Each of these nodes is
+    attached to a receiver. In addition *m* router are attached each to a source.
+    Therefore, this topology has in fact 2n + m nodes.
+    
+    Parameters
+    ----------
+    n : int 
+        The number of routers in the ring
+    m : int
+        The number of sources
+    delay_int : float
+        The internal link delay in milliseconds
+    delay_ext : float
+        The external link delay in milliseconds
+        
+    Returns
+    -------
+    topology : IcnTopology
+        The topology object
+    """
+    if m > n:
+        raise ValueError("m cannot be greater than n")
+    topology = fnss.full_mesh_topology(n)
+    routers = range(n)
+    receivers = range(n, 2*n)
+    sources = range(2*n, 2*n + m)
+    internal_links = zip(routers, receivers)
+    external_links = zip(routers[:m], sources)
+    for u, v in internal_links:
+        topology.add_edge(u, v, type='internal')
+    for u, v in external_links:
+        topology.add_edge(u, v, type='external')
+    topology.graph['icr_candidates'] = set(routers)
+    for v in sources:
+        fnss.add_stack(topology, v, 'source')
+    for v in receivers:
+        fnss.add_stack(topology, v, 'receiver')
+    for v in routers:
+        fnss.add_stack(topology, v, 'router')
+    # set weights and delays on all links
+    fnss.set_weights_constant(topology, 1.0)
+    fnss.set_delays_constant(topology, delay_int, 'ms', internal_links)
+    fnss.set_delays_constant(topology, delay_ext, 'ms', external_links)
     return IcnTopology(topology)
 
 
