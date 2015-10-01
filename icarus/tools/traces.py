@@ -5,6 +5,7 @@ import math
 import collections
 import time
 import dateutil
+import types
 
 import numpy as np
 from scipy.stats import chisquare
@@ -14,6 +15,8 @@ from icarus.tools import TruncatedZipfDist
 
 __all__ = [
        'frequencies',
+       'one_timers',
+       'trace_stats',
        'zipf_fit',
        'parse_url_list',
        'parse_wikibench',
@@ -44,6 +47,60 @@ def frequencies(data):
     function given a set of data, e.g. content request traces.
     """
     return np.asarray(sorted(collections.Counter(data).values(), reverse=True))
+
+
+def one_timers(data):
+    """Return fraction of contents requested only once (i.e., one-timers)
+    
+    Parameters
+    ----------
+    data : array-like
+        An array of generic data (i.e. URLs of web pages)
+    
+    Returns
+    -------
+    one_timers : float
+        Fraction of content objects requested only once.
+    """
+    n_items = 0
+    n_onetimers = 0
+    counter = collections.Counter(data)
+    for i in counter.itervalues():
+        n_items += 1
+        if i == 1:
+            n_onetimers += 1
+    return n_onetimers/n_items
+
+
+def trace_stats(data):
+    """Print full stats of a trace
+    
+    Parameters
+    ----------
+    data : array-like
+        An array of generic data (i.e. URLs of web pages)    
+
+    Return
+    ------
+    stats : dict
+        Metrics of the trace
+    """
+    if isinstance(data, types.GeneratorType):
+        data = collections.deque(data)
+    freqs = frequencies(data)
+    alpha, p = zipf_fit(freqs)
+    n_reqs = len(data)
+    n_contents = len(freqs)
+    n_onetimers = len(freqs[freqs == 1])
+    return dict(n_contents=n_contents,
+                n_reqs=n_reqs,
+                n_onetimers=n_onetimers,
+                alpha=alpha,
+                p=p,
+                onetimers_contents_ratio=n_onetimers/n_contents,
+                onetimers_reqs_ratio=n_onetimers/n_reqs,
+                mean_reqs_per_content=n_reqs/n_contents
+                )
 
 
 def zipf_fit(obs_freqs, need_sorting=False):
