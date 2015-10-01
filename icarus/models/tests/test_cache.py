@@ -1,6 +1,5 @@
 from __future__ import division
 import sys
-from icarus.models.cache import insert_after_k_hits_cache
 if sys.version_info[:2] >= (2, 7):
     import unittest
 else:
@@ -670,6 +669,29 @@ class TestInsertAfterKHits(unittest.TestCase):
         self.assertFalse(c.get(1))
         c.put(1)
         self.assertTrue(c.get(1))
+
+    def test_put_get_force_insert(self):
+        c = cache.LruCache(2)
+        c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
+        self.assertFalse(c.get(1))
+        c.put(1, force_insert=True)
+        self.assertTrue(c.get(1))
+        c.put(2)
+        self.assertFalse(c.get(2))
+        c.put(2)
+        self.assertFalse(c.get(2))
+        c.put(2)
+        self.assertTrue(c.get(2))
+
+    def test_put_get_force_insert_eviction(self):
+        c = cache.LruCache(2)
+        c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
+        self.assertFalse(c.get(1))
+        c.put(1, force_insert=True)
+        self.assertTrue(c.get(1))
+        c.put(2, force_insert=True)
+        self.assertTrue(c.get(2))
+        self.assertEqual(c.put(3, force_insert=True), 1)
 
     def test_put_get_mixed_no_memory(self):
         c = cache.LruCache(2)

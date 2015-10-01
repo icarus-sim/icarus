@@ -451,7 +451,7 @@ class Cache(object):
     """Base implementation of a cache object"""
     
     @abc.abstractmethod
-    def __init__(self, maxlen, **kwargs):
+    def __init__(self, maxlen, *args, **kwargs):
         """Constructor
         
         Parameters
@@ -528,7 +528,7 @@ class Cache(object):
         return res if res is not None else False
 
     @abc.abstractmethod
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         """Check if an item is in the cache without changing the internal
         state of the caching object.
         
@@ -546,7 +546,7 @@ class Cache(object):
         raise NotImplementedError('This method is not implemented')    
 
     @abc.abstractmethod
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         """Retrieves an item from the cache.
         
         Differently from *has(k)*, calling this method may change the internal
@@ -567,7 +567,7 @@ class Cache(object):
         raise NotImplementedError('This method is not implemented') 
 
     @abc.abstractmethod
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache, it will not be inserted
@@ -586,7 +586,7 @@ class Cache(object):
         raise NotImplementedError('This method is not implemented')
 
     @abc.abstractmethod
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         """Remove an item from the cache, if present.
         
         Parameters
@@ -616,7 +616,7 @@ class NullCache(Cache):
     identical to a cache with max size equal to 0.
     """
      
-    def __init__(self, maxlen=0, **kwargs):
+    def __init__(self, maxlen=0, *args, **kwargs):
         """
         Constructor
         
@@ -664,7 +664,7 @@ class NullCache(Cache):
         """
         return []
 
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         """Check if an item is in the cache without changing the internal
         state of the caching object.
         
@@ -681,7 +681,7 @@ class NullCache(Cache):
         """
         return False
 
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         """Retrieves an item from the cache.
         
         Parameters
@@ -697,7 +697,7 @@ class NullCache(Cache):
         """
         return False
 
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         Parameters
@@ -712,7 +712,7 @@ class NullCache(Cache):
         """
         return None
 
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         """Remove a specified item from the cache.
         
         If the element is not present in the cache, no action is taken.
@@ -770,7 +770,7 @@ class LruCache(Cache):
     def dump(self):
         return list(iter(self._cache))
 
-    def position(self, k):
+    def position(self, k, *args, **kwargs):
         """Return the current position of an item in the cache. Position *0*
         refers to the head of cache (i.e. most recently used item), while
         position *maxlen - 1* refers to the tail of the cache (i.e. the least
@@ -793,11 +793,11 @@ class LruCache(Cache):
         return self._cache.index(k)
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
             
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         # search content over the list
         # if it has it push on top, otherwise return false
         if k not in self._cache:
@@ -805,7 +805,7 @@ class LruCache(Cache):
         self._cache.move_to_top(k)
         return True
     
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache, it will pushed to the
@@ -830,7 +830,7 @@ class LruCache(Cache):
         return self._cache.pop_bottom() if len(self._cache) > self._maxlen else None
         
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k not in self._cache:
             return False
         self._cache.remove(k)
@@ -858,7 +858,7 @@ class SegmentedLruCache(Cache):
     and recency of item reference.
     """
         
-    def __init__(self, maxlen, segments=2, **kwargs):
+    def __init__(self, maxlen, segments=2, *args, **kwargs):
         """Constructor
         
         Parameters
@@ -895,11 +895,11 @@ class SegmentedLruCache(Cache):
         return self._maxlen
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
             
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         if k not in self._cache:
             return False
         seg = self._cache[k]
@@ -915,7 +915,7 @@ class SegmentedLruCache(Cache):
                 self._cache[demoted] = seg
         return True
     
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache, it will pushed to the
@@ -955,14 +955,14 @@ class SegmentedLruCache(Cache):
             return evicted
 
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k not in self._cache:
             return False
         seg = self._cache.pop(k)
         self._segment[seg].remove(k)
         return True
 
-    def position(self, k):
+    def position(self, k, *args, **kwargs):
         """Return the current position of an item in the cache. Position *0*
         refers to the head of cache (i.e. most recently used item), while
         position *maxlen - 1* refers to the tail of the cache (i.e. the least
@@ -1021,7 +1021,7 @@ class InCacheLfuCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen, **kwargs):
+    def __init__(self, maxlen, *args, **kwargs):
         self._cache = {}
         self.t = 0
         self._maxlen = int(maxlen)
@@ -1042,11 +1042,11 @@ class InCacheLfuCache(Cache):
         return sorted(self._cache, key=lambda x: self._cache[x], reverse=True) 
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
 
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         if self.has(k):
             freq, t = self._cache[k]
             self._cache[k] = freq+1, t 
@@ -1055,7 +1055,7 @@ class InCacheLfuCache(Cache):
             return False
 
     @inheritdoc(Cache)
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         if not self.has(k):
             self.t += 1
             self._cache[k] = (1, self.t)
@@ -1066,7 +1066,7 @@ class InCacheLfuCache(Cache):
         return None
     
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k in self._cache:
             self._cache.pop(k)
             return True
@@ -1100,7 +1100,7 @@ class PerfectLfuCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen, **kwargs):
+    def __init__(self, maxlen, *args, **kwargs):
         # Dict storing counter for all contents, not only those in cache
         self._counter = {}
         # Set storing only items currently in cache
@@ -1124,11 +1124,11 @@ class PerfectLfuCache(Cache):
         return sorted(self._cache, key=lambda x: self._counter[x], reverse=True) 
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
 
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         self.t += 1
         if k in self._counter:
             freq, t = self._counter[k]
@@ -1141,7 +1141,7 @@ class PerfectLfuCache(Cache):
             return False
 
     @inheritdoc(Cache)
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         if not self.has(k):
             if k in self._counter:
                 freq, t = self._counter[k]
@@ -1158,7 +1158,7 @@ class PerfectLfuCache(Cache):
         return None
     
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k in self._cache:
             self._cache.pop(k)
             return True
@@ -1184,7 +1184,7 @@ class FifoCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen, **kwargs):
+    def __init__(self, maxlen, *args, **kwargs):
         self._cache = set()
         self._maxlen = int(maxlen)
         self._d = deque()
@@ -1205,10 +1205,10 @@ class FifoCache(Cache):
         return list(self._d)
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
 
-    def position(self, k):
+    def position(self, k, *args, **kwargs):
         """Return the current position of an item in the cache. Position *0*
         refers to the head of cache (i.e. most recently inserted item), while
         position *maxlen - 1* refers to the tail of the cache (i.e. the least
@@ -1234,11 +1234,11 @@ class FifoCache(Cache):
         raise ValueError('The item %s is not in the cache' % str(k))
                  
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         return self.has(k)
              
     @inheritdoc(Cache)
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         evicted = None
         if not self.has(k):
             self._cache.add(k)
@@ -1249,7 +1249,7 @@ class FifoCache(Cache):
         return evicted
     
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k in self._cache:
             self._cache.remove(k)
             self._d.remove(k)
@@ -1274,7 +1274,7 @@ class ClimbCache(Cache):
     """
       
     @inheritdoc(Cache)
-    def __init__(self, maxlen, **kwargs):
+    def __init__(self, maxlen, *args, **kwargs):
         self._cache = LinkedSet()
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
@@ -1293,7 +1293,7 @@ class ClimbCache(Cache):
     def dump(self):
         return list(iter(self._cache))
 
-    def position(self, k):
+    def position(self, k, *args, **kwargs):
         """Return the current position of an item in the cache. Position *0*
         refers to the head of cache, while position *maxlen - 1* refers to the
         tail of the cache.
@@ -1315,11 +1315,11 @@ class ClimbCache(Cache):
         return self._cache.index(k)
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
             
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         # search content over the list
         # if it has it move it one position up, otherwise return false
         if k not in self._cache:
@@ -1327,7 +1327,7 @@ class ClimbCache(Cache):
         self._cache.move_up(k)
         return True
     
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache, it will pushed one
@@ -1361,7 +1361,7 @@ class ClimbCache(Cache):
         return evicted
 
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k not in self._cache:
             return False
         self._cache.remove(k)
@@ -1386,7 +1386,7 @@ class RandEvictionCache(Cache):
     """
     
     @inheritdoc(Cache)
-    def __init__(self, maxlen, **kwargs):
+    def __init__(self, maxlen, *args, **kwargs):
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
@@ -1406,15 +1406,15 @@ class RandEvictionCache(Cache):
         return list(self._cache) 
 
     @inheritdoc(Cache)
-    def has(self, k):
+    def has(self, k, *args, **kwargs):
         return k in self._cache
 
     @inheritdoc(Cache)
-    def get(self, k):
+    def get(self, k, *args, **kwargs):
         return self.has(k)
 
     @inheritdoc(Cache)
-    def put(self, k):
+    def put(self, k, *args, **kwargs):
         evicted = None
         if not self.has(k):
             if len(self._cache) == self._maxlen:
@@ -1428,7 +1428,7 @@ class RandEvictionCache(Cache):
         return evicted
     
     @inheritdoc(Cache)
-    def remove(self, k):
+    def remove(self, k, *args, **kwargs):
         if k not in self._cache:
             return False
         index = self._a.index(k)
@@ -1482,12 +1482,20 @@ def insert_after_k_hits_cache(cache, k=2, memory=None):
     if memory is not None:
         queue = LinkedSet()
     c_put = cache.put
-    def put(item):
+    
+    def put(item, force_insert=False, *args, **kwargs):
+        if force_insert:
+            if item in hits:
+                hits.pop(item)
+                if memory is not None:
+                    queue.remove(item)
+            return c_put(item)
         if item in hits:
             hits[item] += 1
             if hits[item] < k:
                 return None
             else:
+                # I got hit enough times, inserting in cache
                 hits.pop(item)
                 if memory is not None:
                     queue.remove(item)
@@ -1500,12 +1508,13 @@ def insert_after_k_hits_cache(cache, k=2, memory=None):
                     evicted = queue.pop_bottom()
                     hits.pop(evicted)
             return None
+
     cache.put = put
     cache.put.__doc__ = c_put.__doc__
     cache._metacache_hits = hits
     if memory is not None:
         cache._metacache_queue = queue
-    return cache     
+    return cache
     
 
 def rand_insert_cache(cache, p, seed=None):
@@ -1538,7 +1547,7 @@ def rand_insert_cache(cache, p, seed=None):
     cache = copy.deepcopy(cache)
     random.seed(seed)
     c_put = cache.put
-    def put(k):
+    def put(k, *args, **kwargs):
         if random.random() < p:
             return c_put(k)
     cache.put = put
@@ -1582,7 +1591,7 @@ def keyval_cache(cache):
     k_dump = cache.dump
     k_clear = cache.clear
     
-    def put(k, v):
+    def put(k, v, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache with the same value, it
@@ -1608,7 +1617,7 @@ def keyval_cache(cache):
             val = cache._val.pop(evicted)
             return evicted, val
         
-    def get(k):
+    def get(k, *args, **kwargs):
         """Retrieve an item from the cache.
         
         Differently from *has(k)*, calling this method may change the internal
@@ -1628,7 +1637,7 @@ def keyval_cache(cache):
         """
         return cache._val[k] if k_get(k) else None 
     
-    def remove(k):
+    def remove(k, *args, **kwargs):
         """Remove an item from the cache, if present
         
         Parameters
@@ -1644,7 +1653,7 @@ def keyval_cache(cache):
         """
         return cache._val.pop(k) if k_remove(k) else None
         
-    def dump():
+    def dump(*args, **kwargs):
         """Return a dump of all the elements currently in the cache possibly
         sorted according to the eviction policy.
         
@@ -1661,7 +1670,7 @@ def keyval_cache(cache):
         k_clear()
         cache._val.clear()
 
-    def value(k):
+    def value(k, *args, **kwargs):
         """Return the value of item k
         
         Differently from *get(k)*, calling this method does not change the
@@ -1763,7 +1772,7 @@ def ttl_cache(cache, f_time):
         """Purge all expired items"""
         cache._purge_till(cache.f_time())
     
-    def get(k):
+    def get(k, *args, **kwargs):
         if c_get(k):
             if cache.f_time() < cache.expiry[k]:
                 return True
@@ -1771,7 +1780,7 @@ def ttl_cache(cache, f_time):
                 remove(k)
         return False 
     
-    def put(k, ttl=None, expires=None):
+    def put(k, ttl=None, expires=None, *args, **kwargs):
         """Insert an item in the cache if not already inserted.
         
         If the element is already present in the cache, it will not be inserted
@@ -1830,10 +1839,10 @@ def ttl_cache(cache, f_time):
                     cache._exp_list.append_bottom(k)
         return evicted
     
-    def has(k):
+    def has(k, *args, **kwargs):
         return c_has(k) and cache.f_time() <= cache.expiry[k] 
     
-    def remove(k):
+    def remove(k, *args, **kwargs):
         c_remove(k)
         cache.expiry.pop(k)
         cache._exp_list.remove(k)
