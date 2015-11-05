@@ -292,7 +292,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
          the number of bars to plot. If not specified, all bars are filtered
          by the conditions of filter parameter only, but in this case all
          ymetrics should be different.
-     * ycondvals : list of tuples, optional
+     * ycondvals : list of values, optional
          List of values that the conditions of ycondnames must meet. This list
          must be as long as the number of bars to plot. If not specified,
          all bars are filtered by the conditions of filter parameter only,
@@ -334,8 +334,10 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     fig = plt.figure()
     if 'title' in desc:
         plt.title(desc['title'])
-    plt.subplot(111)
-    plt.grid(b=True, which='major', color='k', axis='y', linestyle='--')
+    _, ax1 = plt.subplots()
+    plt.grid(b=True, which='major', color='k', axis='y', linestyle=':')
+    # Set axis below bars
+    ax1.set_axisbelow(True)
     if 'xlabel' in desc:
         plt.xlabel(desc['xlabel'])
     if 'ylabel' in desc:
@@ -401,9 +403,9 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
                 condition.setval(desc['xparam'], desc['xvals'][i])
                 if ycondnames is not None:
                     condition.setval(ycondnames[l], ycondvals[l])
-                data = [v.getval(ymetrics[i])
+                data = [v.getval(ymetrics[l])
                         for _, v in resultset.filter(condition)
-                        if v.getval(ymetrics[i]) is not None]
+                        if v.getval(ymetrics[l]) is not None]
                 confidence = desc['confidence'] if 'confidence' in desc else 0.95 
                 meanval, err = means_confidence_interval(data, confidence)
                 yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
