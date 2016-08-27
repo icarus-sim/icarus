@@ -24,7 +24,7 @@ def main():
                         required=False)
     parser.add_argument("config",
                         help="configuration file")
-    parser.add_argument('--version', action='version',
+    parser.add_argument('-v', '--version', action='version',
                         version="icarus %s" % __version__)
     args = parser.parse_args()
     config_override = dict(c.split("=") for c in args.config_override) \
