@@ -225,24 +225,25 @@ class LinkLoadCollector(DataCollector):
     """Data collector measuring the link load
     """
     
-    def __init__(self, view, sr=10):
+    def __init__(self, view, req_size=150, content_size=1500):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
             The network view instance
-        sr : int
-            Size ratio. The average ratio between the size of the content data
-            and the request data. For example, if sr = x, then it means that
-            the average size of a content is x times the size of a request.
+        req_size : int
+            Average size (in bytes) of a request
+        content_size : int
+            Average size (in byte) of a content
         """
         self.view = view
         self.req_count = collections.defaultdict(int)
         self.cont_count = collections.defaultdict(int)
-        if sr <= 0:
-            raise ValueError('sr must be positive')
-        self.sr = sr
+        if req_size <= 0 or content_size <=0:
+            raise ValueError('req_size and content_size must be positive')
+        self.req_size = req_size
+        self.content_size = content_size
         self.t_start = -1
         self.t_end = 1
     
@@ -263,9 +264,10 @@ class LinkLoadCollector(DataCollector):
     @inheritdoc(DataCollector)
     def results(self):
         duration = self.t_end - self.t_start
-        link_loads = dict((link, (self.req_count[link] +
-                                  self.sr*self.cont_count[link])/duration)
-                          for link in self.req_count)
+        used_links = set(self.req_count.keys()).union(set(self.cont_count.keys()))
+        link_loads = dict((link, (self.req_size*self.req_count[link] +
+                                  self.content_size*self.cont_count[link])/duration)
+                          for link in used_links)
         link_loads_int = dict((link, load)
                               for link, load in link_loads.items()
                               if self.view.link_type(*link) == 'internal')
