@@ -1,5 +1,7 @@
 # After changing this file, check it on:
 #   http://lint.travis-ci.org/
+sudo: false
+
 language: python
 
 # Python versions to be tested
@@ -7,33 +9,35 @@ python:
   - "2.7"
   - "3.3"
   - "3.4"
+  - "3.5"
+
+addons:
+  apt:
+    packages:
+    - libatlas-dev
+    - libatlas-base-dev
+    - liblapack-dev
+    - gfortran
+    - libsuitesparse-dev
+    - libgdal-dev
+    - graphviz
+    - mono-devel
 
 env:
   global:
     - PIP_INSTALL="pip install --upgrade"
 
 before_install:
-  # For Ubuntu 12.04 VMs
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran clang ant doxygen
-  - sudo $PIP_INSTALL pip
-  # Install Miniconda: it's the simplest way to get up-to-date versions of NumPy, SciPy and Matplotlib
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda/bin:$PATH
-  - conda update --yes conda
-  # The next couple lines fix a crash with multiprocessing on Travis
+  - $PIP_INSTALL pip
+  - uname -a
+  - printenv
+  # The next two lines fix a crash with multiprocessing on Travis
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
-  # For Ubuntu 14.04 VMs (when it'll be avaialable)
-  # - sudo apt-get -qq install python-numpy python-scipy python-matplotlib python-networkx
-  # - $PIP_INSTALL fnss
+
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose dateutil pandas statsmodels
-  - $PIP_INSTALL networkx
-  - $PIP_INSTALL fnss
+  - $PIP_INSTALL atlas numpy scipy matplotlib nose dateutil pandas statsmodels networkx fnss
 
 script:
-  - "nosetests"
+  - nosetests
