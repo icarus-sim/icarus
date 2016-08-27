@@ -37,7 +37,7 @@ before_install:
 
 
 install:
-  - $PIP_INSTALL atlas numpy scipy matplotlib nose dateutil pandas statsmodels networkx fnss
+  - $PIP_INSTALL atlas numpy scipy matplotlib pytest dateutil pandas statsmodels networkx fnss
 
 script:
-  - nosetests
+  - python test.py
