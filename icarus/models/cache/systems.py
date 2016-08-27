@@ -1,5 +1,4 @@
-"""Simple networks of caches modelled as single caches.
-"""
+"""Simple networks of caches modeled as single caches."""
 import random
 import numpy as np
 
@@ -7,7 +6,7 @@ from icarus.util import inheritdoc
 from icarus.tools import DiscreteDist
 from icarus.registry import register_cache_policy, CACHE_POLICY
 
-from .cache import Cache
+from .policies import Cache
 
 
 __all__ = [

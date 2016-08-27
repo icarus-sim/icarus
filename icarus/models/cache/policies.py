@@ -65,7 +65,7 @@ class LinkedSet(object):
             self.down = down
 
     def __init__(self, iterable=[]):
-        """Constructuor
+        """Constructor
 
         Parameters
         ----------
