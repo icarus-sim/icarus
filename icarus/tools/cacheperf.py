@@ -17,6 +17,9 @@ __all__ = [
        'che_characteristic_time_simplified',
        'che_per_content_cache_hit_ratio_simplified',
        'che_cache_hit_ratio_simplified',
+       'che_characteristic_time_generalized',
+       'che_per_content_cache_hit_ratio_generalized',
+       'che_cache_hit_ratio_generalized',
        'laoutaris_characteristic_time',
        'laoutaris_per_content_cache_hit_ratio',
        'laoutaris_cache_hit_ratio',
@@ -181,6 +184,126 @@ def che_cache_hit_ratio_simplified(pdf, cache_size):
     return sum(pdf[i]*ch[i] for i in range(len(pdf)))
 
 
+def che_p_in_func(pdf, cache_size, policy, **policy_args):
+    """Return function to compute cache hit ratio of a policy given probability
+    of a content being requested and characteristic time
+
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    policy : str
+        The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
+    """
+    if policy == 'LRU':
+        p_in = lambda p, t: 1 - np.exp(-p*t)
+    elif policy == 'q-LRU':
+        if 'q' not in policy_args:
+            raise ValueError('q parameter not specified')
+        q = policy_args['q']
+        p_in = lambda p, t: q*(1 - np.exp(-p*t))/(np.exp(-p*t) + q*(1 - np.exp(-p*t)))
+    elif policy in ('FIFO', 'RANDOM'):
+        p_in = lambda p, t: p*t/(1 + p*t)
+    else:
+        raise ValueError('policy %s not recognized' % policy)
+    return p_in
+
+
+def che_characteristic_time_generalized(pdf, cache_size, policy, **policy_args):
+    """Return the characteristic time of a cache under a given IRM demand
+    according to the the extension of Che's approximation proposed by Martina
+    et al.
+    This function computes one single characteristic time for all content items.
+
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    policy : str
+        The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
+
+    Returns
+    -------
+    r : float
+        The characteristic time.
+
+    Rereferences
+    ------------
+    V. Martina, M. Garetto, and E. Leonardi, "A unified approach to the
+    performance analysis of caching systems," in Proceedings of the 2014
+    IEEE Conference on Computer Communications (INFOCOM'14), April 2014
+    """
+    p_in = che_p_in_func(pdf, cache_size, policy, **policy_args)
+    def func_t(t):
+        return np.sum(p_in(pdf, t)) - cache_size
+    return fsolve(func_t, x0=cache_size)[0]
+
+
+def che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy,
+                                                **policy_args):
+    """Estimate the cache hit ratio of an item or of all items in a cache
+    subject to IRM demand according to the extension of Che's approximation
+    proposed by Martina et al.
+
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    policy : str, optional
+        The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
+
+    Returns
+    -------
+    cache_hit_ratio : array of float or float
+        If target is None, returns an array with the cache hit ratios of all
+        items in the population. If a target is specified, then it returns
+        the cache hit ratio of only the specified item.
+
+    Rereferences
+    ------------
+    V. Martina, M. Garetto, and E. Leonardi, "A unified approach to the
+    performance analysis of caching systems," in Proceedings of the 2014
+    IEEE Conference on Computer Communications (INFOCOM'14), April 2014
+    """
+    p_in = che_p_in_func(pdf, cache_size, policy, **policy_args)
+    t = che_characteristic_time_generalized(pdf, cache_size, policy, **policy_args)
+    return p_in(pdf, t)
+
+
+def che_cache_hit_ratio_generalized(pdf, cache_size, policy='LRU', **policy_args):
+    """Estimate the overall cache hit ratio of a cache subject to IRM demand
+    according to the extension of Che's approximation proposed by Martina et al.
+    
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    policy : str, optional
+        The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
+
+    Returns
+    -------
+    cache_hit_ratio : float
+        The overall cache hit ratio
+
+    Rereferences
+    ------------
+    V. Martina, M. Garetto, and E. Leonardi, "A unified approach to the
+    performance analysis of caching systems," in Proceedings of the 2014
+    IEEE Conference on Computer Communications (INFOCOM'14), April 2014
+    """
+    ch = che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy, **policy_args)
+    return sum(pdf[i]*ch[i] for i in range(len(pdf)))
+
+
 def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
     """Estimates the Che's characteristic time of an LRU cache under general
     power-law demand using the Laoutaris approximation.
@@ -324,7 +447,7 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
         raise ValueError('Cannot compute cache hit ratio using this method. '
                          'Could not find positive values of characteristic time'
                          ' greater than the cache size.')
- 
+
 
 def laoutaris_per_content_cache_hit_ratio(alpha, population, cache_size,
                                           order=3, target=None):
