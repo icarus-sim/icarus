@@ -66,7 +66,7 @@ def draw_stack_deployment(topology, filename, plotdir):
     node_color = [COLORMAP[stack[v]] for v in topology.nodes_iter()]
     plt.figure()
     nx.draw_graphviz(topology, node_color=node_color, with_labels=False)
-    plt.savefig(plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight'))
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
     
 
 def draw_network_load(topology, result, filename, plotdir):
@@ -108,5 +108,4 @@ def draw_network_load(topology, result, filename, plotdir):
                      edge_color=link_load, 
                      edge_cmap=mpl.colors.LinearSegmentedColormap.from_list('bluered',['blue','red']),
                      with_labels=False)
-    plt.savefig(plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight'))
-
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
