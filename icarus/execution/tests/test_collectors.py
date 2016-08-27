@@ -110,3 +110,55 @@ class TestLinkLoadCollector(unittest.TestCase):
         ext_load = res['PER_LINK_INTERNAL']
         self.assertEqual(0, mean_ext)
         self.assertEqual(0, len(ext_load))
+
+
+class TestLatencyCollector(unittest.TestCase):
+
+    def test_base(self):
+
+        link_delay = {(1, 2): 2, (2, 3): 10,
+                      (2, 1): 4, (3, 2): 20}
+        view = type('MockNetworkView', (), {'link_delay': lambda s, u, v: link_delay[(u, v)]})()
+
+        c = collectors.LatencyCollector(view)
+
+        c.start_session(3.0, 1, 'CONTENT')
+        c.request_hop(1, 2)
+        c.content_hop(2, 1)
+        c.end_session()
+
+        c.start_session(5.0, 1, 'CONTENT')
+        c.request_hop(1, 2)
+        c.request_hop(2, 3)
+        c.content_hop(3, 2)
+        c.content_hop(2, 1)
+        c.end_session()
+
+        res = c.results()
+        self.assertEqual((10 + 20 + 2 * (2 + 4)) / 2, res['MEAN'])
+
+    def test_main_path(self):
+
+        link_delay = {(1, 2): 2, (2, 3): 10,
+                      (2, 1): 4, (3, 2): 20}
+        view = type('MockNetworkView', (), {'link_delay': lambda s, u, v: link_delay[(u, v)]})()
+
+        c = collectors.LatencyCollector(view)
+
+        c.start_session(3.0, 1, 'CONTENT')
+        c.request_hop(1, 2)
+        c.content_hop(2, 1)
+        c.end_session()
+
+        c.start_session(5.0, 1, 'CONTENT')
+        c.request_hop(1, 2)
+        c.request_hop(2, 3)
+        c.request_hop(2, 1, main_path=False)
+        c.content_hop(3, 2)
+        c.content_hop(2, 1)
+        c.content_hop(2, 3, main_path=False)
+        c.end_session()
+
+        res = c.results()
+        self.assertEqual((10 + 20 + 2 * (2 + 4)) / 2, res['MEAN'])
+
