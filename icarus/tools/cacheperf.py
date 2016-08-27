@@ -413,6 +413,8 @@ def optimal_cache_hit_ratio(pdf, cache_size):
     cache_hit_ratio : float
         The optimal cache hit ratio
     """
+    if cache_size >= len(pdf):
+        return 1.0
     return sum(sorted(pdf, reverse=True)[:cache_size])
 
 
