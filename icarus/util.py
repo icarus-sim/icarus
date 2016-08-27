@@ -502,7 +502,7 @@ def inheritdoc(cls):
     (with the same name of the method to which this decorator is applied) whose
     docstring is to be replicated. It is possible to implement more complex
     decorators which identify the superclass automatically. There are examples
-    available in the Web (e.g. http://code.activestate.com/recipes/576862/),
+    available in the Web (e.g., http://code.activestate.com/recipes/576862/),
     however, the increased complexity leads to issues of interactions with
     other decorators.
     This implementation is simple, easy to understand and works well with
@@ -610,7 +610,7 @@ def step_cdf(x, y):
 
 def can_import(statement):
     """Try executing an import statement and return True if succeeds or False
-    othrwise
+    otherwise
     
     Parameters
     ----------
