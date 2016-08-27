@@ -249,6 +249,41 @@ class TestCache(unittest.TestCase):
         self.assertEquals(c.dump(), [])
     
 
+class TestMinCache(unittest.TestCase):
+
+    def test_get_put(self):
+        trace = [1, 2, 3, 4, 4, 2, 1]
+        c = cache.BeladyMinCache(2, trace)
+        self.assertFalse(c.get(1))
+        self.assertIsNone(c.put(1))
+        self.assertEqual({1}, set(c.dump()))
+        self.assertFalse(c.get(2))
+        self.assertIsNone(c.put(2))
+        self.assertEqual({1, 2}, set(c.dump()))
+        self.assertFalse(c.get(3))
+        self.assertIsNone(c.put(3))
+        self.assertEqual({1, 2}, set(c.dump()))
+        self.assertFalse(c.get(4))
+        self.assertEqual(c.put(4), 1)
+        self.assertEqual({4, 2}, set(c.dump()))
+        self.assertTrue(c.get(4))
+        self.assertEqual({4, 2}, set(c.dump()))
+        self.assertTrue(c.get(2))
+        self.assertEqual({4, 2}, set(c.dump()))
+        self.assertFalse(c.get(1))
+        self.assertIsNone(c.put(1))
+        self.assertEqual({4, 2}, set(c.dump()))
+
+    def test_get_put_no_hits(self):
+        trace = range(10)
+        size = 3
+        c = cache.BeladyMinCache(3, trace)
+        for i in trace:
+            self.assertFalse(c.get(i))
+            self.assertIsNone(c.put(i))
+            self.assertEqual(set(range(min(i+1, size))), set(c.dump()))
+
+
 class TestLruCache(unittest.TestCase):
 
     def test_lru(self):

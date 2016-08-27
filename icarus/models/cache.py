@@ -19,6 +19,7 @@ __all__ = [
         'LinkedSet',
         'Cache',
         'NullCache',
+        'BeladyMinCache',
         'LruCache',
         'SegmentedLruCache',
         'InCacheLfuCache',
@@ -734,6 +735,85 @@ class NullCache(Cache):
     @inheritdoc(Cache)
     def clear(self):
         pass
+
+@register_cache_policy('MIN')
+class BeladyMinCache(Cache):
+    """Belady's MIN cache replacement policy
+
+    The Belady's MIN policy is the provably optimal cache replacement policy
+    under arbitrary workload. Each time an item is inserted into a full cache,
+    it evicts the item that will be requested next the latest.
+
+    This policy is not implementable in practice because it requires knowledge
+    of future requests, however it is very useful as a theoretical performance
+    upper bound.
+    """
+
+    @inheritdoc(Cache)
+    def __init__(self, maxlen, trace, **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        maxlen : int
+            The maximum number of items the cache can store
+        trace : iterable
+            Trace of requests that the cache will be subject to
+        """
+        self._maxlen = int(maxlen)
+        if self._maxlen <= 0:
+            raise ValueError('maxlen must be positive')
+        self._next = defaultdict(deque)
+        for i, k in enumerate(trace):
+            self._next[k].append(i)
+        for k in self._next.values():
+            k.append(np.infty)
+        self._cache = {}
+
+    @inheritdoc(Cache)
+    def __len__(self):
+        return len(self._cache)
+
+    @property
+    @inheritdoc(Cache)
+    def maxlen(self):
+        return self._maxlen
+
+    @inheritdoc(Cache)
+    def dump(self):
+        return set(self._cache.keys())
+
+    @inheritdoc(Cache)
+    def has(self, k, *args, **kwargs):
+        return k in self._cache
+
+    @inheritdoc(Cache)
+    def get(self, k, *args, **kwargs):
+        self._next[k].popleft()
+        return k in self._cache
+        
+    def put(self, k, *args, **kwargs):
+        if len(self) < self.maxlen:
+            self._cache[k] = self._next[k]
+            return None
+        next_cache = max(self._cache, key=lambda k: self._cache[k][0])
+        if self._next[k][0] < self._next[next_cache][0]:
+            self._cache.pop(next_cache)
+            self._cache[k] = self._next[k]
+            return next_cache
+        else:
+            return None
+
+    @inheritdoc(Cache)
+    def remove(self, k, *args, **kwargs):
+        if k not in self._cache:
+            return False
+        self._cache.pop(k)
+        return True
+
+    @inheritdoc(Cache)
+    def clear(self):
+        self._cache.clear()
 
 
 @register_cache_policy('LRU')
