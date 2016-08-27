@@ -3,7 +3,7 @@
 The simulation engine, given the parameters according to which a single
 experiments needs to be run, instantiates all the required classes and executes
 the experiment by iterating through the event provided by an event generator
-and providing them to a strategy instance. 
+and providing them to a strategy instance.
 """
 from icarus.execution import NetworkModel, NetworkView, NetworkController, CollectorProxy
 from icarus.registry import DATA_COLLECTOR, STRATEGY
@@ -14,7 +14,7 @@ __all__ = ['exec_experiment']
 
 def exec_experiment(topology, workload, netconf, strategy, cache_policy, collectors):
     """Execute the simulation of a specific scenario.
-    
+
     Parameters
     ----------
     topology : Topology
@@ -37,7 +37,7 @@ def exec_experiment(topology, workload, netconf, strategy, cache_policy, collect
         The collectors to be used. It is a dictionary in which keys are the
         names of collectors to use and values are dictionaries of attributes
         for the collector they refer to.
-         
+
     Returns
     -------
     results : Tree
@@ -46,16 +46,16 @@ def exec_experiment(topology, workload, netconf, strategy, cache_policy, collect
     model = NetworkModel(topology, cache_policy, **netconf)
     view = NetworkView(model)
     controller = NetworkController(model)
-    
+
     collectors_inst = [DATA_COLLECTOR[name](view, **params)
                        for name, params in collectors.items()]
     collector = CollectorProxy(view, collectors_inst)
     controller.attach_collector(collector)
-    
+
     strategy_name = strategy['name']
     strategy_args = {k: v for k, v in strategy.items() if k != 'name'}
     strategy_inst = STRATEGY[strategy_name](view, controller, **strategy_args)
-    
+
     for time, event in workload:
         strategy_inst.process_event(time, **event)
     return collector.results()

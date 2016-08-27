@@ -5,7 +5,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 import collections
 
@@ -17,10 +17,10 @@ import icarus.tools as stats
 class TestMeansConfidenceInterval(unittest.TestCase):
 
     def test_all_equal(self):
-        mean, err = stats.means_confidence_interval([1,1,1,1,1], 0.95)
+        mean, err = stats.means_confidence_interval([1, 1, 1, 1, 1], 0.95)
         self.assertEquals(1, mean)
         self.assertEquals(0, err)
-    
+
 
 class TestDiscreteDist(unittest.TestCase):
 
@@ -31,7 +31,7 @@ class TestDiscreteDist(unittest.TestCase):
         pdf_1 = np.array([0.4, 0.6])
         pdf_2 = stats.DiscreteDist(pdf_1).pdf
         self.assertTrue(all(pdf_1[i] == pdf_2[i] for i in range(len(pdf_1))))
-        
+
 class TestTruncatedZipfDist(unittest.TestCase):
 
     def test_pdf_sum(self):
@@ -67,13 +67,13 @@ class TestCdf(unittest.TestCase):
         x, cdf = stats.cdf(data)
         self.assertEqual(len(x), 2000)
         self.assertAlmostEqual(cdf[-1], 1.0)
-        
+
     def test_cdf_array_input(self):
         data = np.array(list(range(2000)))
         x, cdf = stats.cdf(data)
         self.assertEqual(len(x), 2000)
         self.assertAlmostEqual(cdf[-1], 1.0)
-        
+
     def test_cdf_all_zeros(self):
         data = np.zeros(200)
         x, cdf = stats.cdf(data)
@@ -84,5 +84,4 @@ class TestCdf(unittest.TestCase):
         for i in range(len(exp_x)):
             self.assertAlmostEqual(x[i], exp_x[i])
             self.assertAlmostEqual(cdf[i], exp_cdf[i])
-        
-        
+

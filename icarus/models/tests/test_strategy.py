@@ -5,7 +5,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 import fnss
 
@@ -22,8 +22,8 @@ class TestHashroutingEdge(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     @classmethod
     def topology(cls):
         #
@@ -40,7 +40,7 @@ class TestHashroutingEdge(unittest.TestCase):
             fnss.add_stack(topology, v, "router", {"cache_size": 4})
         topology.graph['icr_candidates'] = set([1, 2, 3, 4])
         return topology
-    
+
     def setUp(self):
         topology = self.topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -87,7 +87,7 @@ class TestHashroutingEdge(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(1, summary['serving_node'])
-        # Now request content 6 which should replace 4 in the local cache of 1 
+        # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 7, True)
         loc = self.view.content_locations(7)
@@ -161,7 +161,7 @@ class TestHashroutingEdge(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(4, summary['serving_node'])
-        # Now request content 6 which should replace 4 in the local cache of 1 
+        # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 7, True)
         loc = self.view.content_locations(7)
@@ -235,7 +235,7 @@ class TestHashroutingEdge(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(1, summary['serving_node'])
-        # Now request content 6 which should replace 4 in the local cache of 1 
+        # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 7, True)
         loc = self.view.content_locations(7)
@@ -282,8 +282,8 @@ class TestHashroutingOnPath(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     @classmethod
     def topology(cls):
         #
@@ -300,7 +300,7 @@ class TestHashroutingOnPath(unittest.TestCase):
             fnss.add_stack(topology, v, "router", {"cache_size": 4})
         topology.graph['icr_candidates'] = set([1, 2, 3, 4])
         return topology
-    
+
     def setUp(self):
         topology = self.topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -347,7 +347,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(1, summary['serving_node'])
-        # Now request content 7 which should replace 4 in the local cache of 1 
+        # Now request content 7 which should replace 4 in the local cache of 1
         # but not 3, because 7 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 7, True)
         loc = self.view.content_locations(7)
@@ -421,7 +421,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(4, summary['serving_node'])
-        # Now request content 6 which should replace 4 in the local cache of 1 
+        # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 7, True)
         loc = self.view.content_locations(7)
@@ -495,7 +495,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(1, summary['serving_node'])
-        # Now request content 6 which should replace 4 in the local cache of 1 
+        # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 7, True)
         loc = self.view.content_locations(7)
@@ -504,7 +504,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertTrue(self.view.local_cache_lookup(1, 7))
         self.assertTrue(self.view.local_cache_lookup(2, 7))
         # Note: this assertion below is false, because we never store items
-        # for the authoritative cache in the uncoordinated section, even if 
+        # for the authoritative cache in the uncoordinated section, even if
         # the coordinated cache is empty
         self.assertFalse(self.view.local_cache_lookup(3, 7))
         summary = self.collector.session_summary()
@@ -545,8 +545,8 @@ class TestHashroutingClustered(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     @classmethod
     def clustered_topology(cls):
         """Return topology for testing off-path caching strategies
@@ -554,8 +554,8 @@ class TestHashroutingClustered(unittest.TestCase):
         # Topology sketch
         #
         #             3                         6
-        #            /  \                      /  \ 
-        #           /    \                    /    \  
+        #            /  \                      /  \
+        #           /    \                    /    \
         # RCV ---- 1 ---- 2 -[HIGH_DELAY]--- 4 ---- 5 ---- SRC
         #
         topology = IcnTopology()
@@ -566,7 +566,7 @@ class TestHashroutingClustered(unittest.TestCase):
         fnss.set_delays_constant(topology, 15, 'ms', [(2, 4)])
         caches = (1, 2, 3, 4, 5, 6)
         contents = [1, 2, 3]
-        clusters = [set([1,2,3]), set([4,5,6])]
+        clusters = [set([1, 2, 3]), set([4, 5, 6])]
         topology.graph['icr_candidates'] = set(caches)
         topology.graph['clusters'] = clusters
         fnss.add_stack(topology, "RCV", 'receiver', {})
@@ -575,9 +575,9 @@ class TestHashroutingClustered(unittest.TestCase):
         topology.node["SRC"]["cluster"] = 1
         for v in caches:
             fnss.add_stack(topology, v, 'router', {'cache_size': 1})
-            topology.node[v]["cluster"] = (v-1)//3
+            topology.node[v]["cluster"] = (v - 1) // 3
         return topology
-    
+
     def setUp(self):
         topology = self.clustered_topology()
         self.model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -594,7 +594,7 @@ class TestHashroutingClustered(unittest.TestCase):
         hr = strategy.HashroutingClustered(self.view, self.controller,
                                            intra_routing='SYMM',
                                            inter_routing='LCE')
-        hr.authoritative_cache = lambda x, cluster: cluster*3 + x
+        hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -646,7 +646,7 @@ class TestHashroutingClustered(unittest.TestCase):
         hr = strategy.HashroutingClustered(self.view, self.controller,
                                            intra_routing='ASYMM',
                                            inter_routing='LCE')
-        hr.authoritative_cache = lambda x, cluster: cluster*3 + x
+        hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -697,7 +697,7 @@ class TestHashroutingClustered(unittest.TestCase):
         hr = strategy.HashroutingClustered(self.view, self.controller,
                                            intra_routing='MULTICAST',
                                            inter_routing='LCE')
-        hr.authoritative_cache = lambda x, cluster: cluster*3 + x
+        hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -749,7 +749,7 @@ class TestHashroutingClustered(unittest.TestCase):
         hr = strategy.HashroutingClustered(self.view, self.controller,
                                            intra_routing='SYMM',
                                            inter_routing='EDGE')
-        hr.authoritative_cache = lambda x, cluster: cluster*3 + x
+        hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -790,7 +790,7 @@ class TestHashroutingClustered(unittest.TestCase):
         self.assertNotIn(6, loc)
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
-        exp_cont_hops = [("SRC", 5),(5, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
+        exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
@@ -801,7 +801,7 @@ class TestHashroutingClustered(unittest.TestCase):
         hr = strategy.HashroutingClustered(self.view, self.controller,
                                            intra_routing='ASYMM',
                                            inter_routing='EDGE')
-        hr.authoritative_cache = lambda x, cluster: cluster*3 + x
+        hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -852,7 +852,7 @@ class TestHashroutingClustered(unittest.TestCase):
         hr = strategy.HashroutingClustered(self.view, self.controller,
                                            intra_routing='MULTICAST',
                                            inter_routing='EDGE')
-        hr.authoritative_cache = lambda x, cluster: cluster*3 + x
+        hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -911,17 +911,17 @@ class TestHashrouting(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
-    
+
     @classmethod
     def topology(cls):
         """Return topology for testing off-path caching strategies
         """
         # Topology sketch
         #
-        #     -------- 5 ----------  
+        #     -------- 5 ----------
         #    /                      \
         #   /                        \
-        # 0 ---- 1 ---- 2 ---- 3 ---- 4 
+        # 0 ---- 1 ---- 2 ---- 3 ---- 4
         #               |
         #               |
         #               6
@@ -930,7 +930,7 @@ class TestHashrouting(unittest.TestCase):
         topology.add_edge(2, 6)
         topology.add_edge(1, 7)
         source = 4
-        receivers = (0, 6, 7) 
+        receivers = (0, 6, 7)
         caches = (1, 2, 3, 5)
         contents = caches
         fnss.add_stack(topology, source, 'source', {'contents': contents})
@@ -939,7 +939,7 @@ class TestHashrouting(unittest.TestCase):
         for v in receivers:
             fnss.add_stack(topology, v, 'receiver', {})
         return topology
-    
+
     def setUp(self):
         topology = self.topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -1078,7 +1078,7 @@ class TestHashrouting(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-   
+
     def test_hashrouting_hybrid_am(self):
         hr = strategy.HashroutingHybridAM(self.view, self.controller, max_stretch=0.3)
         hr.authoritative_cache = lambda x: x
@@ -1119,7 +1119,7 @@ class TestHashrouting(unittest.TestCase):
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops)) 
+        self.assertSetEqual(exp_cont_hops, set(cont_hops))
 
     def test_hashrouting_hybrid_am_max_stretch_0(self):
         hr = strategy.HashroutingHybridAM(self.view, self.controller, max_stretch=0)
@@ -1236,14 +1236,14 @@ class TestHashrouting(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-        
+
     def test_hashrouting_hybrid_sm_multi_options(self):
         # NOTE: The following test case will fail because NetworkX returns as
         # shortest path from 4 to 1: 4-5-0-1. There is also another shortest
         # path: 4-3-2-1. The best delivery strategy overall would be multicast
         # but because of NetworkX selecting the least convenient shortest path
         # the computed solution is symmetric with path: 4-5-0-1-2-6.
-        pass 
+        pass
 #        # At time 1, receiver 6 requests content 1, expect multicast
 #        hr = strategy.HashroutingHybridSM(self.view, self.controller)
 #        hr.authoritative_cache = lambda x: x
@@ -1258,7 +1258,7 @@ class TestHashrouting(unittest.TestCase):
 #        req_hops = summary['request_hops']
 #        cont_hops = summary['content_hops']
 #        self.assertSetEqual(exp_req_hops, set(req_hops))
-#        self.assertSetEqual(exp_cont_hops, set(cont_hops)) 
+#        self.assertSetEqual(exp_cont_hops, set(cont_hops))
 
 class TestOnPath(unittest.TestCase):
 
@@ -1268,12 +1268,12 @@ class TestOnPath(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     @classmethod
     def on_path_topology(cls):
         """Return topology for testing on-path caching strategies
-        """ 
+        """
         # Topology sketch
         #
         # 0 ---- 1 ---- 2 ---- 3 ---- 4
@@ -1284,7 +1284,7 @@ class TestOnPath(unittest.TestCase):
         topology = IcnTopology(fnss.line_topology(5))
         topology.add_edge(2, 5)
         source = 4
-        receivers = (0, 5) 
+        receivers = (0, 5)
         caches = (1, 2, 3)
         contents = caches
         fnss.add_stack(topology, source, 'source', {'contents': contents})
@@ -1293,7 +1293,7 @@ class TestOnPath(unittest.TestCase):
         for v in receivers:
             fnss.add_stack(topology, v, 'receiver', {})
         return topology
-        
+
     def setUp(self):
         topology = self.on_path_topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -1301,10 +1301,10 @@ class TestOnPath(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = TestCollector(self.view)
         self.controller.attach_collector(self.collector)
-        
+
     def tearDown(self):
         pass
-    
+
     def test_lce_same_content(self):
         hr = strategy.LeaveCopyEverywhere(self.view, self.controller)
         # receiver 0 requests 2, expect miss
@@ -1337,7 +1337,7 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-        
+
     def test_lce_different_content(self):
         hr = strategy.LeaveCopyEverywhere(self.view, self.controller)
         # receiver 0 requests 2, expect miss
@@ -1534,7 +1534,7 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        
+
     def test_cl4m(self):
         hr = strategy.CacheLessForMore(self.view, self.controller)
         # receiver 0 requests 2, expect miss
@@ -1581,7 +1581,7 @@ class TestOnPath(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        
+
     def test_random_choice(self):
         hr = strategy.RandomChoice(self.view, self.controller)
         hr.process_event(1, 0, 2, True)
@@ -1590,7 +1590,7 @@ class TestOnPath(unittest.TestCase):
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         self.assertEqual(4, summary['serving_node'])
-        
+
     def test_random_bernoulli(self):
         hr = strategy.RandomBernoulli(self.view, self.controller)
         hr.process_event(1, 0, 2, True)
@@ -1598,7 +1598,7 @@ class TestOnPath(unittest.TestCase):
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         self.assertEqual(4, summary['serving_node'])
-        
+
     def test_random_bernoulli_p_0(self):
         hr = strategy.RandomBernoulli(self.view, self.controller, p=0)
         hr.process_event(1, 0, 2, True)
@@ -1617,7 +1617,7 @@ class TestOnPath(unittest.TestCase):
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         self.assertEqual(4, summary['serving_node'])
-        
+
     def test_random_bernoulli_p_1(self):
         hr = strategy.RandomBernoulli(self.view, self.controller, p=1)
         hr.process_event(1, 0, 2, True)
@@ -1636,7 +1636,7 @@ class TestOnPath(unittest.TestCase):
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         self.assertEqual(1, summary['serving_node'])
-        
+
 
 class TestPartition(unittest.TestCase):
 
@@ -1647,15 +1647,15 @@ class TestPartition(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
-    
+
     @classmethod
     def partition_topology(cls):
         #
-        #      +-- s1 --+ 
+        #      +-- s1 --+
         #     /     |    \
         #   c1-----[]----c2
-        #         /  \    
-        #        r1  r2  
+        #         /  \
+        #        r1  r2
         #
         topo = fnss.Topology()
         icr_candidates = ["c1", "router", "c2"]
@@ -1663,7 +1663,7 @@ class TestPartition(unittest.TestCase):
         topo.add_edge("r1", "router")
         topo.add_edge("r2", "router")
         topo.add_edge("c1", "s1")
-        topo.add_edge("c2", "s1")  
+        topo.add_edge("c2", "s1")
         topo.graph['icr_candidates'] = set(icr_candidates)
         contents = (1, 2, 3, 4)
         for router in icr_candidates:
@@ -1676,7 +1676,7 @@ class TestPartition(unittest.TestCase):
             fnss.add_stack(topo, rcv, 'receiver')
         topo.graph['cache_assignment'] = {"r1": "c1", "r2": "c2"}
         return IcnTopology(topo)
-    
+
     def setUp(self):
         topology = self.partition_topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -1684,7 +1684,7 @@ class TestPartition(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = TestCollector(self.view)
         self.controller.attach_collector(self.collector)
-        
+
     def tearDown(self):
         pass
 
@@ -1741,7 +1741,7 @@ class TestPartition(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
         self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
         self.assertEqual("c2", summary['serving_node'])
-       
+
 
 class TestNrr(unittest.TestCase):
     """Test suite for Nearest Replica Routing strategies
@@ -1753,25 +1753,25 @@ class TestNrr(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     @classmethod
     def nrr_topology(cls):
         """Return topology for testing NRR caching strategies
         """
         # Topology sketch
         #
-        # 0 ---- 2----- 4 
+        # 0 ---- 2----- 4
         #        |       \
         #        |        s
         #        |       /
-        # 1 ---- 3 ---- 5  
+        # 1 ---- 3 ---- 5
         #
         topology = IcnTopology(fnss.Topology())
         topology.add_path([0, 2, 4, "s", 5, 3, 1])
         topology.add_edge(2, 3)
         receivers = (0, 1)
-        source = "s" 
+        source = "s"
         caches = (2, 3, 4, 5)
         contents = (1, 2, 3, 4)
         fnss.add_stack(topology, source, 'source', {'contents': contents})
@@ -1781,7 +1781,7 @@ class TestNrr(unittest.TestCase):
             fnss.add_stack(topology, v, 'receiver', {})
         fnss.set_delays_constant(topology, 1, 'ms')
         return topology
-    
+
     def setUp(self):
         topology = self.nrr_topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
@@ -1789,10 +1789,10 @@ class TestNrr(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = TestCollector(self.view)
         self.controller.attach_collector(self.collector)
-        
+
     def tearDown(self):
         pass
-    
+
     def test_lce(self):
         hr = strategy.NearestReplicaRouting(self.view, self.controller, metacaching='LCE')
         # receiver 0 requests 2, expect miss
@@ -1838,7 +1838,7 @@ class TestNrr(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
         self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
         self.assertEqual(3, summary['serving_node'])
-        
+
 
     def test_lcd(self):
         hr = strategy.NearestReplicaRouting(self.view, self.controller, metacaching='LCD')

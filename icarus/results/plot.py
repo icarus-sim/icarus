@@ -19,10 +19,10 @@ __all__ = ['plot_lines', 'plot_bar_chart', 'plot_cdf']
 # These lines prevent insertion of Type 3 fonts in figures
 # Publishers don't want them. However, in some case these commands block the
 # embedding of fonts raising complaints for example from EDAS
-#plt.rcParams['ps.useafm'] = True
-#plt.rcParams['pdf.use14corefonts'] = True
+# plt.rcParams['ps.useafm'] = True
+# plt.rcParams['pdf.use14corefonts'] = True
 
-# If True text is interpreted as LaTeX, e.g. underscore are interpreted as 
+# If True text is interpreted as LaTeX, e.g. underscore are interpreted as
 # subscript. If False, text is interpreted literally
 plt.rcParams['text.usetex'] = False
 
@@ -39,13 +39,13 @@ PLOT_EMPTY_GRAPHS = False
 BW_COLOR_CATALOGUE = ['k', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9']
 
 # Catalogue of possible hatch styles (for bar charts)
-HATCH_CATALOGUE = [None, '/', '\\', '\\\\', '//', '+', 'x', '*', 'o', '.',  '|', '-',  'O']
+HATCH_CATALOGUE = [None, '/', '\\', '\\\\', '//', '+', 'x', '*', 'o', '.', '|', '-', 'O']
 
-    
+
 def plot_lines(resultset, desc, filename, plotdir):
     """Plot a graph with characteristics described in the plot descriptor out
     of the data contained in the resultset and save the plot in given directory.
-    
+
     Parameters
     ----------
     rs : ResultSet
@@ -58,12 +58,12 @@ def plot_lines(resultset, desc, filename, plotdir):
         file will be saved in pdf format.
     plotdir : str
         The directory in which the plot will be saved.
-    
+
     Notes
     -----
     The plot descriptor is a dictionary with a set of values that describe how
     to make the plot.
-    
+
     The dictionary can contain the following keys:
      * title : str, optional.
            The title of the graph
@@ -192,7 +192,7 @@ def plot_lines(resultset, desc, filename, plotdir):
             data = [v.getval(ymetrics[i])
                     for _, v in resultset.filter(condition)
                     if v.getval(ymetrics[i]) is not None]
-            confidence = desc['confidence'] if 'confidence' in desc else 0.95 
+            confidence = desc['confidence'] if 'confidence' in desc else 0.95
             means[j], err[j] = means_confidence_interval(data, confidence)
         yerr = None if 'errorbar' in desc and not desc['errorbar'] or all(err == 0) else err
         fmt = desc['line_style'][yvals[i]] if 'line_style' in desc \
@@ -227,7 +227,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     """Plot a bar chart with characteristics described in the plot descriptor
     out of the data contained in the resultset and save the plot in given
     directory.
-    
+
     Parameters
     ----------
     rs : ResultSet
@@ -240,12 +240,12 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
         file will be saved in pdf format.
     plotdir : str
         The directory in which the plot will be saved.
-    
+
     Notes
     -----
     The plot descriptor is a dictionary with a set of values that describe how
     to make the plot.
-    
+
     The dictionary can contain the following keys:
      * title : str, optional.
            The title of the graph
@@ -305,7 +305,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
          the number of items is the number of columns and the actual value of
          an items is the number of metrics stacked on the column. For example
          [4,2,3] means plotting 4 + 2 + 3 = 9 metrics: 4 stacked in the first
-         column, 2 stacked on the second and 3 stacked on the third  
+         column, 2 stacked on the second and 3 stacked on the third
          If *True*, draw all bars of a group stacked on top of each other.
          Default value is *False*.
      * group_width : float, default: 0.4
@@ -345,7 +345,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     if 'filter' not in desc or desc['filter'] is None:
         desc['filter'] = {}
     plot_empty = desc['plotempty'] if 'plotempty' in desc else True
-    
+
     ymetrics = desc['ymetrics']
     ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
     ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
@@ -371,12 +371,12 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     empty = True
     # Spacing attributes
     # width of a group of bars
-    group_width = desc['group_width'] if 'group_width' in desc else 0.4 
-    width = group_width/len(placement)          # width of a single bar
-    separation = width/2                        # space between adjacent groups
-    border = 0.6 * separation                   # left and right borders
-        
-    elem = collections.defaultdict(int)         # bar objects (for legend)
+    group_width = desc['group_width'] if 'group_width' in desc else 0.4
+    width = group_width / len(placement)  # width of a single bar
+    separation = width / 2  # space between adjacent groups
+    border = 0.6 * separation  # left and right borders
+
+    elem = collections.defaultdict(int)  # bar objects (for legend)
     # Select colors and hatches
     if 'bar_color' in desc and all(y in desc['bar_color'] for y in yvals):
         color = desc['bar_color']
@@ -393,11 +393,11 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     else:
         hatch = collections.defaultdict(lambda: None)
     # Plot bars
-    left = border    # left-most point of the bar about to draw
+    left = border  # left-most point of the bar about to draw
     for i in range(len(desc['xvals'])):
         l = 0
         for x in placement:
-            bottom = 0   # Bottom point of a bar. It is alway 0 if stacked is False
+            bottom = 0  # Bottom point of a bar. It is alway 0 if stacked is False
             for y in range(x):
                 condition = Tree(desc['filter'])
                 condition.setval(desc['xparam'], desc['xvals'][i])
@@ -406,13 +406,13 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
                 data = [v.getval(ymetrics[l])
                         for _, v in resultset.filter(condition)
                         if v.getval(ymetrics[l]) is not None]
-                confidence = desc['confidence'] if 'confidence' in desc else 0.95 
+                confidence = desc['confidence'] if 'confidence' in desc else 0.95
                 meanval, err = means_confidence_interval(data, confidence)
                 yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
                 if not np.isnan(meanval):
                     empty = False
                 elem[yvals[l]] = plt.bar(left, meanval, width,
-                                         color=color[yvals[l]], 
+                                         color=color[yvals[l]],
                                          yerr=yerr, bottom=bottom, ecolor='k',
                                          hatch=hatch[yvals[l]], label=yvals[l])
                 bottom += meanval
@@ -422,8 +422,8 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     if empty and not plot_empty:
         return
     n_bars = len(placement)
-    plt.xticks(border + 0.5*(n_bars*width) + 
-               (separation + n_bars*width)*np.arange(len(xticks)),
+    plt.xticks(border + 0.5 * (n_bars * width) +
+               (separation + n_bars * width) * np.arange(len(xticks)),
                xticks)
     if 'legend' in desc:
         legend = [desc['legend'][l] for l in yvals] if 'legend'in desc else yvals
@@ -445,7 +445,7 @@ def plot_cdf(resultset, desc, filename, plotdir):
     """Plot a CDF with characteristics described in the plot descriptor
     out of the data contained in the resultset and save the plot in given
     directory.
-    
+
     Parameters
     ----------
     rs : ResultSet
@@ -458,12 +458,12 @@ def plot_cdf(resultset, desc, filename, plotdir):
         file will be saved in pdf format.
     plotdir : str
         The directory in which the plot will be saved.
-    
+
     Notes
     -----
     The plot descriptor is a dictionary with a set of values that describe how
     to make the plot.
-    
+
     The dictionary can contain the following keys:
      * title : str, optional.
            The title of the graph
@@ -514,7 +514,7 @@ def plot_cdf(resultset, desc, filename, plotdir):
          all lines are filtered by the conditions of filter parameter only,
          but in this case all ymetrics should be different.
      * xscale : str, optional
-         The scale of x axis. Options allowed are 'linear' and 'log'. 
+         The scale of x axis. Options allowed are 'linear' and 'log'.
          Default value is 'linear'
      * yscale : str, optional
          The scale of y axis. Options allowed are 'linear' and 'log'.
@@ -533,7 +533,7 @@ def plot_cdf(resultset, desc, filename, plotdir):
      * legend_args : dict, optional
          Optional legend arguments, such as ncol
      * plotempty : bool, optional
-         If *True*, plot and save graph even if empty. Default is *True* 
+         If *True*, plot and save graph even if empty. Default is *True*
     """
     fig = plt.figure()
     if 'title' in desc:
@@ -561,12 +561,12 @@ def plot_cdf(resultset, desc, filename, plotdir):
     else:
         yvals = ymetrics
     x_min = np.infty
-    x_max = - np.infty
+    x_max = -np.infty
     empty = True
     for i in range(len(yvals)):
         condition = Tree(desc['filter'])
         if ycondnames is not None:
-            condition.setval(ycondnames[i], ycondvals[i])      
+            condition.setval(ycondnames[i], ycondvals[i])
         data = [v.getval(ymetrics[i])
                 for _, v in resultset.filter(condition)
                 if v.getval(ymetrics[i]) is not None]

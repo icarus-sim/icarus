@@ -20,7 +20,7 @@ __all__ = [
 
 def pam(distances, k, n_iter=10):
     """Compute k-medoids using the PAM algorithm
-    
+
     Parameters
     ----------
     distances : 2-d NumPy array
@@ -31,7 +31,7 @@ def pam(distances, k, n_iter=10):
         Number of iterations to repeat. Each repetition is executed using a
         different initial random assignment. Repetiting the experiment allow
         to reach different local optima, possibly achieving a best solution.
-     
+
     Return
     ------
     clusters : 1-d NumPy array
@@ -41,66 +41,66 @@ def pam(distances, k, n_iter=10):
         Array listing (in no particular order) all medoids
     cost : float
         Cost of the solution
-    
+
     Notes
     -----
-    Implementation based on:    
+    Implementation based on:
     https://github.com/salspaugh/machine_learning/blob/master/clustering/kmedoids.py
     """
     def assign_points_to_clusters(medoids, distances):
         """Return a 1-d array having for at each index the medoid the element
         belongs to.
-         
-        E.g. if point i is mapped to medoid j, clusters[i] = j 
+
+        E.g. if point i is mapped to medoid j, clusters[i] = j
         """
-        distances_to_medoids = distances[:,medoids]
+        distances_to_medoids = distances[:, medoids]
         clusters = medoids[np.argmin(distances_to_medoids, axis=1)]
         clusters[medoids] = medoids
         return clusters
-     
+
     def compute_new_medoid(cluster, distances):
         mask = np.ones(distances.shape)
-        mask[np.ix_(cluster,cluster)] = 0.
+        mask[np.ix_(cluster, cluster)] = 0.
         cluster_distances = np.ma.masked_array(data=distances, mask=mask, fill_value=10e9)
         costs = cluster_distances.sum(axis=1)
         return costs.argmin(axis=0, fill_value=np.inf)
- 
+
     def clusters(distances, k):
-        m = distances.shape[0] # number of points
+        m = distances.shape[0]  # number of points
         if k > m:
             raise ValueError("k is greater than the number of points")
-     
+
         if hasattr(np.random, 'choice'):
             curr_medoids = np.random.choice(np.arange(m, dtype=int), k, replace=False)
         else:
             # This is only if I use NumPy < 1.7
             curr_medoids = np.asarray(random.sample(np.arange(m, dtype=int), k))
-         
+
         old_medoids = np.empty(k)
         new_medoids = np.empty(k)
-        
+
         # Set a negative value to ensure execution of while loop
         old_medoids[0] = -1
-        
+
         # Until the medoids stop updating, do the following:
         while not np.all(old_medoids == curr_medoids):
             # Assign each point to cluster with closest medoid
             clusters = assign_points_to_clusters(curr_medoids, distances)
-     
-            # Update cluster medoids to be lowest cost point. 
+
+            # Update cluster medoids to be lowest cost point.
             for curr_medoid in curr_medoids:
                 cluster = np.where(clusters == curr_medoid)[0]
                 new_medoids[curr_medoids == curr_medoid] = compute_new_medoid(cluster, distances)
-     
+
             old_medoids[:] = curr_medoids[:]
             curr_medoids[:] = new_medoids[:]
             cost = np.sum(distances[np.arange(m), clusters])
         return clusters, curr_medoids, cost
-     
+
     min_cost = np.inf
     opt_clusters = None
     opt_medoids = None
-     
+
     for _ in range(n_iter):
         curr_clusters, curr_medoids, curr_cost = clusters(distances, k)
         if curr_cost < min_cost:
@@ -112,19 +112,19 @@ def pam(distances, k, n_iter=10):
 
 def extract_cluster_level_topology(topology):
     """Build a cluster-level topology.
-    
+
     Each node in the topology must be have the 'cluster' attribute
-    
+
     Parameters
     ----------
     topology : Topology
         The router-level topology
-        
+
     Returns
     -------
     topology : Topology
         The cluster-level topology
-    
+
     Notes
     -----
      * Each router must have a cache deployed
@@ -153,24 +153,24 @@ def extract_cluster_level_topology(topology):
 
 def deploy_clusters(topology, clusters, assign_src_rcv=True):
     """Annotate topology with cluster informations
-    
+
     This function checks that all ICR candidate nodes are assigned exactly
     to one cluster.
-    
+
     If assign_src_rcv is True, then it also labels source and receiver nodes
     to the closest cluster.
-    
-    This function assumes that: 
+
+    This function assumes that:
      * each node of the topology is either an icr_candidate, a source or a receiver
-     * each source and receiver must have degree equal to 1 
-     
+     * each source and receiver must have degree equal to 1
+
     Parameters
     ----------
     topology : Topology
         The topology onto which deploy clusters
     clusters : list of sets
         Router-cluster assignment. Each element of a list is a set of node
-        identifiers. Nodes in the same set belong to the same cluster. 
+        identifiers. Nodes in the same set belong to the same cluster.
         The length of the list therefore corresponds to the number of clusters.
     assign_src_rcv : bool, optional
         If *True*, the function labels source and receiver nodes with the
@@ -202,10 +202,10 @@ def deploy_clusters(topology, clusters, assign_src_rcv=True):
 
 def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
     """Cluster nodes of a topologies as to minimize the intra-cluster latency.
-    
+
     This function assumes that every link is labelled with latencies and
     performs clustering using the k-medoids method with the PAM algorithm.
-    
+
     Parameters
     ----------
     topology : Topology
@@ -217,7 +217,7 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
         If None, hop count is used instead
     n_iter : int, optional
         The number of iterations
-        
+
     Return
     ------
     clusters: list of sets
@@ -229,19 +229,19 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
     if nbunch is not None:
         topology = topology.subgraph(nbunch)
     topology = nx.convert_node_labels_to_integers(topology, label_attribute='label')
-    
+
     if distance is not None:
         for u, v in topology.edges_iter():
             if distance not in topology.edge[u][v]:
                 raise ValueError('Edge (%s, %s) does not have a %s attribute'
-                                 % (str(topology.node[u]['label']), 
+                                 % (str(topology.node[u]['label']),
                                     str(topology.node[v]['label']),
                                     distance))
-    
+
     n = topology.number_of_nodes()
     path = nx.all_pairs_shortest_path(topology)
     distances = np.zeros((n, n))
-    
+
     for u in path:
         for v in path[u]:
             # Note: need to do something about weights and asymmetric paths!
@@ -270,14 +270,14 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
 def compute_p_median(distances, p, n_iter=20):
     """Compute p-median solution using the Adjusted Vertex Substitution (AVS)
     algorithm.
-    
+
     Parameters
     ----------
     distances : dict of dicts
         Distance between nodes
     p : int
         Number of facilities
-     
+
     Return
     ------
     allocation : dict

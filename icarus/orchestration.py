@@ -28,14 +28,14 @@ logger = logging.getLogger('orchestration')
 
 class Orchestrator(object):
     """Orchestrator.
-    
+
     It is responsible for orchestrating the execution of all experiments and
     aggregate results.
     """
 
     def __init__(self, settings, summary_freq=4):
         """Constructor
-        
+
         Parameters
         ----------
         settings : Settings
@@ -54,7 +54,7 @@ class Orchestrator(object):
         self._stop = False
         if self.settings.PARALLEL_EXECUTION:
             self.pool = mp.Pool(settings.N_PROCESSES)
-    
+
     def stop(self):
         """Stop the execution of the orchestrator
         """
@@ -63,23 +63,23 @@ class Orchestrator(object):
         if self.settings.PARALLEL_EXECUTION:
             self.pool.terminate()
             self.pool.join()
-    
+
     def run(self):
         """Run the orchestrator.
-        
+
         This call is blocking, whether multiple processes are used or not. This
         methods returns only after all experiments are executed.
         """
         # Create queue of experiment configurations
         queue = collections.deque(self.settings.EXPERIMENT_QUEUE)
         # Calculate number of experiments and number of processes
-        self.n_exp = len(queue) * self.settings.N_REPLICATIONS 
+        self.n_exp = len(queue) * self.settings.N_REPLICATIONS
         self.n_proc = self.settings.N_PROCESSES \
                       if self.settings.PARALLEL_EXECUTION \
                       else 1
-        logger.info('Starting simulations: %d experiments, %d process(es)' 
+        logger.info('Starting simulations: %d experiments, %d process(es)'
                     % (self.n_exp, self.n_proc))
-        
+
         if self.settings.PARALLEL_EXECUTION:
             # This job queue is used only to keep track of which jobs have
             # finished and which are still running. Currently this information
@@ -109,24 +109,24 @@ class Orchestrator(object):
             except KeyboardInterrupt:
                 self.pool.terminate()
             self.pool.join()
-        
-        else: # Single-process execution
+
+        else:  # Single-process execution
             while queue:
                 experiment = queue.popleft()
                 for _ in range(self.settings.N_REPLICATIONS):
-                    self.experiment_callback(run_scenario(self.settings, 
+                    self.experiment_callback(run_scenario(self.settings,
                                             experiment, self.seq.assign(),
                                             self.n_exp))
                     if self._stop:
                         self.stop()
 
-        logger.info('END | Planned: %d, Completed: %d, Succeeded: %d, Failed: %d', 
+        logger.info('END | Planned: %d, Completed: %d, Succeeded: %d, Failed: %d',
                     self.n_exp, self.n_fail + self.n_success, self.n_success, self.n_fail)
-        
+
 
     def experiment_callback(self, args):
         """Callback method called by run_scenario
-        
+
         Parameters
         ----------
         args : tuple
@@ -148,16 +148,16 @@ class Orchestrator(object):
             n_scheduled = self.n_exp - (self.n_fail + self.n_success)
             # Compute ETA
             n_cores = min(mp.cpu_count(), self.n_proc)
-            mean_duration = sum(self.exp_durations)/len(self.exp_durations)
-            eta = timestr(n_scheduled*mean_duration/n_cores, False)
+            mean_duration = sum(self.exp_durations) / len(self.exp_durations)
+            eta = timestr(n_scheduled * mean_duration / n_cores, False)
             # Print summary
-            logger.info('SUMMARY | Completed: %d, Failed: %d, Scheduled: %d, ETA: %s', 
+            logger.info('SUMMARY | Completed: %d, Failed: %d, Scheduled: %d, ETA: %s',
                         self.n_success, self.n_fail, n_scheduled, eta)
-        
+
 
 def run_scenario(settings, params, curr_exp, n_exp):
     """Run a single scenario experiment
-    
+
     Parameters
     ----------
     settings : Settings
@@ -168,7 +168,7 @@ def run_scenario(settings, params, curr_exp, n_exp):
         sequence number of the experiment
     n_exp : int
         Number of scheduled experiments
-    
+
     Returns
     -------
     results : 3-tuple
@@ -176,19 +176,19 @@ def run_scenario(settings, params, curr_exp, n_exp):
         which stores all the attributes of the experiment. The second element
         is a dictionary which stores the results. The third element is an
         integer expressing the wall-clock duration of the experiment (in
-        seconds) 
+        seconds)
     """
     try:
         start_time = time.time()
         proc_name = mp.current_process().name
         logger = logging.getLogger('runner-%s' % proc_name)
-    
+
         # Get list of metrics required
         metrics = settings.DATA_COLLECTORS
-        
+
         # Copy parameters so that they can be manipulated
         tree = copy.deepcopy(params)
-        
+
         # Set topology
         topology_spec = tree['topology']
         topology_name = topology_spec.pop('name')
@@ -197,7 +197,7 @@ def run_scenario(settings, params, curr_exp, n_exp):
                          % topology_name)
             return None
         topology = TOPOLOGY_FACTORY[topology_name](**topology_spec)
-        
+
         workload_spec = tree['workload']
         workload_name = workload_spec.pop('name')
         if workload_name not in WORKLOAD:
@@ -205,7 +205,7 @@ def run_scenario(settings, params, curr_exp, n_exp):
                          % workload_name)
             return None
         workload = WORKLOAD[workload_name](topology, **workload_spec)
-        
+
         # Assign caches to nodes
         if 'cache_placement' in tree:
             cachepl_spec = tree['cache_placement']
@@ -237,32 +237,32 @@ def run_scenario(settings, params, curr_exp, n_exp):
         if strategy['name'] not in STRATEGY:
             logger.error('No implementation of strategy %s was found.' % strategy['name'])
             return None
-        
+
         # cache eviction policy definition
         cache_policy = tree['cache_policy']
         if cache_policy['name'] not in CACHE_POLICY:
             logger.error('No implementation of cache policy %s was found.' % cache_policy['name'])
             return None
-        
+
         # Configuration parameters of network model
         netconf = tree['netconf']
-        
+
         # Text description of the scenario run to print on screen
         scenario = tree['desc'] if 'desc' in tree else "Description N/A"
 
         logger.info('Experiment %d/%d | Preparing scenario: %s', curr_exp, n_exp, scenario)
-        
+
         if any(m not in DATA_COLLECTOR for m in metrics):
             logger.error('There are no implementations for at least one data collector specified')
             return None
-    
+
         collectors = {m: {} for m in metrics}
 
         logger.info('Experiment %d/%d | Start simulation', curr_exp, n_exp)
         results = exec_experiment(topology, workload, netconf, strategy, cache_policy, collectors)
-        
+
         duration = time.time() - start_time
-        logger.info('Experiment %d/%d | End simulation | Duration %s.', 
+        logger.info('Experiment %d/%d | End simulation | Duration %s.',
                     curr_exp, n_exp, timestr(duration, True))
         return (params, results, duration)
     except KeyboardInterrupt:

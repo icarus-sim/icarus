@@ -19,20 +19,20 @@ __all__ = [
 class ResultSet(object):
     """This class can be used to store results from different experiments,
     accessed and filtered.
-    
+
     A result set is basically a list of results, one per each experiment. Each
     entry of the resultset is a 2-tuple referring to a single experiment.
-    In this 2-tuple: 
+    In this 2-tuple:
      * the first element is a tree with all parameters of the experiment
-     * the second element is a tree with all results of the experiment 
-    
-    All operations that write data are thread-safe so that this object can 
+     * the second element is a tree with all results of the experiment
+
+    All operations that write data are thread-safe so that this object can
     be shared by different processes.
     """
-    
+
     def __init__(self, attr=None):
         """Constructor
-        
+
         Parameters
         ----------
         attr : dict, optional
@@ -41,35 +41,35 @@ class ResultSet(object):
         self._results = collections.deque()
         # Dict of global attributes common to all experiments
         self.attr = attr if attr is not None else {}
-    
+
     def __len__(self):
         """Returns the number of results in the resultset
-        
+
         Returns
         -------
         len : int
             The length of the resultset
         """
         return len(self._results)
-    
+
     def __iter__(self):
         """Returns iterator over the resultset
-        
+
         Returns
         -------
         iter : iterator
             Iterator over the resultset
         """
         return iter(self._results)
-        
+
     def __getitem__(self, i):
         """Returns a specified item of the resultset
-        
+
         Parameters
         ----------
         i : int
             The index of the result
-            
+
         Returns
         -------
         result : tuple
@@ -79,12 +79,12 @@ class ResultSet(object):
 
     def __add__(self, resultset):
         """Merges two resultsets.
-        
+
         Parameters
         ----------
         resultset : ResultSet
             The result set to merge
-        
+
         Returns
         -------
         resultset : ResultSet
@@ -101,14 +101,14 @@ class ResultSet(object):
 
     def add(self, parameters, results):
         """Add a result to the result set.
-        
+
         Parameters
         ----------
         parameters : Tree
             Tree of experiment parameters
         results : Tree
             Tree of experiment results
-            
+
         Notes
         -----
         If parameters and results are dictionaries, this method will attempt to
@@ -121,10 +121,10 @@ class ResultSet(object):
         if not isinstance(results, Tree):
             results = Tree(results)
         self._results.append((parameters, results))
-    
+
     def dump(self):
         """Dump all results.
-        
+
         Returns
         -------
         results : list
@@ -134,25 +134,25 @@ class ResultSet(object):
         """
         return list(self._results)
 
-    
+
     def filter(self, condition):
         """Return subset of results matching specific conditions
-        
+
         Parameters
         ----------
         condition : dict
             Dictionary listing all parameters and values to be matched in the
             results set. Each parameter, i.e., each key of the dictionary must
             be an iterable object containing the path in the parameters tree
-            to the required parameter 
+            to the required parameter
         metrics : dict, optional
             List of metrics to be reported
-        
+
         Returns
         -------
         filtered_results : ResultSet
             List of 2-tuples of filtered results, where the first element is a
-            tree of all experiment parameters and the second value is 
+            tree of all experiment parameters and the second value is
             a tree with experiment results.
         """
         filtered_resultset = ResultSet()
@@ -166,7 +166,7 @@ class ResultSet(object):
 @register_results_writer('PICKLE')
 def write_results_pickle(results, path):
     """Write a resultset to a pickle file
-    
+
     Parameters
     ----------
     results : ResultSet
@@ -181,12 +181,12 @@ def write_results_pickle(results, path):
 @register_results_reader('PICKLE')
 def read_results_pickle(path):
     """Reads a resultset from a pickle file.
-    
+
     Parameters
     ----------
     path : str
         The file path from which results are read
-    
+
     Returns
     -------
     results : ResultSet

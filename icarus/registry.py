@@ -30,12 +30,12 @@ RESULTS_WRITER = {}
 def register_decorator(register):
     """Returns a decorator that register a class or function to a specified
     register
-    
+
     Parameters
     ----------
     register : dict
         The register to which the class or function is register
-    
+
     Returns
     -------
     decorator : func
@@ -43,7 +43,7 @@ def register_decorator(register):
     """
     def decorator(name):
         """Decorator that register a class or a function to a register.
-        
+
         Parameters
         ----------
         name : str

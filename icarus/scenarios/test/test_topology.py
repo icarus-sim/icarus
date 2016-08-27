@@ -5,7 +5,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 
 import icarus.scenarios as topology
@@ -18,7 +18,7 @@ class TestTree(unittest.TestCase):
         self.assertEqual(6, len(t.graph['icr_candidates']))
         self.assertEqual(1, len(t.sources()))
         self.assertEqual(8, len(t.receivers()))
-        
+
 
 class TestPath(unittest.TestCase):
 
@@ -27,7 +27,7 @@ class TestPath(unittest.TestCase):
         self.assertEqual(3, len(t.graph['icr_candidates']))
         self.assertEqual(1, len(t.sources()))
         self.assertEqual(1, len(t.receivers()))
-        
+
 
 class TestRing(unittest.TestCase):
 
@@ -39,8 +39,8 @@ class TestRing(unittest.TestCase):
         self.assertEqual(n, len(t.graph['icr_candidates']))
         self.assertEqual(1, len(t.sources()))
         self.assertEqual(n, len(t.receivers()))
-        self.assertEqual(2*n + 1, t.number_of_nodes())
-        self.assertEqual(2*n + 1, t.number_of_edges())
+        self.assertEqual(2 * n + 1, t.number_of_nodes())
+        self.assertEqual(2 * n + 1, t.number_of_edges())
 
 
 class TestMesh(unittest.TestCase):
@@ -54,8 +54,8 @@ class TestMesh(unittest.TestCase):
         self.assertEqual(n, len(t.graph['icr_candidates']))
         self.assertEqual(m, len(t.sources()))
         self.assertEqual(n, len(t.receivers()))
-        self.assertEqual(2*n + m, t.number_of_nodes())
-        self.assertEqual(m + n + n*(n-1)/2, t.number_of_edges())
+        self.assertEqual(2 * n + m, t.number_of_nodes())
+        self.assertEqual(m + n + n * (n - 1) / 2, t.number_of_edges())
 
 
 class TestRocketFuel(unittest.TestCase):

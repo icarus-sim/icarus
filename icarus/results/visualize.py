@@ -24,12 +24,12 @@ COLORMAP = {'source':    'blue',
 
 def stack_map(topology):
     """Return dict mapping node ID to stack type
-    
+
     Parameters
     ----------
     topology : Topology
         The topology
-    
+
     Returns
     -------
     stack_map : dict
@@ -52,7 +52,7 @@ def stack_map(topology):
 
 def draw_stack_deployment(topology, filename, plotdir):
     """Draw a topology with different node colors according to stack
-    
+
     Parameters
     ----------
     topology : Topology
@@ -67,16 +67,16 @@ def draw_stack_deployment(topology, filename, plotdir):
     plt.figure()
     nx.draw_graphviz(topology, node_color=node_color, with_labels=False)
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
-    
+
 
 def draw_network_load(topology, result, filename, plotdir):
     """Draw topology with node colors according to stack and node size and link
     color according to server/cache hits and link loads.
-    
+
     Nodes are colored according to COLORMAP. Edge are colored on a blue-red
     scale where blue means min link load and red means max link load.
     Sources and caches have variable size proportional to their hit ratios.
-    
+
     Parameters
     ----------
     topology : Topology
@@ -98,14 +98,14 @@ def draw_network_load(topology, result, filename, plotdir):
     hits = np.array([hits[v] if v in hits else 0 for v in topology.nodes_iter()])
     min_hits = np.min(hits)
     max_hits = np.max(hits)
-    hits = node_min +  (node_max - node_min)*(hits - min_hits)/(max_hits - min_hits)
+    hits = node_min + (node_max - node_min) * (hits - min_hits) / (max_hits - min_hits)
     link_load = result['LINK_LOAD']['PER_LINK_INTERNAL'].copy()
     link_load.update(result['LINK_LOAD']['PER_LINK_EXTERNAL'])
     link_load = [link_load[e] if e in link_load else 0 for e in topology.edges()]
     plt.figure()
-    nx.draw_graphviz(topology, node_color=node_color, node_size=hits, 
+    nx.draw_graphviz(topology, node_color=node_color, node_size=hits,
                      width=2.0,
-                     edge_color=link_load, 
-                     edge_cmap=mpl.colors.LinearSegmentedColormap.from_list('bluered',['blue','red']),
+                     edge_color=link_load,
+                     edge_cmap=mpl.colors.LinearSegmentedColormap.from_list('bluered', ['blue', 'red']),
                      with_labels=False)
     plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')

@@ -8,7 +8,7 @@ A valid ICN topology must have the following attributes:
  * Each node must have one stack among: source, receiver, router
  * The topology must have an attribute called `icr_candidates` which is a set
    of router nodes on which a cache may be possibly deployed. Caches are not
-   deployed directly at topology creation, instead they are deployed by a 
+   deployed directly at topology creation, instead they are deployed by a
    cache placement algorithm.
 """
 from __future__ import division
@@ -44,22 +44,22 @@ INTERNAL_LINK_DELAY = 2
 EXTERNAL_LINK_DELAY = 34
 
 # Path where all topologies are stored
-TOPOLOGY_RESOURCES_DIR = path.abspath(path.join(path.dirname(__file__), 
-                                                path.pardir, path.pardir, 
+TOPOLOGY_RESOURCES_DIR = path.abspath(path.join(path.dirname(__file__),
+                                                path.pardir, path.pardir,
                                                 'resources', 'topologies'))
 
 
 class IcnTopology(fnss.Topology):
     """Class modelling an ICN topology
-    
+
     An ICN topology is a simple FNSS Topology with addition methods that
     return sets of caching nodes, sources and receivers.
     """
-    
+
     def cache_nodes(self):
         """Return a dictionary mapping nodes with a cache and respective cache
         size
-        
+
         Returns
         -------
         cache_nodes : dict
@@ -70,10 +70,10 @@ class IcnTopology(fnss.Topology):
                 if 'stack' in self.node[v]
                 and 'cache_size' in self.node[v]['stack'][1]
                 }
-        
+
     def sources(self):
         """Return a set of source nodes
-        
+
         Returns
         -------
         sources : set
@@ -82,10 +82,10 @@ class IcnTopology(fnss.Topology):
         return set(v for v in self
                    if 'stack' in self.node[v]
                    and self.node[v]['stack'][0] == 'source')
-        
+
     def receivers(self):
         """Return a set of receiver nodes
-        
+
         Returns
         -------
         receivers : set
@@ -98,18 +98,18 @@ class IcnTopology(fnss.Topology):
 
 @register_topology_factory('TREE')
 def topology_tree(k, h, delay=1, **kwargs):
-    """Returns a tree topology, with a source at the root, receivers at the 
+    """Returns a tree topology, with a source at the root, receivers at the
     leafs and caches at all intermediate nodes.
-    
+
     Parameters
     ----------
-    h : int 
+    h : int
         The height of the tree
     k : int
         The branching factor of the tree
     delay : float
         The link delay in milliseconds
-        
+
     Returns
     -------
     topology : IcnTopology
@@ -143,23 +143,23 @@ def topology_tree(k, h, delay=1, **kwargs):
 def topology_path(n, delay=1, **kwargs):
     """Return a path topology with a receiver on node `0` and a source at node
     'n-1'
-    
+
     Parameters
     ----------
     n : int (>=3)
         The number of nodes
     delay : float
         The link delay in milliseconds
-        
+
     Returns
     -------
     topology : IcnTopology
         The topology object
     """
     topology = fnss.line_topology(n)
-    receivers = [0]    
-    routers = range(1, n-1)
-    sources = [n-1]
+    receivers = [0]
+    routers = range(1, n - 1)
+    sources = [n - 1]
     topology.graph['icr_candidates'] = set(routers)
     for v in sources:
         fnss.add_stack(topology, v, 'source')
@@ -179,23 +179,23 @@ def topology_path(n, delay=1, **kwargs):
 @register_topology_factory('RING')
 def topology_ring(n, delay_int=1, delay_ext=5, **kwargs):
     """Returns a ring topology
-    
+
     This topology is comprised of a ring of *n* nodes. Each of these nodes is
     attached to a receiver. In addition one router is attached to a source.
     Therefore, this topology has in fact 2n + 1 nodes.
-    
+
     It models the case of a metro ring network, with many receivers and one
     only source towards the core network.
-    
+
     Parameters
     ----------
-    n : int 
+    n : int
         The number of routers in the ring
     delay_int : float
         The internal link delay in milliseconds
     delay_ext : float
         The external link delay in milliseconds
-        
+
     Returns
     -------
     topology : IcnTopology
@@ -203,8 +203,8 @@ def topology_ring(n, delay_int=1, delay_ext=5, **kwargs):
     """
     topology = fnss.ring_topology(n)
     routers = range(n)
-    receivers = range(n, 2*n)
-    source = 2*n
+    receivers = range(n, 2 * n)
+    source = 2 * n
     internal_links = zip(routers, receivers)
     external_links = [(routers[0], source)]
     for u, v in internal_links:
@@ -227,14 +227,14 @@ def topology_ring(n, delay_int=1, delay_ext=5, **kwargs):
 @register_topology_factory('MESH')
 def topology_mesh(n, m, delay_int=1, delay_ext=5, **kwargs):
     """Returns a ring topology
-    
+
     This topology is comprised of a mesh of *n* nodes. Each of these nodes is
     attached to a receiver. In addition *m* router are attached each to a source.
     Therefore, this topology has in fact 2n + m nodes.
-    
+
     Parameters
     ----------
-    n : int 
+    n : int
         The number of routers in the ring
     m : int
         The number of sources
@@ -242,7 +242,7 @@ def topology_mesh(n, m, delay_int=1, delay_ext=5, **kwargs):
         The internal link delay in milliseconds
     delay_ext : float
         The external link delay in milliseconds
-        
+
     Returns
     -------
     topology : IcnTopology
@@ -252,8 +252,8 @@ def topology_mesh(n, m, delay_int=1, delay_ext=5, **kwargs):
         raise ValueError("m cannot be greater than n")
     topology = fnss.full_mesh_topology(n)
     routers = range(n)
-    receivers = range(n, 2*n)
-    sources = range(2*n, 2*n + m)
+    receivers = range(n, 2 * n)
+    sources = range(2 * n, 2 * n + m)
     internal_links = zip(routers, receivers)
     external_links = zip(routers[:m], sources)
     for u, v in internal_links:
@@ -277,12 +277,12 @@ def topology_mesh(n, m, delay_int=1, delay_ext=5, **kwargs):
 @register_topology_factory('GEANT')
 def topology_geant(**kwargs):
     """Return a scenario based on GEANT topology
-    
+
     Parameters
     ----------
     seed : int, optional
         The seed used for random number generation
-        
+
     Returns
     -------
     topology : fnss.Topology
@@ -294,13 +294,13 @@ def topology_geant(**kwargs):
                                        ).to_undirected()
     topology = list(nx.connected_component_subgraphs(topology))[0]
     deg = nx.degree(topology)
-    receivers = [v for v in topology.nodes() if deg[v] == 1] # 8 nodes
-    icr_candidates = [v for v in topology.nodes() if deg[v] > 2] # 19 nodes
+    receivers = [v for v in topology.nodes() if deg[v] == 1]  # 8 nodes
+    icr_candidates = [v for v in topology.nodes() if deg[v] > 2]  # 19 nodes
     # attach sources to topology
-    source_attachments = [v for v in topology.nodes() if deg[v] == 2] # 13 nodes
+    source_attachments = [v for v in topology.nodes() if deg[v] == 2]  # 13 nodes
     sources = []
     for v in source_attachments:
-        u = v + 1000 # node ID of source
+        u = v + 1000  # node ID of source
         topology.add_edge(v, u)
         sources.append(u)
     routers = [v for v in topology.nodes() if v not in sources + receivers]
@@ -330,12 +330,12 @@ def topology_geant(**kwargs):
 @register_topology_factory('TISCALI')
 def topology_tiscali(**kwargs):
     """Return a scenario based on Tiscali topology, parsed from RocketFuel dataset
-    
+
     Parameters
     ----------
     seed : int, optional
         The seed used for random number generation
-        
+
     Returns
     -------
     topology : fnss.Topology
@@ -349,7 +349,7 @@ def topology_tiscali(**kwargs):
     # degree of nodes
     deg = nx.degree(topology)
     # nodes with degree = 1
-    onedeg = [v for v in topology.nodes() if deg[v] == 1] # they are 80
+    onedeg = [v for v in topology.nodes() if deg[v] == 1]  # they are 80
     # we select as caches nodes with highest degrees
     # we use as min degree 6 --> 36 nodes
     # If we changed min degrees, that would be the number of caches we would have:
@@ -369,23 +369,23 @@ def topology_tiscali(**kwargs):
     # 14                 3
     # 15                 3
     # 16                 2
-    icr_candidates = [v for v in topology.nodes() if deg[v] >= 6] # 36 nodes
+    icr_candidates = [v for v in topology.nodes() if deg[v] >= 6]  # 36 nodes
     # sources are node with degree 1 whose neighbor has degree at least equal to 5
     # we assume that sources are nodes connected to a hub
     # they are 44
-    sources = [v for v in onedeg if deg[list(topology.edge[v].keys())[0]] > 4.5] # they are 
+    sources = [v for v in onedeg if deg[list(topology.edge[v].keys())[0]] > 4.5]  # they are
     # receivers are node with degree 1 whose neighbor has degree at most equal to 4
     # we assume that receivers are nodes not well connected to the network
-    # they are 36   
+    # they are 36
     receivers = [v for v in onedeg if deg[list(topology.edge[v].keys())[0]] < 4.5]
     # we set router stacks because some strategies will fail if no stacks
-    # are deployed 
+    # are deployed
     routers = [v for v in topology.nodes() if v not in sources + receivers]
 
     # set weights and delays on all links
     fnss.set_weights_constant(topology, 1.0)
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
-    
+
     # Deploy stacks
     topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
@@ -410,12 +410,12 @@ def topology_tiscali(**kwargs):
 @register_topology_factory('WIDE')
 def topology_wide(**kwargs):
     """Return a scenario based on GARR topology
-    
+
     Parameters
     ----------
     seed : int, optional
         The seed used for random number generation
-        
+
     Returns
     -------
     topology : fnss.Topology
@@ -447,7 +447,7 @@ def topology_wide(**kwargs):
             topology.edge[u][v]['type'] = 'external'
             # this prevents sources to be used to route traffic
             fnss.set_weights_constant(topology, 1000.0, [(u, v)])
-            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms',[(u, v)])
+            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms', [(u, v)])
         else:
             topology.edge[u][v]['type'] = 'internal'
     return IcnTopology(topology)
@@ -456,12 +456,12 @@ def topology_wide(**kwargs):
 @register_topology_factory('GARR')
 def topology_garr(**kwargs):
     """Return a scenario based on GARR topology
-    
+
     Parameters
     ----------
     seed : int, optional
         The seed used for random number generation
-        
+
     Returns
     -------
     topology : fnss.Topology
@@ -487,28 +487,27 @@ def topology_garr(**kwargs):
         fnss.add_stack(topology, v, 'receiver')
     for v in routers:
         fnss.add_stack(topology, v, 'router')
-    
+
     # label links as internal or external
     for u, v in topology.edges():
         if u in sources or v in sources:
             topology.edge[u][v]['type'] = 'external'
             # this prevents sources to be used to route traffic
             fnss.set_weights_constant(topology, 1000.0, [(u, v)])
-            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms',[(u, v)])
+            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms', [(u, v)])
         else:
             topology.edge[u][v]['type'] = 'internal'
     return IcnTopology(topology)
 
 
-
 @register_topology_factory('GARR_2')
 def topology_garr2(**kwargs):
     """Return a scenario based on GARR topology.
-    
+
     Differently from plain GARR, this topology some receivers are appended to
     routers and only a subset of routers which are actually on the path of some
     traffic are selected to become ICN routers. These changes make this
-    topology more realistic. 
+    topology more realistic.
 
     Parameters
     ----------
@@ -521,7 +520,7 @@ def topology_garr2(**kwargs):
         The topology object
     """
     topology = fnss.parse_topology_zoo(path.join(TOPOLOGY_RESOURCES_DIR, 'Garr201201.graphml')).to_undirected()
-    
+
     # sources are nodes representing neighbouring AS's
     sources = [0, 2, 3, 5, 13, 16, 23, 24, 25, 27, 51, 52, 54]
     # receivers are internal nodes with degree = 1
@@ -538,7 +537,7 @@ def topology_garr2(**kwargs):
     # set weights and delays on all links
     fnss.set_weights_constant(topology, 1.0)
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
-    
+
     # Deploy stacks
     topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
@@ -553,7 +552,7 @@ def topology_garr2(**kwargs):
             topology.edge[u][v]['type'] = 'external'
             # this prevents sources to be used to route traffic
             fnss.set_weights_constant(topology, 1000.0, [(u, v)])
-            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms',[(u, v)])
+            fnss.set_delays_constant(topology, EXTERNAL_LINK_DELAY, 'ms', [(u, v)])
         else:
             topology.edge[u][v]['type'] = 'internal'
     return IcnTopology(topology)
@@ -562,17 +561,17 @@ def topology_garr2(**kwargs):
 @register_topology_factory('GEANT_2')
 def topology_geant2(**kwargs):
     """Return a scenario based on GEANT topology.
-    
+
     Differently from plain GEANT, this topology some receivers are appended to
     routers and only a subset of routers which are actually on the path of some
     traffic are selected to become ICN routers. These changes make this
     topology more realistic.
-     
+
     Parameters
     ----------
     seed : int, optional
         The seed used for random number generation
-        
+
     Returns
     -------
     topology : fnss.Topology
@@ -584,12 +583,12 @@ def topology_geant2(**kwargs):
                                        ).to_undirected()
     topology = list(nx.connected_component_subgraphs(topology))[0]
     deg = nx.degree(topology)
-    receivers = [v for v in topology.nodes() if deg[v] == 1] # 8 nodes
+    receivers = [v for v in topology.nodes() if deg[v] == 1]  # 8 nodes
     # attach sources to topology
-    source_attachments = [v for v in topology.nodes() if deg[v] == 2] # 13 nodes
+    source_attachments = [v for v in topology.nodes() if deg[v] == 2]  # 13 nodes
     sources = []
     for v in source_attachments:
-        u = v + 1000 # node ID of source
+        u = v + 1000  # node ID of source
         topology.add_edge(v, u)
         sources.append(u)
     routers = [v for v in topology.nodes() if v not in sources + receivers]
@@ -597,7 +596,7 @@ def topology_geant2(**kwargs):
     betw = nx.betweenness_centrality(topology)
     routers = sorted(routers, key=lambda k: betw[k])
     # Select as ICR candidates the top 50% routers for betweenness centrality
-    icr_candidates = routers[len(routers)//2:] 
+    icr_candidates = routers[len(routers) // 2:]
     # add stacks to nodes
     topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
@@ -627,13 +626,13 @@ def topology_tiscali2(**kwargs):
     Differently from plain Tiscali, this topology some receivers are appended to
     routers and only a subset of routers which are actually on the path of some
     traffic are selected to become ICN routers. These changes make this
-    topology more realistic. 
+    topology more realistic.
 
     Parameters
     ----------
     seed : int, optional
         The seed used for random number generation
-        
+
     Returns
     -------
     topology : fnss.Topology
@@ -647,7 +646,7 @@ def topology_tiscali2(**kwargs):
     # degree of nodes
     deg = nx.degree(topology)
     # nodes with degree = 1
-    onedeg = [v for v in topology.nodes() if deg[v] == 1] # they are 80
+    onedeg = [v for v in topology.nodes() if deg[v] == 1]  # they are 80
     # we select as caches nodes with highest degrees
     # we use as min degree 6 --> 36 nodes
     # If we changed min degrees, that would be the number of caches we would have:
@@ -667,7 +666,7 @@ def topology_tiscali2(**kwargs):
     # 14                 3
     # 15                 3
     # 16                 2
-    icr_candidates = [v for v in topology.nodes() if deg[v] >= 6] # 36 nodes
+    icr_candidates = [v for v in topology.nodes() if deg[v] >= 6]  # 36 nodes
     # Add remove caches to adapt betweenness centrality of caches
     for i in [181, 208, 211, 220, 222, 250, 257]:
         icr_candidates.remove(i)
@@ -675,19 +674,19 @@ def topology_tiscali2(**kwargs):
     # sources are node with degree 1 whose neighbor has degree at least equal to 5
     # we assume that sources are nodes connected to a hub
     # they are 44
-    sources = [v for v in onedeg if deg[list(topology.edge[v].keys())[0]] > 4.5] # they are 
+    sources = [v for v in onedeg if deg[list(topology.edge[v].keys())[0]] > 4.5]  # they are
     # receivers are node with degree 1 whose neighbor has degree at most equal to 4
     # we assume that receivers are nodes not well connected to the network
-    # they are 36   
+    # they are 36
     receivers = [v for v in onedeg if deg[list(topology.edge[v].keys())[0]] < 4.5]
     # we set router stacks because some strategies will fail if no stacks
-    # are deployed 
+    # are deployed
     routers = [v for v in topology.nodes() if v not in sources + receivers]
 
     # set weights and delays on all links
     fnss.set_weights_constant(topology, 1.0)
     fnss.set_delays_constant(topology, INTERNAL_LINK_DELAY, 'ms')
-    
+
     # deploy stacks
     topology.graph['icr_candidates'] = set(icr_candidates)
     for v in sources:
@@ -712,10 +711,10 @@ def topology_tiscali2(**kwargs):
 @register_topology_factory('ROCKET_FUEL')
 def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_DELAY, **kwargs):
     """Parse a generic RocketFuel topology with annotated latencies
-    
+
     To each node of the parsed topology it is attached an artificial receiver
-    node. To the routers with highest degree it is also attached a source node. 
-    
+    node. To the routers with highest degree it is also attached a source node.
+
     Parameters
     ----------
     asn : int
@@ -731,27 +730,27 @@ def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_D
     topology = fnss.parse_rocketfuel_isp_latency(f_topo).to_undirected()
     topology = list(nx.connected_component_subgraphs(topology))[0]
     # First mark all current links as inernal
-    for u,v in topology.edges_iter():
+    for u, v in topology.edges_iter():
         topology.edge[u][v]['type'] = 'internal'
     # Note: I don't need to filter out nodes with degree 1 cause they all have
     # a greater degree value but we compute degree to decide where to attach sources
     routers = topology.nodes()
     # Source attachment
-    n_sources = int(source_ratio*len(routers))
+    n_sources = int(source_ratio * len(routers))
     sources = ['src_%d' % i for i in range(n_sources)]
     deg = nx.degree(topology)
-    
-    # Attach sources based on their degree purely, but they may end up quite clustered 
+
+    # Attach sources based on their degree purely, but they may end up quite clustered
     routers = sorted(routers, key=lambda k: deg[k], reverse=True)
     for i in range(len(sources)):
         topology.add_edge(sources[i], routers[i], delay=ext_delay, type='external')
-    
+
     # Here let's try attach them via cluster
 #     clusters = compute_clusters(topology, n_sources, distance=None, n_iter=1000)
 #     source_attachments = [max(cluster, key=lambda k: deg[k]) for cluster in clusters]
 #     for i in range(len(sources)):
 #         topology.add_edge(sources[i], source_attachments[i], delay=ext_delay, type='external')
-    
+
     # attach artificial receiver nodes to ICR candidates
     receivers = ['rec_%d' % i for i in range(len(routers))]
     for i in range(len(routers)):
@@ -768,4 +767,4 @@ def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_D
     for v in routers:
         fnss.add_stack(topology, v, 'router')
     return IcnTopology(topology)
-    
+

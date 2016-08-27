@@ -37,12 +37,12 @@ __all__ = [
 
 class Strategy(object):
     """Base strategy imported by all other strategy classes"""
-    
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, view, controller, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -54,15 +54,15 @@ class Strategy(object):
         """
         self.view = view
         self.controller = controller
-        
+
     @abc.abstractmethod
     def process_event(self, time, receiver, content, log):
         """Process an event received from the simulation engine.
-        
+
         This event is processed by executing relevant actions of the network
         controller, potentially based on the current status of the network
         retrieved from the network view.
-        
+
         Parameters
         ----------
         time : int
@@ -82,7 +82,7 @@ class Strategy(object):
 class Hashrouting(Strategy):
     """Base class for all hash-routing implementations. Hash-routing
     implementations are described in [1]_.
-        
+
     References
     ----------
     .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
@@ -96,8 +96,8 @@ class Hashrouting(Strategy):
         super(Hashrouting, self).__init__(view, controller)
         self.cache_nodes = view.cache_nodes()
         self.n_cache_nodes = len(self.cache_nodes)
-        # Allocate results of hash function to caching nodes 
-        self.cache_assignment = {i: self.cache_nodes[i] 
+        # Allocate results of hash function to caching nodes
+        self.cache_assignment = {i: self.cache_nodes[i]
                                  for i in range(len(self.cache_nodes))}
         # Check if there are clusters
         if 'clusters' in self.view.topology().graph:
@@ -110,7 +110,7 @@ class Hashrouting(Strategy):
 
     def authoritative_cache(self, content, cluster=None):
         """Return the authoritative cache node for the given content
-        
+
         Parameters
         ----------
         content : any hashable type
@@ -118,13 +118,13 @@ class Hashrouting(Strategy):
         cluster : int, optional
             If the topology is divided in clusters, then retun the authoritative
             cache responsible for the content in the specified cluster
-        
+
         Returns
         -------
         authoritative_cache : any hashable type
             The node on which the authoritative cache is deployed
         """
-        #TODO: I should probably consider using a better non-cryptographic hash
+        # TODO: I should probably consider using a better non-cryptographic hash
         # function, like xxhash
         h = hash(content)
         if cluster is not None:
@@ -134,13 +134,13 @@ class Hashrouting(Strategy):
 
 @register_strategy('HASHROUTING')
 class BaseHashrouting(Hashrouting):
-    """Unified implementation of the three basic hash-routing schemes: 
+    """Unified implementation of the three basic hash-routing schemes:
     symmetric, asymmetric and multicast.
     """
 
     def __init__(self, view, controller, routing, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -152,7 +152,7 @@ class BaseHashrouting(Hashrouting):
         """
         super(BaseHashrouting, self).__init__(view, controller)
         self.routing = routing
-    
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -198,11 +198,11 @@ class BaseHashrouting(Hashrouting):
                     # Multicast
                     cache_path = self.view.shortest_path(source, cache)
                     recv_path = self.view.shortest_path(source, receiver)
-                    
+
                     # find what is the node that has to fork the content flow
                     for i in range(1, min([len(cache_path), len(recv_path)])):
                         if cache_path[i] != recv_path[i]:
-                            fork_node = cache_path[i-1]
+                            fork_node = cache_path[i - 1]
                             break
                     else:
                         fork_node = cache
@@ -213,19 +213,19 @@ class BaseHashrouting(Hashrouting):
                 self.controller.put_content(cache)
             else:
                 raise ValueError("Routing %s not supported" % self.routing)
-        self.controller.end_session()   
+        self.controller.end_session()
 
 
 @register_strategy('HR_EDGE_CACHE')
 class HashroutingEdge(Hashrouting):
-    """Hash-routing with a fraction of the cache operated un-coordinatedly at 
+    """Hash-routing with a fraction of the cache operated un-coordinatedly at
     each PoP. Here we assume that each receiver is directly connected to one
     gateway, which is on the path to all other caches
     """
 
     def __init__(self, view, controller, routing, edge_cache_ratio, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -300,11 +300,11 @@ class HashroutingEdge(Hashrouting):
                     # Multicast
                     cache_path = self.view.shortest_path(source, cache)
                     recv_path = self.view.shortest_path(source, proxy)
-                    
+
                     # find what is the node that has to fork the content flow
                     for i in range(1, min([len(cache_path), len(recv_path)])):
                         if cache_path[i] != recv_path[i]:
-                            fork_node = cache_path[i-1]
+                            fork_node = cache_path[i - 1]
                             break
                     else: fork_node = cache
                     self.controller.forward_content_path(source, fork_node)
@@ -313,18 +313,18 @@ class HashroutingEdge(Hashrouting):
                 self.controller.put_content(cache)
             else:
                 raise ValueError("Routing %s not recognized" % self.routing)
-        
+
         if proxy != cache:
             self.controller.put_content_local_cache(proxy)
         self.controller.forward_content_hop(proxy, receiver)
-        self.controller.end_session()   
+        self.controller.end_session()
 
 
 @register_strategy('HR_ON_PATH')
 class HashroutingOnPath(Hashrouting):
-    """Hash-routing with a fraction of the cache operated un-coordinatedly at 
+    """Hash-routing with a fraction of the cache operated un-coordinatedly at
     each PoP
-    
+
     This strategy differs from HashroutingEdge for the fact that in
     HashroutingEdge, the local fraction of the cache is queried only by traffic
     of endpoints directly attached to the caching node. In HashroutingOnPath
@@ -333,7 +333,7 @@ class HashroutingOnPath(Hashrouting):
 
     def __init__(self, view, controller, routing, on_path_cache_ratio, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -441,10 +441,10 @@ class HashroutingOnPath(Hashrouting):
 class HashroutingClustered(Hashrouting):
     """Hash-routing all together in a single strategy"""
 
-    def __init__(self, view, controller, intra_routing, inter_routing='LCE', 
+    def __init__(self, view, controller, intra_routing, inter_routing='LCE',
                  **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -471,11 +471,11 @@ class HashroutingClustered(Hashrouting):
         source = self.view.content_source(content)
         # handle (and log if required) actual request
         self.controller.start_session(time, receiver, content, log)
-        
+
         receiver_cluster = self.view.cluster(receiver)
         source_cluster = self.view.cluster(source)
         cluster_path = self.cluster_sp[receiver_cluster][source_cluster]
-        
+
         if self.inter_routing == 'LCE':
             start = receiver
             for cluster in cluster_path:
@@ -503,7 +503,7 @@ class HashroutingClustered(Hashrouting):
                 self.controller.get_content(source)
                 cluster = source_cluster
                 start = source
-            
+
         # Now "start" is the node that is serving the content
         cluster_path = list(reversed(self.cluster_sp[receiver_cluster][cluster]))
         if self.inter_routing == 'LCE':
@@ -573,13 +573,13 @@ class HashroutingClustered(Hashrouting):
                     self.controller.forward_content_hop(u, v, main_path=True)
         else:
             raise ValueError("Inter-cluster routing %s not supported" % self.inter_routing)
-        self.controller.end_session() 
-    
+        self.controller.end_session()
+
 
 @register_strategy('HR_SYMM')
 class HashroutingSymmetric(BaseHashrouting):
     """Hash-routing with symmetric routing (HR SYMM)
-    
+
     According to this strategy, each content is routed following the same path
     of the request.
     """
@@ -591,8 +591,8 @@ class HashroutingSymmetric(BaseHashrouting):
 
 @register_strategy('HR_ASYMM')
 class HashroutingAsymmetric(BaseHashrouting):
-    """Hash-routing with asymmetric routing (HR ASYMM) 
-    
+    """Hash-routing with asymmetric routing (HR ASYMM)
+
     According to this strategy, each content fetched from an original source,
     as a result of a cache miss, is routed towards the receiver following the
     shortest path. If the authoritative cache is on the path, then it caches
@@ -608,7 +608,7 @@ class HashroutingAsymmetric(BaseHashrouting):
 class HashroutingMulticast(BaseHashrouting):
     """
     Hash-routing implementation with multicast delivery of content packets.
-    
+
     In this strategy, if there is a cache miss, when contents return in
     the domain, they are multicast. One copy is sent to the authoritative cache
     and the other to the receiver. If the cache is on the path from source to
@@ -625,7 +625,7 @@ class HashroutingMulticast(BaseHashrouting):
 class HashroutingHybridAM(Hashrouting):
     """Hash-routing implementation with hybrid asymmetric-multicast delivery of
     content packets.
-    
+
     In this strategy, if there is a cache miss, when content packets return in
     the domain, the packet is delivered to the receiver following the shortest
     path. If the additional number of hops required to send a copy to the
@@ -637,7 +637,7 @@ class HashroutingHybridAM(Hashrouting):
 
     def __init__(self, view, controller, max_stretch=0.2, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -669,8 +669,8 @@ class HashroutingHybridAM(Hashrouting):
             # Cache miss: go all the way to source
             self.controller.forward_request_path(cache, source)
             if not self.controller.get_content(source):
-                raise RuntimeError('The content was not found at the expected source') 
-            
+                raise RuntimeError('The content was not found at the expected source')
+
             if cache in self.view.shortest_path(source, receiver):
                 # Forward to cache
                 self.controller.forward_content_path(source, cache)
@@ -682,11 +682,11 @@ class HashroutingHybridAM(Hashrouting):
                 # Multicast
                 cache_path = self.view.shortest_path(source, cache)
                 recv_path = self.view.shortest_path(source, receiver)
-                
+
                 # find what is the node that has to fork the content flow
                 for i in range(1, min([len(cache_path), len(recv_path)])):
                     if cache_path[i] != recv_path[i]:
-                        fork_node = cache_path[i-1]
+                        fork_node = cache_path[i - 1]
                         break
                 else: fork_node = cache
                 self.controller.forward_content_path(source, receiver, main_path=True)
@@ -695,14 +695,14 @@ class HashroutingHybridAM(Hashrouting):
                     self.controller.forward_content_path(fork_node, cache, main_path=False)
                     self.controller.put_content(cache)
         self.controller.end_session()
-        
+
 
 @register_strategy('HR_HYBRID_SM')
 class HashroutingHybridSM(Hashrouting):
     """
     Hash-routing implementation with hybrid symmetric-multicast delivery of
     content packets.
-    
+
     In this implementation, the edge router receiving a content packet decides
     whether to deliver the packet using multicast or symmetric hash-routing
     based on the total cost for delivering the Data to both cache and receiver
@@ -729,8 +729,8 @@ class HashroutingHybridSM(Hashrouting):
             # Cache miss: go all the way to source
             self.controller.forward_request_path(cache, source)
             if not self.controller.get_content(source):
-                raise RuntimeError('The content is not found the expected source') 
-            
+                raise RuntimeError('The content is not found the expected source')
+
             if cache in self.view.shortest_path(source, receiver):
                 self.controller.forward_content_path(source, cache)
                 # Insert in cache
@@ -741,24 +741,24 @@ class HashroutingHybridSM(Hashrouting):
                 # Multicast
                 cache_path = self.view.shortest_path(source, cache)
                 recv_path = self.view.shortest_path(source, receiver)
-                
+
                 # find what is the node that has to fork the content flow
                 for i in range(1, min([len(cache_path), len(recv_path)])):
                     if cache_path[i] != recv_path[i]:
-                        fork_node = cache_path[i-1]
+                        fork_node = cache_path[i - 1]
                         break
                 else: fork_node = cache
-                
+
                 symmetric_path_len = len(self.view.shortest_path(source, cache)) + \
                                      len(self.view.shortest_path(cache, receiver)) - 2
                 multicast_path_len = len(self.view.shortest_path(source, fork_node)) + \
                                      len(self.view.shortest_path(fork_node, cache)) + \
                                      len(self.view.shortest_path(fork_node, receiver)) - 3
-                
+
                 self.controller.put_content(cache)
                 # If symmetric and multicast have equal cost, choose symmetric
                 # because of easier packet processing
-                if symmetric_path_len <= multicast_path_len: # use symmetric delivery
+                if symmetric_path_len <= multicast_path_len:  # use symmetric delivery
                     # Symmetric delivery
                     self.controller.forward_content_path(source, cache, main_path=True)
                     self.controller.forward_content_path(cache, receiver, main_path=True)
@@ -772,16 +772,16 @@ class HashroutingHybridSM(Hashrouting):
 @register_strategy('NO_CACHE')
 class NoCache(Strategy):
     """Strategy without any caching
-    
+
     This corresponds to the traffic in a normal TCP/IP network without any
-    CDNs or overlay caching, where all content requests are served by the 
+    CDNs or overlay caching, where all content requests are served by the
     original source.
     """
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
         super(NoCache, self).__init__(view, controller)
-    
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -800,20 +800,20 @@ class NoCache(Strategy):
 @register_strategy('PARTITION')
 class Partition(Strategy):
     """Partition caching strategy.
-    
+
     In this strategy the network is divided into as many partitions as the number
     of caching nodes and each receiver is statically mapped to one and only one
     caching node. When a request is issued it is forwarded to the cache mapped
     to the receiver. In case of a miss the request is routed to the source and
     then returned to cache, which will store it and forward it back to the
     receiver.
-    
+
     This requires median cache placement, which optimizes the placement of
     caches for this strategy.
-    
+
     This strategy is normally used with a small number of caching nodes. This
     is the the behaviour normally adopted by Network CDN (NCDN). Google Global
-    Cache (GGC) operates this way. 
+    Cache (GGC) operates this way.
     """
 
     @inheritdoc(Strategy)
@@ -843,10 +843,10 @@ class Partition(Strategy):
 @register_strategy('EDGE')
 class Edge(Strategy):
     """Edge caching strategy.
-    
+
     In this strategy only a cache at the edge is looked up before forwarding
     a content request to the original source.
-    
+
     In practice, this is like an LCE but it only queries the first cache it
     finds in the path. It is assumed to be used with a topology where each
     PoP has a cache but it simulates a case where the cache is actually further
@@ -882,7 +882,7 @@ class Edge(Strategy):
             # No caches on the path at all, get it from source
             self.controller.get_content(v)
             serving_node = v
-            
+
         # Return content
         path = list(reversed(self.view.shortest_path(receiver, serving_node)))
         self.controller.forward_content_path(serving_node, receiver, path)
@@ -894,7 +894,7 @@ class Edge(Strategy):
 @register_strategy('LCE')
 class LeaveCopyEverywhere(Strategy):
     """Leave Copy Everywhere (LCE) strategy.
-    
+
     In this strategy a copy of a content is replicated at any cache on the
     path between serving node and receiver.
     """
@@ -932,16 +932,16 @@ class LeaveCopyEverywhere(Strategy):
 @register_strategy('LCD')
 class LeaveCopyDown(Strategy):
     """Leave Copy Down (LCD) strategy.
-    
+
     According to this strategy, one copy of a content is replicated only in
     the caching node you hop away from the serving node in the direction of
     the receiver. This strategy is described in [2]_.
-    
+
     Rereferences
     ------------
     ..[2] N. Laoutaris, H. Che, i. Stavrakakis, The LCD interconnection of LRU
-          caches and its analysis. 
-          Available: http://cs-people.bu.edu/nlaout/analysis_PEVA.pdf 
+          caches and its analysis.
+          Available: http://cs-people.bu.edu/nlaout/analysis_PEVA.pdf
     """
 
     @inheritdoc(Strategy)
@@ -981,16 +981,16 @@ class LeaveCopyDown(Strategy):
 @register_strategy('PROB_CACHE')
 class ProbCache(Strategy):
     """ProbCache strategy [4]_
-    
+
     This strategy caches content objects probabilistically on a path with a
     probability depending on various factors, including distance from source
     and destination and caching space available on the path.
-    
+
     This strategy was originally proposed in [3]_ and extended in [4]_. This
     class implements the extended version described in [4]_. In the extended
     version of ProbCache the :math`x/c` factor of the ProbCache equation is
     raised to the power of :math`c`.
-    
+
     References
     ----------
     ..[3] I. Psaras, W. Chai, G. Pavlou, Probabilistic In-Network Caching for
@@ -1007,7 +1007,7 @@ class ProbCache(Strategy):
         super(ProbCache, self).__init__(view, controller)
         self.t_tw = t_tw
         self.cache_size = view.cache_nodes(size=True)
-    
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -1033,7 +1033,7 @@ class ProbCache(Strategy):
         x = 0.0
         for hop in range(1, len(path)):
             u = path[hop - 1]
-            v = path[hop]    
+            v = path[hop]
             N = sum([self.cache_size[n] for n in path[hop - 1:]
                      if n in self.cache_size])
             if v in self.cache_size:
@@ -1042,7 +1042,7 @@ class ProbCache(Strategy):
             if v != receiver and v in self.cache_size:
                 # The (x/c) factor raised to the power of "c" according to the
                 # extended version of ProbCache published in IEEE TPDS
-                prob_cache = float(N)/(self.t_tw * self.cache_size[v])*(x/c)**c
+                prob_cache = float(N) / (self.t_tw * self.cache_size[v]) * (x / c) ** c
                 if random.random() < prob_cache:
                     self.controller.put_content(v)
         self.controller.end_session()
@@ -1051,7 +1051,7 @@ class ProbCache(Strategy):
 @register_strategy('CL4M')
 class CacheLessForMore(Strategy):
     """Cache less for more strategy [5]_.
-    
+
     References
     ----------
     ..[5] W. Chai, D. He, I. Psaras, G. Pavlou, Cache Less for More in
@@ -1068,7 +1068,7 @@ class CacheLessForMore(Strategy):
                              for v in topology.nodes_iter())
         else:
             self.betw = nx.betweenness_centrality(topology)
-    
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -1103,18 +1103,18 @@ class CacheLessForMore(Strategy):
             self.controller.forward_content_hop(u, v)
             if v == designated_cache:
                 self.controller.put_content(v)
-        self.controller.end_session()  
-        
+        self.controller.end_session()
+
 
 @register_strategy('NRR')
 class NearestReplicaRouting(Strategy):
     """Ideal Nearest Replica Routing (NRR) strategy.
-    
+
     In this strategy, a request is forwarded to the topologically close node
     holding a copy of the requested item. This strategy is ideal, as it is
     implemented assuming that each node knows the nearest replica of a content
     without any signalling
-    
+
     On the return path, content can be caching according to a variety of
     metacaching policies. LCE and LCD are currently supported.
     """
@@ -1122,7 +1122,7 @@ class NearestReplicaRouting(Strategy):
     def __init__(self, view, controller, metacaching, implementation='ideal',
                  radius=4, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         view : NetworkView
@@ -1149,7 +1149,7 @@ class NearestReplicaRouting(Strategy):
         self.radius = radius
         self.distance = nx.all_pairs_dijkstra_path_length(self.view.topology(),
                                                           weight='delay')
-        
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -1163,15 +1163,15 @@ class NearestReplicaRouting(Strategy):
             # Floods actual request packets
             paths = {loc: len(self.view.shortest_path(receiver, loc)[:self.radius])
                      for loc in locations}
-            #TODO: Continue
+            # TODO: Continue
             raise NotImplementedError("Not implemented")
         elif self.implementation == 'approx_2':
             # Floods meta-request packets
-            #TODO: Continue
+            # TODO: Continue
             raise NotImplementedError("Not implemented")
         else:
             # Should never reach this block anyway
-            raise ValueError("Implementation %s not supported" 
+            raise ValueError("Implementation %s not supported"
                              % str(self.implementation))
         self.controller.get_content(nearest_replica)
         # Now we need to return packet and we have options
@@ -1197,7 +1197,7 @@ class NearestReplicaRouting(Strategy):
 @register_strategy('RAND_BERNOULLI')
 class RandomBernoulli(Strategy):
     """Bernoulli random cache insertion.
-    
+
     In this strategy, a content is randomly inserted in a cache on the path
     from serving node to receiver with probability *p*.
     """
@@ -1206,7 +1206,7 @@ class RandomBernoulli(Strategy):
     def __init__(self, view, controller, p=0.2, **kwargs):
         super(RandomBernoulli, self).__init__(view, controller)
         self.p = p
-    
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -1225,7 +1225,7 @@ class RandomBernoulli(Strategy):
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path =  list(reversed(self.view.shortest_path(receiver, serving_node)))
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
         for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if v != receiver and self.view.has_cache(v):
@@ -1236,7 +1236,7 @@ class RandomBernoulli(Strategy):
 @register_strategy('RAND_CHOICE')
 class RandomChoice(Strategy):
     """Random choice strategy
-    
+
     This strategy stores the served content exactly in one single cache on the
     path from serving node to receiver selected randomly.
     """
@@ -1244,7 +1244,7 @@ class RandomChoice(Strategy):
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
         super(RandomChoice, self).__init__(view, controller)
-    
+
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
         # get all required data
@@ -1263,11 +1263,11 @@ class RandomChoice(Strategy):
             self.controller.get_content(v)
             serving_node = v
         # Return content
-        path =  list(reversed(self.view.shortest_path(receiver, serving_node)))
+        path = list(reversed(self.view.shortest_path(receiver, serving_node)))
         caches = [v for v in path[1:-1] if self.view.has_cache(v)]
         designated_cache = random.choice(caches) if len(caches) > 0 else None
         for u, v in path_links(path):
             self.controller.forward_content_hop(u, v)
             if v == designated_cache:
                 self.controller.put_content(v)
-        self.controller.end_session() 
+        self.controller.end_session()

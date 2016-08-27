@@ -22,7 +22,7 @@ __all__ = [
 
 class DiscreteDist(object):
     """Implements a discrete distribution with finite population.
-    
+
     The support must be a finite discrete set of contiguous integers
     {1, ..., N}. This definition of discrete distribution.
     """
@@ -30,7 +30,7 @@ class DiscreteDist(object):
     def __init__(self, pdf, seed=None):
         """
         Constructor
-        
+
         Parameters
         ----------
         pdf : array-like
@@ -48,7 +48,7 @@ class DiscreteDist(object):
 
     def __len__(self):
         """Return the cardinality of the support
-        
+
         Returns
         -------
         len : int
@@ -60,24 +60,24 @@ class DiscreteDist(object):
     def pdf(self):
         """
         Return the Probability Density Function (PDF)
-        
+
         Returns
         -------
         pdf : Numpy array
             Array representing the probability density function of the
-            distribution 
+            distribution
         """
         return self._pdf
-    
+
     @property
     def cdf(self):
         """
         Return the Cumulative Density Function (CDF)
-        
+
         Returns
         -------
         cdf : Numpy array
-            Array representing cdf 
+            Array representing cdf
         """
         return self._cdf
 
@@ -97,7 +97,7 @@ class TruncatedZipfDist(DiscreteDist):
 
     def __init__(self, alpha=1.0, n=1000, seed=None):
         """Constructor
-        
+
         Parameters
         ----------
         alpha : float
@@ -114,7 +114,7 @@ class TruncatedZipfDist(DiscreteDist):
             raise ValueError('n must be positive')
         # This is the PDF i. e. the array that  contains the probability that
         # content i + 1 is picked
-        pdf = np.arange(1.0, n+1.0)**-alpha
+        pdf = np.arange(1.0, n + 1.0) ** -alpha
         pdf /= np.sum(pdf)
         self._alpha = alpha
         super(TruncatedZipfDist, self).__init__(pdf, seed)
@@ -126,21 +126,21 @@ class TruncatedZipfDist(DiscreteDist):
 
 def means_confidence_interval(data, confidence=0.95):
     """Computes the confidence interval for a given set of means.
-    
+
     Parameters
     ----------
     data : array-like
         The set of samples whose confidence interval is calculated
     confidence : float, optional
         The confidence level. It must be a value in the interval (0, 1)
-        
+
     Returns
     -------
     mean : float
         The mean of the sample
     err : float
         The standard error of the sample
-        
+
     References
     ----------
     [1] N. Matloff, From Algorithms to Z-Scores: Probabilistic and Statistical
@@ -154,12 +154,12 @@ def means_confidence_interval(data, confidence=0.95):
     w = np.mean(data)
     s = np.std(data)
     err = ss.norm.interval(confidence)[1]
-    return w, err*s/math.sqrt(n)
+    return w, err * s / math.sqrt(n)
 
 
 def proportions_confidence_interval(data, confidence):
     """Computes the confidence interval of a proportion.
-    
+
     Parameters
     ----------
     data : array-like of bool
@@ -167,7 +167,7 @@ def proportions_confidence_interval(data, confidence):
         estimated
     confidence : float, optional
         The confidence level. It must be a value in the interval (0, 1)
-    
+
     References
     ----------
     [1] N. Matloff, From Algorithms to Z-Scores: Probabilistic and Statistical
@@ -179,30 +179,30 @@ def proportions_confidence_interval(data, confidence):
                          'smaller than 1')
     n = float(len(data))
     m = len((i for i in data if i is True))
-    p = m/n
+    p = m / n
     err = ss.norm.interval(confidence)[1]
-    return p, err*math.sqrt(p*(1 - p)/n)
+    return p, err * math.sqrt(p * (1 - p) / n)
 
 
 def cdf(data):
     """Return the empirical CDF of a set of 1D data
-    
+
     Parameters
     ----------
     data : array-like
         Array of data
-        
+
     Returns
     -------
     x : array
-        All occurrences of data sorted 
+        All occurrences of data sorted
     cdf : array
         The CDF of data.
         More specifically cdf[i] is the probability that x < x[i]
     """
     if len(data) < 1:
         raise TypeError("data must have at least one element")
-    freq_dict = collections.Counter(data) 
+    freq_dict = collections.Counter(data)
     sorted_unique_data = np.sort(list(freq_dict.keys()))
     freqs = np.zeros(len(sorted_unique_data))
     for i in range(len(freqs)):
@@ -211,24 +211,24 @@ def cdf(data):
 #                       for i in range(len(sorted_unique_data))])
     cdf = np.array(np.cumsum(freqs))
     norm = cdf[-1]
-    cdf = cdf/norm # normalize
-    cdf[-1] = 1.0 # Prevent rounding errors 
+    cdf = cdf / norm  # normalize
+    cdf[-1] = 1.0  # Prevent rounding errors
     return sorted_unique_data, cdf
 
 
 def pdf(data, n_bins):
     """Return the empirical PDF of a set of 1D data
-        
+
     Parameters
     ----------
     data : array-like
         Array of data
     n_bins : int
         The number of bins
-    
+
     Returns
     x : array
-        The center point of all bins 
+        The center point of all bins
     pdf : array
         The PDF of data.
     """

@@ -6,7 +6,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 import collections
 
@@ -15,11 +15,11 @@ import numpy as np
 import icarus.models as cache
 
 class TestLinkedSet(unittest.TestCase):
-    
+
     def link_consistency(self, linked_set):
         """Checks that links of a linked set are consistent iterating from top
         or from bottom.
-        
+
         This method depends on the internal implementation of the LinkedSet
         class
         """
@@ -37,7 +37,7 @@ class TestLinkedSet(unittest.TestCase):
         if topdown != bottomup:
             return False
         return list(reversed(list(linked_set))) == list(reversed(linked_set))
-        
+
     def test_append_top(self):
         c = cache.LinkedSet()
         c.append_top(1)
@@ -80,7 +80,7 @@ class TestLinkedSet(unittest.TestCase):
         c.move_to_top(1)
         self.assertEqual(list(c), [1, 2, 3])
         self.assertTrue(self.link_consistency(c))
-        
+
     def test_move_to_bottom(self):
         c = cache.LinkedSet()
         c.append_top(1)
@@ -95,7 +95,7 @@ class TestLinkedSet(unittest.TestCase):
         c.move_to_bottom(1)
         self.assertEqual(list(c), [3, 2, 1])
         self.assertTrue(self.link_consistency(c))
-    
+
     def test_move_up(self):
         c = cache.LinkedSet()
         c.append_bottom(1)
@@ -113,7 +113,7 @@ class TestLinkedSet(unittest.TestCase):
         self.assertEqual(list(c), [3, 2, 1])
         self.assertTrue(self.link_consistency(c))
         self.assertRaises(KeyError, c.move_up, 4)
-        
+
     def test_move_down(self):
         c = cache.LinkedSet()
         c.append_top(1)
@@ -134,7 +134,7 @@ class TestLinkedSet(unittest.TestCase):
         self.assertEqual(list(c), [1, 2, 3])
         self.assertTrue(self.link_consistency(c))
         self.assertRaises(KeyError, c.move_down, 4)
-        
+
     def test_pop_top(self):
         c = cache.LinkedSet([1, 2, 3])
         evicted = c.pop_top()
@@ -143,7 +143,7 @@ class TestLinkedSet(unittest.TestCase):
         self.assertTrue(self.link_consistency(c))
         evicted = c.pop_top()
         self.assertEqual(evicted, 2)
-        self.assertEqual(list(c), [3])    
+        self.assertEqual(list(c), [3])
         self.assertTrue(self.link_consistency(c))
         evicted = c.pop_top()
         self.assertEqual(evicted, 3)
@@ -204,7 +204,7 @@ class TestLinkedSet(unittest.TestCase):
         c.insert_below(3, 'c')
         self.assertEqual(list(c), [1, 'a', 2, 'b', 3, 'c'])
         self.assertTrue(self.link_consistency(c))
-        
+
     def test_clear(self):
         c = cache.LinkedSet()
         c.append_top(1)
@@ -247,7 +247,7 @@ class TestCache(unittest.TestCase):
         c.do('DELETE', 2)
         self.assertFalse(c.do('GET', 2))
         self.assertEquals(c.dump(), [])
-    
+
 
 class TestMinCache(unittest.TestCase):
 
@@ -281,7 +281,7 @@ class TestMinCache(unittest.TestCase):
         for i in trace:
             self.assertFalse(c.get(i))
             self.assertIsNone(c.put(i))
-            self.assertEqual(set(range(min(i+1, size))), set(c.dump()))
+            self.assertEqual(set(range(min(i + 1, size))), set(c.dump()))
 
 
 class TestLruCache(unittest.TestCase):
@@ -308,7 +308,7 @@ class TestLruCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
-        
+
     def test_remove(self):
         c = cache.LruCache(4)
         c.put(1)
@@ -326,7 +326,7 @@ class TestLruCache(unittest.TestCase):
         c.remove(1)
         self.assertEqual(len(c), 2)
         self.assertEqual(c.dump(), [4, 3])
-        
+
     def test_position(self):
         c = cache.LruCache(4)
         c.put(4)
@@ -407,7 +407,7 @@ class TestSlruCache(unittest.TestCase):
         c.get(6)
         self.assertEqual(len(c), 5)
         self.assertEqual(c.dump(serialized=False), [[6, 2, 3], [4], [5]])
-    
+
     def test_remove(self):
         c = cache.SegmentedLruCache(4, 2)
         c.put(2)
@@ -429,7 +429,7 @@ class TestSlruCache(unittest.TestCase):
         c.remove(3)
         self.assertEqual(len(c), 0)
         self.assertEqual(c.dump(serialized=False), [[], []])
-        
+
     def test_position(self):
         c = cache.SegmentedLruCache(4, 2)
         c.put(2)
@@ -443,7 +443,7 @@ class TestSlruCache(unittest.TestCase):
         self.assertEqual(c.position(2), 1)
         self.assertEqual(c.position(3), 2)
         self.assertEqual(c.position(4), 3)
-        
+
     def test_has(self):
         c = cache.SegmentedLruCache(4, 2)
         c.put(2)
@@ -458,7 +458,7 @@ class TestSlruCache(unittest.TestCase):
         self.assertTrue(c.has(3))
         self.assertTrue(c.has(4))
         self.assertFalse(c.has(5))
-        
+
     def test_dump(self):
         c = cache.SegmentedLruCache(4, 2)
         c.put(2)
@@ -497,7 +497,7 @@ class TestFifoCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
-    
+
     def test_remove(self):
         c = cache.FifoCache(4)
         c.put(1)
@@ -540,7 +540,7 @@ class TestClimbCache(unittest.TestCase):
         self.assertEquals(c.dump(), [4, 1, 2, 3])
         self.assertEquals(c.put(5), 3)
         self.assertEquals(c.dump(), [4, 1, 2, 5])
-        
+
     def test_remove(self):
         c = cache.ClimbCache(4)
         c.put(1)
@@ -558,7 +558,7 @@ class TestClimbCache(unittest.TestCase):
         c.remove(1)
         self.assertEqual(len(c), 2)
         self.assertEqual(c.dump(), [3, 4])
-        
+
     def test_position(self):
         c = cache.ClimbCache(4)
         c.put(1)
@@ -574,7 +574,7 @@ class TestClimbCache(unittest.TestCase):
 
 
 class TestRandCache(unittest.TestCase):
-    
+
     def test_rand(self):
         c = cache.RandEvictionCache(4)
         self.assertEquals(len(c), 0)
@@ -675,8 +675,8 @@ class TestPerfectLfuCache(unittest.TestCase):
         c.get(3)
         c.get(3)
         c.get(3)
-        c.get(5) 
-        c.put(5)    # This does not removes 3
+        c.get(5)
+        c.put(5)  # This does not removes 3
         self.assertEquals(c.dump(), [1, 2, 3])
         c.get(5)
         c.get(5)
@@ -700,10 +700,10 @@ class TestPerfectLfuCache(unittest.TestCase):
         c.clear()
         self.assertEquals(len(c), 0)
         self.assertEquals(c.dump(), [])
-        
+
 
 class TestInsertAfterKHits(unittest.TestCase):
-    
+
     def test_put_get_no_memory(self):
         c = cache.LruCache(2)
         c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
@@ -813,7 +813,7 @@ class TestInsertAfterKHits(unittest.TestCase):
 
 
 class TestRandInsert(unittest.TestCase):
-    
+
     def test_rand_insert(self):
         n = 10000
         r = 10
@@ -831,8 +831,8 @@ class TestRandInsert(unittest.TestCase):
             len_rc2 += len(rc2)
             rc1.clear()
             rc2.clear()
-        self.assertLess(abs(len_rc1/r - n*p1), 50)
-        self.assertLess(abs(len_rc2/r - n*p2), 50)
+        self.assertLess(abs(len_rc1 / r - n * p1), 50)
+        self.assertLess(abs(len_rc2 / r - n * p2), 50)
 
     def test_constant_seed(self):
         n = 10000
@@ -855,7 +855,7 @@ class TestRandInsert(unittest.TestCase):
         for i in range(n):
             rc2.put(i)
         self.assertNotEqual(rc1.dump(), rc2.dump())
-    
+
     def test_deepcopy(self):
         c = cache.LruCache(10)
         rc = cache.rand_insert_cache(c, p=1.0)
@@ -876,7 +876,7 @@ class TestRandInsert(unittest.TestCase):
         self.assertGreater(len(c.clear.__doc__), 0)
 
 class TestKeyValCache(unittest.TestCase):
-    
+
     def test_key_val_cache(self):
         c = cache.keyval_cache(cache.FifoCache(3))
         c.put(1, 11)
@@ -894,7 +894,7 @@ class TestKeyValCache(unittest.TestCase):
         self.assertEqual((k, v), (1, 12))
         c.clear()
         self.assertEqual(len(c), 0)
-        
+
     def test_naming(self):
         c = cache.keyval_cache(cache.FifoCache(3))
         self.assertEqual(c.get.__name__, 'get')
@@ -905,7 +905,7 @@ class TestKeyValCache(unittest.TestCase):
         self.assertGreater(len(c.put.__doc__), 0)
         self.assertGreater(len(c.dump.__doc__), 0)
         self.assertGreater(len(c.clear.__doc__), 0)
-        
+
     def test_deepcopy(self):
         kc = cache.LruCache(10)
         kvc = cache.keyval_cache(kc)
@@ -913,16 +913,16 @@ class TestKeyValCache(unittest.TestCase):
         self.assertFalse(kc.has(1))
         kc.put(3)
         self.assertFalse(kvc.has(3))
-    
+
     def test_zero_val_lru(self):
         c = cache.keyval_cache(cache.LruCache(10))
-        reqs = [(10,0), (10, 1)]
+        reqs = [(10, 0), (10, 1)]
         for k, v in reqs:
             c.put(k, v)
 
 
 class TestTtlCache(unittest.TestCase):
-    
+
     def test_put_dump(self):
         curr_time = 1
         f_time = lambda: curr_time
@@ -943,7 +943,7 @@ class TestTtlCache(unittest.TestCase):
         self.assertEqual(c.dump(), [(3, 10), (2, 6)])
         curr_time = 11
         self.assertEqual(c.dump(), [])
-    
+
     def test_get(self):
         curr_time = 1
         f_time = lambda: curr_time
@@ -961,7 +961,7 @@ class TestTtlCache(unittest.TestCase):
         curr_time = 15
         self.assertFalse(c.get(1))
         self.assertFalse(c.get(2))
-    
+
     def test_eviction(self):
         curr_time = 0
         f_time = lambda: curr_time
@@ -972,20 +972,20 @@ class TestTtlCache(unittest.TestCase):
         self.assertEqual(c.put(4, ttl=10), 1)
         curr_time = 7
         self.assertIsNone(c.put(5, ttl=12))
-        
+
     def test_incorrect_params(self):
         self.assertRaises(TypeError, cache.ttl_cache, 'cache', lambda: 1)
         self.assertRaises(TypeError, cache.ttl_cache, cache.FifoCache(4), 'function')
         c = cache.ttl_cache(cache.FifoCache(10), lambda: 5)
         self.assertRaises(ValueError, c.put, 1, ttl=2, expires=8)
-        
+
     def test_put_stale_content(self):
         c = cache.ttl_cache(cache.FifoCache(2), lambda: 5)
-        c.put(1, ttl= -2)
+        c.put(1, ttl=-2)
         self.assertFalse(c.has(1))
         c.put(2, expires=3)
         self.assertFalse(c.has(2))
-    
+
     def test_inf_ttl(self):
         curr_time = 1
         f_time = lambda: curr_time
@@ -1018,7 +1018,7 @@ class TestTtlCache(unittest.TestCase):
         self.assertIn((1, np.infty), dump)
         self.assertIn((2, np.infty), dump)
         self.assertIn((3, np.infty), dump)
-    
+
     def test_clear(self):
         curr_time = 1
         f_time = lambda: curr_time
@@ -1031,7 +1031,7 @@ class TestTtlCache(unittest.TestCase):
         c.clear()
         self.assertEqual(len(c), 0)
         self.assertEqual(c.dump(), [])
-        
+
     def test_naming(self):
         c = cache.ttl_cache(cache.FifoCache(4), lambda: 0)
         self.assertEqual(c.get.__name__, 'get')
@@ -1039,7 +1039,7 @@ class TestTtlCache(unittest.TestCase):
         self.assertEqual(c.dump.__name__, 'dump')
         self.assertEqual(c.clear.__name__, 'clear')
         self.assertEqual(c.has.__name__, 'has')
-        
+
     def test_deepcopy(self):
         c = cache.LruCache(10)
         ttl_c = cache.ttl_cache(c, lambda: 0)

@@ -9,7 +9,7 @@ Each call to the `__iter__` method must return a 2-tuple in which the first
 element is the timestamp at which the event occurs and the second is a
 dictionary, describing the event, which must contain at least the three
 following attributes:
- * receiver: The name of the node issuing the request 
+ * receiver: The name of the node issuing the request
  * content: The name of the content for which the request is issued
  * log: A boolean value indicating whether this request should be logged or not
    for measurement purposes.
@@ -35,28 +35,28 @@ __all__ = [
 
 @register_workload('STATIONARY')
 class StationaryWorkload(object):
-    """This function generates events on the fly, i.e. instead of creating an 
+    """This function generates events on the fly, i.e. instead of creating an
     event schedule to be kept in memory, returns an iterator that generates
     events when needed.
-    
+
     This is useful for running large schedules of events where RAM is limited
     as its memory impact is considerably lower.
-    
+
     These requests are Poisson-distributed while content popularity is
     Zipf-distributed
-    
+
     All requests are mapped to receivers uniformly unless a positive *beta*
     parameter is specified.
-    
+
     If a *beta* parameter is specified, then receivers issue requests at
-    different rates. The algorithm used to determine the requests rates for 
+    different rates. The algorithm used to determine the requests rates for
     each receiver is the following:
      * All receiver are sorted in decreasing order of degree of the PoP they
        are attached to. This assumes that all receivers have degree = 1 and are
        attached to a node with degree > 1
      * Rates are then assigned following a Zipf distribution of coefficient
-       beta where nodes with higher-degree PoPs have a higher request rate 
-    
+       beta where nodes with higher-degree PoPs have a higher request rate
+
     Parameters
     ----------
     topology : fnss.Topology
@@ -74,7 +74,7 @@ class StationaryWorkload(object):
         not logged)
     n_measured : int, optional
         The number of logged requests after the warmup
-    
+
     Returns
     -------
     events : iterator
@@ -83,7 +83,7 @@ class StationaryWorkload(object):
         dictionary of event attributes.
     """
     def __init__(self, topology, n_contents, alpha, beta=0, rate=1.0,
-                    n_warmup=10**5, n_measured=4*10**5, seed=None, **kwargs):
+                    n_warmup=10 ** 5, n_measured=4 * 10 ** 5, seed=None, **kwargs):
         if alpha < 0:
             raise ValueError('alpha must be positive')
         if beta < 0:
@@ -103,7 +103,7 @@ class StationaryWorkload(object):
             degree = nx.degree(self.topology)
             self.receivers = sorted(self.receivers, key=lambda x: degree[iter(topology.edge[x]).next()], reverse=True)
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
-        
+
     def __iter__(self):
         req_counter = 0
         t_event = 0.0
@@ -112,7 +112,7 @@ class StationaryWorkload(object):
             if self.beta == 0:
                 receiver = random.choice(self.receivers)
             else:
-                receiver = self.receivers[self.receiver_dist.rv()-1]
+                receiver = self.receivers[self.receiver_dist.rv() - 1]
             content = int(self.zipf.rv())
             log = (req_counter >= self.n_warmup)
             event = {'receiver': receiver, 'content': content, 'log': log}
@@ -124,19 +124,19 @@ class StationaryWorkload(object):
 @register_workload('GLOBETRAFF')
 class GlobetraffWorkload(object):
     """Parse requests from GlobeTraff workload generator
-    
+
     All requests are mapped to receivers uniformly unless a positive *beta*
     parameter is specified.
-    
+
     If a *beta* parameter is specified, then receivers issue requests at
-    different rates. The algorithm used to determine the requests rates for 
+    different rates. The algorithm used to determine the requests rates for
     each receiver is the following:
      * All receiver are sorted in decreasing order of degree of the PoP they
        are attached to. This assumes that all receivers have degree = 1 and are
        attached to a node with degree > 1
      * Rates are then assigned following a Zipf distribution of coefficient
-       beta where nodes with higher-degree PoPs have a higher request rate 
-    
+       beta where nodes with higher-degree PoPs have a higher request rate
+
     Parameters
     ----------
     topology : fnss.Topology
@@ -147,7 +147,7 @@ class GlobetraffWorkload(object):
         The GlobeTraff content file
     beta : float, optional
         Spatial skewness of requests rates
-        
+
     Returns
     -------
     events : iterator
@@ -155,12 +155,12 @@ class GlobetraffWorkload(object):
         the timestamp at which the event occurs and the second element is a
         dictionary of event attributes.
     """
-    
+
     def __init__(self, topology, reqs_file, contents_file, beta=0, **kwargs):
         """Constructor"""
         if beta < 0:
             raise ValueError('beta must be positive')
-        self.receivers = [v for v in topology.nodes_iter() 
+        self.receivers = [v for v in topology.nodes_iter()
                      if topology.node[v]['stack'][0] == 'receiver']
         self.n_contents = 0
         with open(contents_file, 'r') as f:
@@ -173,11 +173,11 @@ class GlobetraffWorkload(object):
         self.beta = beta
         if beta != 0:
             degree = nx.degree(self.topology)
-            self.receivers = sorted(self.receivers, key=lambda x: 
-                                    degree[iter(topology.edge[x]).next()], 
+            self.receivers = sorted(self.receivers, key=lambda x:
+                                    degree[iter(topology.edge[x]).next()],
                                     reverse=True)
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
-        
+
     def __iter__(self):
         with open(self.request_file, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
@@ -185,7 +185,7 @@ class GlobetraffWorkload(object):
                 if self.beta == 0:
                     receiver = random.choice(self.receivers)
                 else:
-                    receiver = self.receivers[self.receiver_dist.rv()-1]
+                    receiver = self.receivers[self.receiver_dist.rv() - 1]
                 event = {'receiver': receiver, 'content': content, 'size': size}
                 yield (timestamp, event)
         raise StopIteration()
@@ -194,26 +194,26 @@ class GlobetraffWorkload(object):
 @register_workload('TRACE_DRIVEN')
 class TraceDrivenWorkload(object):
     """Parse requests from a generic request trace.
-    
+
     This workload requires two text files:
      * a requests file, where each line corresponds to a string identifying
        the content requested
      * a contents file, which lists all unique content identifiers appearing
        in the requests file.
-       
+
     Since the trace do not provide timestamps, requests are scheduled according
     to a Poisson process of rate *rate*. All requests are mapped to receivers
     uniformly unless a positive *beta* parameter is specified.
-    
+
     If a *beta* parameter is specified, then receivers issue requests at
-    different rates. The algorithm used to determine the requests rates for 
+    different rates. The algorithm used to determine the requests rates for
     each receiver is the following:
      * All receiver are sorted in decreasing order of degree of the PoP they
        are attached to. This assumes that all receivers have degree = 1 and are
        attached to a node with degree > 1
      * Rates are then assigned following a Zipf distribution of coefficient
-       beta where nodes with higher-degree PoPs have a higher request rate 
-        
+       beta where nodes with higher-degree PoPs have a higher request rate
+
     Parameters
     ----------
     topology : fnss.Topology
@@ -233,7 +233,7 @@ class TraceDrivenWorkload(object):
         The network-wide mean rate of requests per second
     beta : float, optional
         Spatial skewness of requests rates
-        
+
     Returns
     -------
     events : iterator
@@ -241,20 +241,20 @@ class TraceDrivenWorkload(object):
         the timestamp at which the event occurs and the second element is a
         dictionary of event attributes.
     """
-    
+
     def __init__(self, topology, reqs_file, contents_file, n_contents,
                  n_warmup, n_measured, rate=1.0, beta=0, **kwargs):
         """Constructor"""
         if beta < 0:
             raise ValueError('beta must be positive')
         # Set high buffering to avoid one-line reads
-        self.buffering = 64*1024*1024
+        self.buffering = 64 * 1024 * 1024
         self.n_contents = n_contents
         self.n_warmup = n_warmup
         self.n_measured = n_measured
         self.reqs_file = reqs_file
         self.rate = rate
-        self.receivers = [v for v in topology.nodes_iter() 
+        self.receivers = [v for v in topology.nodes_iter()
                           if topology.node[v]['stack'][0] == 'receiver']
         self.contents = []
         with open(contents_file, 'r', buffering=self.buffering) as f:
@@ -267,7 +267,7 @@ class TraceDrivenWorkload(object):
                                     degree[iter(topology.edge[x]).next()],
                                     reverse=True)
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
-        
+
     def __iter__(self):
         req_counter = 0
         t_event = 0.0
@@ -277,7 +277,7 @@ class TraceDrivenWorkload(object):
                 if self.beta == 0:
                     receiver = random.choice(self.receivers)
                 else:
-                    receiver = self.receivers[self.receiver_dist.rv()-1]
+                    receiver = self.receivers[self.receiver_dist.rv() - 1]
                 log = (req_counter >= self.n_warmup)
                 event = {'receiver': receiver, 'content': content, 'log': log}
                 yield (t_event, event)
@@ -290,10 +290,10 @@ class TraceDrivenWorkload(object):
 @register_workload('YCSB')
 class YCSBWorkload(object):
     """Yahoo! Cloud Serving Benchmark (YCSB)
-    
+
     The YCSB is a set of reference workloads used to benchmark databases and,
     more generally any storage/caching systems. It comprises five workloads:
-    
+
     +------------------+------------------------+------------------+
     | Workload         | Operations             | Record selection |
     +------------------+------------------------+------------------+
@@ -309,10 +309,10 @@ class YCSBWorkload(object):
     At the moment only workloads A, B and C are implemented, since they are the
     most relevant for caching systems.
     """
-    
+
     def __init__(self, workload, n_contents, n_warmup, n_measured, alpha=0.99, seed=None, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         workload : str
@@ -329,7 +329,7 @@ class YCSBWorkload(object):
         seed : int, optional
             The seed for the random generator
         """
-        
+
         if workload not in ("A", "B", "C", "D", "E"):
             raise ValueError("Incorrect workload ID [A-B-C-D-E]")
         elif workload in ("D", "E"):
@@ -357,4 +357,3 @@ class YCSBWorkload(object):
             yield event
             req_counter += 1
         raise StopIteration()
-    

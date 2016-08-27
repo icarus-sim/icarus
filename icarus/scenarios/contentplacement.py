@@ -15,7 +15,7 @@ __all__ = ['uniform_content_placement', 'weighted_content_placement']
 
 def apply_content_placement(placement, topology):
     """Apply a placement to a topology
-    
+
     Parameters
     ----------
     placement : dict of sets
@@ -33,7 +33,7 @@ def get_sources(topology):
 def uniform_content_placement(topology, contents, seed=None):
     """Places content objects to source nodes randomly following a uniform
     distribution.
-    
+
     Parameters
     ----------
     topology : Topology
@@ -42,12 +42,12 @@ def uniform_content_placement(topology, contents, seed=None):
         Iterable of content objects
     source_nodes : list
         List of nodes of the topology which are content sources
-        
+
     Returns
     -------
     cache_placement : dict
         Dictionary mapping content objects to source nodes
-    
+
     Notes
     -----
     A deterministic placement of objects (e.g., for reproducing results) can be
@@ -65,7 +65,7 @@ def uniform_content_placement(topology, contents, seed=None):
 def weighted_content_placement(topology, contents, source_weights, seed=None):
     """Places content objects to source nodes randomly according to the weight
     of the source node.
-    
+
     Parameters
     ----------
     topology : Topology
@@ -75,7 +75,7 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     source_weights : dict
         Dict mapping nodes nodes of the topology which are content sources and
         the weight according to which content placement decision is made.
-        
+
     Returns
     -------
     cache_placement : dict
@@ -88,9 +88,8 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     """
     random.seed(seed)
     norm_factor = float(sum(source_weights.values()))
-    source_pdf = dict((k, v/norm_factor) for k, v in source_weights.items())
+    source_pdf = dict((k, v / norm_factor) for k, v in source_weights.items())
     content_placement = collections.defaultdict(set)
     for c in contents:
         content_placement[random_from_pdf(source_pdf)].add(c)
     apply_content_placement(content_placement, topology)
-    

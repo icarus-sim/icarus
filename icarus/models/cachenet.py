@@ -21,18 +21,17 @@ __all__ = [
 @register_cache_policy('PATH')
 class PathCache(object):
     """Path of caches
-    
+
     This is not a single-node cache implementation but rather it implements
     a path of caching nodes in which requests are fed to the first node of the
     path and, in case of a miss, are propagated down to the remaining nodes
     of the path. A miss occurs if none of the nodes on the path has the
     requested content.
-    
     """
-        
+
     def __init__(self, caches, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         caches : array-like
@@ -43,7 +42,7 @@ class PathCache(object):
 
     def __len__(self):
         return self._len
-    
+
     @property
     def maxlen(self):
         return self._len
@@ -54,7 +53,7 @@ class PathCache(object):
                 return True
         else:
             return False
-            
+
     def get(self, k):
         for i in range(self._len):
             if self._caches[i].get(k):
@@ -65,18 +64,18 @@ class PathCache(object):
         for j in range(i):
             self._caches[j].put(k)
         return True
-    
+
     def put(self, k):
         """Insert an item in the cache if not already inserted.
-        
+
         If the element is already present in the cache, it will pushed to the
         top of the cache.
-        
+
         Parameters
         ----------
         k : any hashable type
             The item to be inserted
-            
+
         Returns
         -------
         evicted : any hashable type
@@ -90,11 +89,11 @@ class PathCache(object):
 
     def position(self, k):
         raise NotImplementedError('This method is not implemented')
-    
+
     def dump(self, serialized=True):
         dump = [c.dump() for c in self._caches]
         return sum(dump, []) if serialized else dump
-    
+
     def clear(self):
         for c in self._caches:
             c.clear()
@@ -103,25 +102,25 @@ class PathCache(object):
 @register_cache_policy('TREE')
 class TreeCache(object):
     """Path of caches
-    
+
     This is not a single-node cache implementation but rather it implements
     a tree of caching nodes in which requests are fed to a random leaf node
     and, in case of a miss, are propagated down to the remaining nodes
     of the path. A miss occurs if none of the nodes on the path has the
     requested content.
-    
+
     Notes
     -----
     This cache can only be operated in a read-through manner and not in write
-    through or read/write aside. In other words, before issuing a put, you 
-    must issue a get for the same item. The reason for this limitation is 
+    through or read/write aside. In other words, before issuing a put, you
+    must issue a get for the same item. The reason for this limitation is
     to ensure that matching get/put requests go through the same randomly
     selected node.
     """
-        
+
     def __init__(self, leaf_caches, root_cache, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         caches : array-like
@@ -134,17 +133,17 @@ class TreeCache(object):
         self._len = sum(len(c) for c in leaf_caches) + len(root_cache)
         self._n_leaves = len(leaf_caches)
         self._leaf = None
-        
+
     def __len__(self):
         return self._len
-    
+
     @property
     def maxlen(self):
         return self._len
 
     def has(self, k):
         raise NotImplementedError('This method is not implemented')
-            
+
     def get(self, k):
         self._leaf = random.choice(self._leaf_caches)
         if self._leaf.get(k):
@@ -155,18 +154,18 @@ class TreeCache(object):
                 return True
             else:
                 return False
-    
+
     def put(self, k):
         """Insert an item in the cache if not already inserted.
-        
+
         If the element is already present in the cache, it will pushed to the
         top of the cache.
-        
+
         Parameters
         ----------
         k : any hashable type
             The item to be inserted
-            
+
         Returns
         -------
         evicted : any hashable type
@@ -183,12 +182,12 @@ class TreeCache(object):
 
     def position(self, k):
         raise NotImplementedError('This method is not implemented')
-    
+
     def dump(self, serialized=True):
         dump = [c.dump() for c in self._leaf_caches]
         dump.append(self._root_cache.dump())
         return sum(dump, []) if serialized else dump
-    
+
     def clear(self):
         for c in self._caches:
             c.clear()
@@ -197,23 +196,23 @@ class TreeCache(object):
 @register_cache_policy('ARRAY')
 class ArrayCache(object):
     """Array of caches
-    
+
     This is not a single-node cache implementation but rather it implements
-    an array of caching nodes in which requests are fed to a random node of 
+    an array of caching nodes in which requests are fed to a random node of
     a set.
-    
+
     Notes
     -----
     This cache can only be operated in a read-through manner and not in write
-    through or read/write aside. In other words, before issuing a put, you 
-    must issue a get for the same item. The reason for this limitation is 
+    through or read/write aside. In other words, before issuing a put, you
+    must issue a get for the same item. The reason for this limitation is
     to ensure that matching get/put requests go through the same randomly
     selected node.
     """
-        
+
     def __init__(self, caches, weights=None, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         caches : array-like
@@ -235,32 +234,32 @@ class ArrayCache(object):
             self.select_cache = lambda : self._caches[randvar.rv() - 1]
         else:
             self.select_cache = lambda : random.choice(self._caches)
-        
+
     def __len__(self):
         return self._len
-    
+
     @property
     def maxlen(self):
         return self._len
 
     def has(self, k):
         raise NotImplementedError('This method is not implemented')
-            
+
     def get(self, k):
         self._selected_cache = self.select_cache()
         return self._selected_cache.get(k)
-    
+
     def put(self, k):
         """Insert an item in the cache if not already inserted.
-        
+
         If the element is already present in the cache, it will pushed to the
         top of the cache.
-        
+
         Parameters
         ----------
         k : any hashable type
             The item to be inserted
-            
+
         Returns
         -------
         evicted : any hashable type
@@ -276,11 +275,11 @@ class ArrayCache(object):
 
     def position(self, k):
         raise NotImplementedError('This method is not implemented')
-    
+
     def dump(self, serialized=True):
         dump = [c.dump() for c in self._caches]
         return sum(dump, []) if serialized else dump
-    
+
     def clear(self):
         for c in self._caches:
             c.clear()
@@ -289,17 +288,17 @@ class ArrayCache(object):
 @register_cache_policy('SHARD')
 class ShardedCache(Cache):
     """Set of sharded caches.
-    
+
     Set of caches coordinately storing items. When a request reaches the
     caches, the request is forwarded to the specific cache (shard) based on the
     outcome of a hash function. So, an item can be stored only by a single
     node of the system.
     """
 
-    def __init__(self, maxlen, policy='LRU', nodes=4, f_map=None, 
+    def __init__(self, maxlen, policy='LRU', nodes=4, f_map=None,
                  policy_attr={}, **kwargs):
         """Constructor
-        
+
         Parameters
         ----------
         maxlen : int
@@ -318,7 +317,7 @@ class ShardedCache(Cache):
             given item modulo the number of nodes.
         policy_attr : dict, optional
             A set of parameters for initializing the underlying caching policy.
-            
+
         Notes
         -----
         The maxlen parameter refers to the cumulative size of the caches in the
@@ -347,15 +346,15 @@ class ShardedCache(Cache):
     @property
     def maxlen(self):
         return self._maxlen
-    
+
     @inheritdoc(Cache)
     def has(self, k):
         return self._node[self.f_map(k)].has(k)
-    
+
     @inheritdoc(Cache)
     def get(self, k):
         return self._node[self.f_map(k)].get(k)
-    
+
     @inheritdoc(Cache)
     def put(self, k):
         return self._node[self.f_map(k)].put(k)

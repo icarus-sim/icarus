@@ -6,7 +6,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 
 import icarus.models as cache
@@ -37,8 +37,8 @@ class TestPathCache(unittest.TestCase):
         self.assertTrue(c.get(3))
         self.assertFalse(c.get(1))
         self.assertEqual(c.dump(serialized=False), [[3, 4], [3, 4], [4, 3]])
-           
-        
+
+
     def test_has(self):
         c = cache.PathCache([cache.LruCache(2) for _ in range(3)])
         c.put(2)
@@ -90,7 +90,7 @@ class TestTreeCache(unittest.TestCase):
         c = cache.TreeCache([cache.LruCache(2) for _ in range(2)],
                             cache.LruCache(2))
         self.assertRaises(ValueError, c.put, 1)
-        
+
 
 class TestArrayCache(unittest.TestCase):
 
@@ -104,7 +104,7 @@ class TestArrayCache(unittest.TestCase):
         if not c.get(1):
             c.put(1)
             self.assertEqual(c.dump(serialized=False), [[1], [1]])
-            
+
     def test_no_read_through(self):
         c = cache.ArrayCache([cache.LruCache(2) for _ in range(2)])
         self.assertRaises(ValueError, c.put, 1)
@@ -165,13 +165,13 @@ class TestShardedCache(unittest.TestCase):
         c.put(4)
         self.assertEqual(c.dump(serialized=False), [[3, 0], [4, 1], [2]])
         c.put(5)
-        self.assertEqual(c.dump(serialized=False), [[3, 0], [4, 1], [5, 2]])      
+        self.assertEqual(c.dump(serialized=False), [[3, 0], [4, 1], [5, 2]])
         self.assertEqual(c.put(6), 0)
         self.assertEqual(c.dump(serialized=False), [[6, 3], [4, 1], [5, 2]])
         self.assertEqual(c.put(7), 1)
         self.assertEqual(c.dump(serialized=False), [[6, 3], [7, 4], [5, 2]])
         self.assertEqual(c.put(8), 2)
-        self.assertEqual(c.dump(serialized=False), [[6, 3], [7, 4], [8, 5]])                        
+        self.assertEqual(c.dump(serialized=False), [[6, 3], [7, 4], [8, 5]])
 
     def test_remove(self):
         c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x : x % 3)

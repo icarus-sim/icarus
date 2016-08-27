@@ -5,7 +5,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 import random
 
@@ -20,11 +20,11 @@ class TestZipfFit(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         pass
-        
+
     @classmethod
     def tearDownClass(cls):
         pass
-    
+
     @unittest.skipIf(not can_import("from scipy.optimize import minimize_scalar"),
                      "Scipy not installed or version < 0.12")
     def test_expected_fit(self):

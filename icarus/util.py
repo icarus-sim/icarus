@@ -29,15 +29,15 @@ __all__ = [
 
 class Tree(collections.defaultdict):
     """Tree data structure
-    
+
     This class models a tree data structure that is mainly used to store
     experiment parameters and results in a hierarchical form that makes it
-    easier to search and filter data in them. 
+    easier to search and filter data in them.
     """
-    
+
     def __init__(self, data=None, **attr):
         """Constructor
-        
+
         Parameters
         ----------
         data : input data
@@ -75,10 +75,10 @@ class Tree(collections.defaultdict):
         if not isinstance(v, Tree) and isinstance(v, dict):
             v = Tree(v)
         super(Tree, self).__setitem__(k, v)
-    
+
     def update(self, e):
         """Update tree from e, similarly to dict.update
-        
+
         Parameters
         ----------
         """
@@ -96,7 +96,7 @@ class Tree(collections.defaultdict):
     def paths(self):
         """Return a dictionary mapping all paths to final (non-tree) values
         and the values.
-        
+
         Returns
         -------
         paths : dict
@@ -106,12 +106,12 @@ class Tree(collections.defaultdict):
 
     def getval(self, path):
         """Get the value at a specific path, None if not there
-        
+
         Parameters
         ----------
         path : iterable
             Path to the desired value
-            
+
         Returns
         -------
         val : any type
@@ -124,10 +124,10 @@ class Tree(collections.defaultdict):
             else:
                 return None
         return None if isinstance(tree, Tree) and tree.empty else tree
-    
+
     def setval(self, path, val):
         """Set a value at a specific path
-        
+
         Parameters
         ----------
         path : iterable
@@ -135,31 +135,31 @@ class Tree(collections.defaultdict):
         val : any type
             The value to set at the given path
         """
-        tree =self
+        tree = self
         for i in path[:-1]:
             if not isinstance(tree[i], Tree):
                 tree[i] = Tree()
             tree = tree[i]
         tree[path[-1]] = val
-    
+
     def pprint(self):
         """Pretty print the tree
-        
+
         Returns
         -------
         pprint : str
             A pretty string representation of the tree
         """
         return str(self)
-    
+
     def __str__(self, dictonly=False):
         """Return a string representation of the tree
-        
+
         Parameters
         ----------
         dictonly : bool, optional
             If True, just return a representation of a corresponding dictionary
-        
+
         """
         s = "{" if dictonly else "Tree({"
         for k, v in self.items():
@@ -167,7 +167,7 @@ class Tree(collections.defaultdict):
                 k = "'%s'" % k
             else:
                 k = str(k)
-            
+
             if isinstance(v, Tree):
                 v = v.__str__(True)
             elif isinstance(v, str):
@@ -178,25 +178,25 @@ class Tree(collections.defaultdict):
         s = s.rstrip(", ")
         s += "}" if dictonly else "})"
         return s
-    
+
     def match(self, condition):
         """Check if the tree matches a given condition.
-        
+
         The condition is another tree. This method iterates to all the values
         of the condition and verify that all values of the condition tree are
         present in this tree and have the same value.
-        
+
         Note that the operation is not symmetric i.e.
         self.match(condition) != condition.match(self). In fact, this method
         return True if this tree has values not present in the condition tree
         while it would return False if the condition has values not present
         in this tree.
-        
+
         Parameters
         ----------
         condition : Tree
             The condition to check
-        
+
         Returns
         -------
         match : bool
@@ -204,7 +204,7 @@ class Tree(collections.defaultdict):
         """
         condition = Tree(condition)
         return all(self.getval(path) == val for path, val in condition.paths().items())
-    
+
     @property
     def empty(self):
         """Return True if the tree is empty, False otherwise"""
@@ -218,13 +218,13 @@ class Settings(object):
         """Constructor
         """
         # This kind of assignment using __setattr__ is to prevent infinite
-        # recursion 
+        # recursion
         object.__setattr__(self, '__conf', dict())
         object.__setattr__(self, '__frozen', False)
 
     def __len__(self):
         """Return the number of settings
-        
+
         Returns
         -------
         len : int
@@ -234,12 +234,12 @@ class Settings(object):
 
     def __getitem__(self, name):
         """Return value of settings with given name
-        
+
         Parameters
         ----------
         name : str
             Name of the setting
-            
+
         Returns
         -------
         value : any hashable type
@@ -252,12 +252,12 @@ class Settings(object):
 
     def __getattr__(self, name):
         """Return value of settings with given name
-        
+
         Parameters
         ----------
         name : str
             Name of the setting
-            
+
         Returns
         -------
         value : any hashable type
@@ -271,10 +271,10 @@ class Settings(object):
             return self.__conf[name]
         else:
             raise ValueError('Setting %s not found' % str(name))
-        
+
     def __setitem__(self, name, value):
         """Sets a given value for a settings with given name
-        
+
         Parameters
         ----------
         name : str
@@ -286,7 +286,7 @@ class Settings(object):
 
     def __setattr__(self, name, value):
         """Sets a given value for a settings with given name
-        
+
         Parameters
         ----------
         name : str
@@ -300,7 +300,7 @@ class Settings(object):
 
     def __delitem__(self, name):
         """Removes a specific setting
-        
+
         Parameters
         ----------
         name : str
@@ -309,15 +309,15 @@ class Settings(object):
         if self.__frozen:
             raise ValueError('Settings are frozen and cannot be modified')
         del self.__conf[name]
-        
+
     def __contains__(self, name):
         """Checks if a specific setting exists or not
-        
+
         Parameters
         ----------
         name : str
             The name of the setting
-        
+
         Returns
         -------
         contains : bool
@@ -332,7 +332,7 @@ class Settings(object):
 
     def read_from(self, path, freeze=False):
         """Initialize settings by reading from a file
-        
+
         Parameters
         ----------
         path : str
@@ -348,19 +348,19 @@ class Settings(object):
                 del self.__conf[k]
         if freeze:
             self.freeze()
-    
+
     def freeze(self):
         "Freeze the objects. No settings can be added or modified any more"
         self.__frozen = True
-    
+
     def get(self, name):
         """Return value of settings with given name
-        
+
         Parameters
         ----------
         name : str
             Name of the setting
-            
+
         Returns
         -------
         value : any hashable type
@@ -373,7 +373,7 @@ class Settings(object):
 
     def set(self, name, value):
         """Sets a given value for a settings with given name
-        
+
         Parameters
         ----------
         name : str
@@ -388,9 +388,9 @@ class Settings(object):
 
 class AnyValue(object):
     """Pseudo-value that returns True when compared to any other object.
-    
-    This object can be used for example to store parameters in resultsets. 
-    
+
+    This object can be used for example to store parameters in resultsets.
+
     One concrete usage example is the following: let's assume that a user runs
     an experiment using various strategies under different values of a
     specific parameter and that the user knows that one strategy does not
@@ -401,30 +401,30 @@ class AnyValue(object):
     parameter. This can be achieved by setting AnyValue() to this parameter in
     the result related to that strategy.
     """
-    
+
     def __eq__(self, other):
         """Return always True
-        
+
         Parameters
         ----------
         other : any
             The object to be compared
-        
+
         Returns
         -------
         eq : bool
             Always True
         """
         return True
-    
+
     def __ne__(self, other):
         """Return always False
-        
+
         Parameters
         ----------
         other : any
             The object to be compared
-        
+
         Returns
         -------
         en : bool
@@ -435,24 +435,24 @@ class AnyValue(object):
 
 class SequenceNumber(object):
     """This class models an increasing sequence number.
-    
+
     It is used to assign a sequence number for an experiment in a thread-safe
     manner.
     """
-    
+
     def __init__(self, initval=1):
         """Constructor
-        
+
         Parameters
         ----------
         initval :int, optional
             The starting sequence number
         """
         self.__seq = initval - 1
-        
+
     def assign(self):
         """Assigns a new sequence number.
-        
+
         Returns
         -------
         seq : int
@@ -461,10 +461,10 @@ class SequenceNumber(object):
         self.__seq += 1
         seq = self.__seq
         return seq
-    
+
     def current(self):
         """Return the latest sequence number assigned
-        
+
         Returns
         -------
         seq : int
@@ -475,12 +475,12 @@ class SequenceNumber(object):
 
 def config_logging(log_level='INFO'):
     """Configure logging level
-    
+
     Parameters
     ----------
     log_level : int
         The granularity of logging
-    """   
+    """
     FORMAT = "[%(asctime)s|%(levelname)s|%(name)s] %(message)s"
     DATE_FMT = "%H:%M:%S %Y-%m-%d"
     log_level = eval('logging.%s' % log_level.upper())
@@ -490,12 +490,12 @@ def config_logging(log_level='INFO'):
 def inheritdoc(cls):
     """Decorator that inherits docstring from the overridden method of the
     superclass.
-    
+
     Parameters
     ----------
     cls : Class
         The superclass from which the method docstring is inherit
-    
+
     Notes
     -----
     This decorator requires to specify the superclass the contains the method
@@ -519,29 +519,29 @@ def inheritdoc(cls):
 
 def timestr(sec, with_seconds=True):
     """Get a time interval in seconds and returns it formatted in a string.
-    
+
     The returned string includes days, hours, minutes and seconds as
     appropriate.
-    
+
     Parameters
     ----------
     sec : float
         The time interval
     with_seconds : bool
         If *True* the time string includes seconds, otherwise only minutes
-    
+
     Returns
     -------
     timestr : str
         A string expressing the time in days, hours, minutes and seconds
     """
     t = time.gmtime(iround(sec))
-    days  = t.tm_yday - 1
+    days = t.tm_yday - 1
     hours = t.tm_hour
-    mins  = t.tm_min
-    secs  = t.tm_sec
+    mins = t.tm_min
+    secs = t.tm_sec
     units = collections.deque(('d', 'h', 'm', 's'))
-    vals  = collections.deque((days, hours, mins, secs))
+    vals = collections.deque((days, hours, mins, secs))
     if not with_seconds:
         units.pop()
         vals.pop()
@@ -558,15 +558,15 @@ def timestr(sec, with_seconds=True):
 
 def iround(x):
     """Round float to closest integer
-    
+
     This code was taken from here:
     http://www.daniweb.com/software-development/python/threads/299459/round-to-nearest-integer
-    
+
     Parameters
     ----------
     x : float
         The number to round
-        
+
     Returns
     -------
     xr : int
@@ -580,7 +580,7 @@ def step_cdf(x, y):
     """Convert an empirical CDF in set of points representing steps.
 
     Normally this is conversion is done for plotting purposes.
-    
+
     Parameters
     ----------
     x : array
@@ -597,13 +597,13 @@ def step_cdf(x, y):
     """
     if len(x) != len(y):
         raise ValueError('x and y must have the same size')
-    sx = np.empty(2*(len(x)))
-    sy = np.empty(2*(len(y)))
+    sx = np.empty(2 * (len(x)))
+    sy = np.empty(2 * (len(y)))
     for i in range(len(x)):
-        sx[2*i] = x[i]
-        sx[2*i + 1] = x[i]
-        sy[2*i] = y[i-1]
-        sy[2*i + 1] = y[i]
+        sx[2 * i] = x[i]
+        sx[2 * i + 1] = x[i]
+        sy[2 * i] = y[i - 1]
+        sy[2 * i + 1] = y[i]
     sy[0] = 0
     return sx, sy
 
@@ -611,12 +611,12 @@ def step_cdf(x, y):
 def can_import(statement):
     """Try executing an import statement and return True if succeeds or False
     otherwise
-    
+
     Parameters
     ----------
     statement : string
         The import statement
-    
+
     Returns
     -------
     can_import : bool
@@ -633,7 +633,7 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
                                   normalized=True, endpoints=False):
     """Calculate the betweenness centrality of a graph but only regarding the
     paths from a set of origins nodes to a set of destinations node.
-    
+
     Parameters
     ----------
     topology : fnss.Topology
@@ -648,7 +648,7 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
         If *True*, returned normalized values
     endpoints : bool, optional
         If *True* endpoints are included in path calculation.
-        
+
     Returns
     -------
     betw : dict
@@ -668,7 +668,7 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
             for i in sp:
                 betweenness[i] += 1
     if normalized:
-        norm = len(origins)*len(destinations)
+        norm = len(origins) * len(destinations)
         for v in betweenness:
             betweenness[v] /= norm
     return betweenness
@@ -677,24 +677,24 @@ def overlay_betwenness_centrality(topology, origins=None, destinations=None,
 def path_links(path):
     """Convert a path expressed as list of nodes into a path expressed as a
     list of edges.
-    
+
     Parameters
     ----------
     path : list
         List of nodes
-        
+
     Returns
     -------
     path : list
         List of edges
     """
-    return [(path[i], path[i+1]) for i in range(len(path)-1)]
+    return [(path[i], path[i + 1]) for i in range(len(path) - 1)]
 
 
 def multicast_tree(shortest_paths, source, destinations):
     """Return a multicast tree expressed as a set of edges, without any
     ordering
-    
+
     Parameters
     ----------
     shortest_paths : dict of dicts
@@ -703,7 +703,7 @@ def multicast_tree(shortest_paths, source, destinations):
         The source node of the multicast tree
     destinations : iterable
         All destinations of the multicast tree
-        
+
     Return
     ------
     multicast_tree : set
@@ -733,7 +733,7 @@ def apportionment(n, fracs):
     apportionment : list of int
         Apportionment of items to buckets
     """
-    ints, remainders = zip(*[divmod(n*f, 1) for f in fracs])
+    ints, remainders = zip(*[divmod(n * f, 1) for f in fracs])
     to_alloc = n - sum(ints)
     ints = list(ints)
     if to_alloc == 0:

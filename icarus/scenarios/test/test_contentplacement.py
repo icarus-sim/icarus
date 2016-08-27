@@ -5,7 +5,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 import fnss
 
@@ -20,8 +20,8 @@ class TestUniform(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     def setUp(self):
         pass
 
@@ -38,7 +38,7 @@ class TestUniform(unittest.TestCase):
         c1 = t.node[1]['stack'][1]['contents']
         c2 = t.node[2]['stack'][1]['contents']
         self.assertEqual(len(c1) + len(c2), 10)
-        
+
 class TestWeighted(unittest.TestCase):
 
     @classmethod
@@ -47,8 +47,8 @@ class TestWeighted(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass    
-    
+        pass
+
     def setUp(self):
         pass
 
@@ -65,5 +65,4 @@ class TestWeighted(unittest.TestCase):
         c1 = t.node[1]['stack'][1]['contents'] if 'contents' in t.node[1]['stack'][1] else set()
         c2 = t.node[2]['stack'][1]['contents'] if 'contents' in t.node[2]['stack'][1] else set()
         self.assertEqual(len(c1) + len(c2), 10)
-        
-    
+

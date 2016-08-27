@@ -28,17 +28,17 @@ __all__ = [
 
 def frequencies(data):
     """Extract frequencies from traces. Returns array of sorted frequencies
-    
+
     Parameters
     ----------
     data : array-like
         An array of generic data (i.e. URLs of web pages)
-    
+
     Returns
     -------
     frequencies : array of int
         The frequencies of the data sorted in descending order
-        
+
     Notes
     -----
     This function does not return the mapping between data elements and their
@@ -51,12 +51,12 @@ def frequencies(data):
 
 def one_timers(data):
     """Return fraction of contents requested only once (i.e., one-timers)
-    
+
     Parameters
     ----------
     data : array-like
         An array of generic data (i.e. URLs of web pages)
-    
+
     Returns
     -------
     one_timers : float
@@ -69,16 +69,16 @@ def one_timers(data):
         n_items += 1
         if i == 1:
             n_onetimers += 1
-    return n_onetimers/n_items
+    return n_onetimers / n_items
 
 
 def trace_stats(data):
     """Print full stats of a trace
-    
+
     Parameters
     ----------
     data : array-like
-        An array of generic data (i.e. URLs of web pages)    
+        An array of generic data (i.e. URLs of web pages)
 
     Return
     ------
@@ -97,16 +97,16 @@ def trace_stats(data):
                 n_onetimers=n_onetimers,
                 alpha=alpha,
                 p=p,
-                onetimers_contents_ratio=n_onetimers/n_contents,
-                onetimers_reqs_ratio=n_onetimers/n_reqs,
-                mean_reqs_per_content=n_reqs/n_contents
+                onetimers_contents_ratio=n_onetimers / n_contents,
+                onetimers_reqs_ratio=n_onetimers / n_reqs,
+                mean_reqs_per_content=n_reqs / n_contents
                 )
 
 
 def zipf_fit(obs_freqs, need_sorting=False):
     """Returns the value of the Zipf's distribution alpha parameter that best
     fits the data provided and the p-value of the fit test.
-    
+
     Parameters
     ----------
     obs_freqs : array
@@ -114,14 +114,14 @@ def zipf_fit(obs_freqs, need_sorting=False):
     need_sorting : bool, optional
         If True, indicates that obs_freqs is not sorted and this function will
         sort it. If False, assume that the array is already sorted
-    
+
     Returns
     -------
     alpha : float
         The alpha parameter of the best Zipf fit
     p : float
         The p-value of the test
-    
+
     Notes
     -----
     This function uses the method described in
@@ -139,8 +139,8 @@ def zipf_fit(obs_freqs, need_sorting=False):
         obs_freqs = -np.sort(-obs_freqs)
     n = len(obs_freqs)
     def log_likelihood(alpha):
-        return np.sum(obs_freqs * (alpha * np.log(np.arange(1.0, n+1)) + \
-                       math.log(sum(1.0/np.arange(1.0, n+1)**alpha))))
+        return np.sum(obs_freqs * (alpha * np.log(np.arange(1.0, n + 1)) + \
+                       math.log(sum(1.0 / np.arange(1.0, n + 1) ** alpha))))
     # Find optimal alpha
     alpha = minimize_scalar(log_likelihood)['x']
     # Calculate goodness of fit
@@ -155,12 +155,12 @@ def zipf_fit(obs_freqs, need_sorting=False):
 def parse_url_list(path):
     """Parse traces from a text file where each line contains a URL requested
     without timestamp or counters
-    
+
     Parameters
     ----------
     path : str
         The path to the trace file to parse
-    
+
     Returns
     -------
     trace : iterator of strings
@@ -175,12 +175,12 @@ def parse_url_list(path):
 
 def parse_wikibench(path):
     """Parses traces from the Wikibench dataset
-    
+
     Parameters
     ----------
     path : str
         The path to the trace file to parse
-    
+
     Returns
     -------
     trace : iterator of dicts
@@ -201,23 +201,23 @@ def parse_wikibench(path):
 def parse_squid(path):
     """Parses traces from a Squid log file.
     Parse a Squid log file.
-    
+
     Squid is an HTTP reverse proxy. Its logs contains traces of all HTTP
     requests served and can be used for trace-driven simulations based on
     realistic HTTP workloads.
     Traces from the IRCache dataset are in this format.
-    
+
     Parameters
     ----------
     path : str
         The path to the trace file to parse
-    
+
     Returns
     -------
     trace : iterator of dicts
         An iterator whereby each element is dictionary expressing all
         attributes of an entry of the trace
-    
+
     Notes
     -----
     Documentation describing the Squid log format is available here:
@@ -255,10 +255,10 @@ def parse_squid(path):
 
 def parse_youtube_umass(path):
     """Parse YouTube collected at UMass campus network [1]_.
-    
+
     These data were collected at UMass campus network over a a measurement
     period between June 2007 and March 2008.
-    
+
     This function parses the request traces, named youtube.parsed.X.Y.dat.
     Each entry of the trace provides the following information elements:
      * Timestamp
@@ -268,23 +268,23 @@ def parse_youtube_umass(path):
      * Video ID
      * Content server IP
 
-    Traces are available at http://traces.cs.umass.edu/index.php/Network/Network 
-    
+    Traces are available at http://traces.cs.umass.edu/index.php/Network/Network
+
     Parameters
     ----------
     path : str
         The path to the trace file to parse
-    
+
     Returns
     -------
     trace : iterator of dicts
         An iterator whereby each element is dictionary expressing all
         attributes of an entry of the trace
-    
+
     References
     ----------
     ..[1] Michael Zink, Kyoungwon Suh, Yu Gu and Jim Kurose,
-          Watch Global Cache Local: YouTube Network Traces at a Campus Network - 
+          Watch Global Cache Local: YouTube Network Traces at a Campus Network -
           Measurements and Implications, in Proc. of IEEE MMCN'08
     """
     with open(path) as f:
@@ -305,26 +305,26 @@ def parse_youtube_umass(path):
                 content_server_addr=content_server_addr,
                       )
     raise StopIteration()
-      
+
 
 def parse_common_log_format(path):
     """Parse files saved in the Common Log Format (CLF)
-    
+
     Parameters
     ----------
     path : str
         The path to the Common Log Format file to parse
-        
+
     Returns
     -------
     events : iterator
         iterator over the events parsed from the file
-        
+
     Notes
     -----
     Common Log Format specifications:
     http://www.w3.org/Daemon/User/Config/Logging.html#common-logfile-format
-    
+
     """
     with open(path) as f:
         for line in f:

@@ -5,7 +5,7 @@ else:
     try:
         import unittest2 as unittest
     except ImportError:
-        raise ImportError("The unittest2 package is needed to run the tests.") 
+        raise ImportError("The unittest2 package is needed to run the tests.")
 del sys
 from io import BytesIO
 try:
@@ -16,17 +16,17 @@ except ImportError:
     import pickle
 
 from icarus.util import Tree
-        
+
 class TestTree(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         pass
-        
+
     @classmethod
     def tearDownClass(cls):
         pass
-    
+
     def setUp(self):
         pass
 
@@ -45,7 +45,7 @@ class TestTree(unittest.TestCase):
         self.assertEqual(tree.getval(['a']), 1)
         self.assertEqual(tree.getval(['b']), 2)
         self.assertIsInstance(tree, Tree)
-    
+
     def test_init_from_kwargs(self):
         tree = Tree(a=1, b=2)
         self.assertEqual(tree.getval(['a']), 1)
@@ -65,7 +65,7 @@ class TestTree(unittest.TestCase):
         self.assertEqual(tree.getval(['b']), 2)
         self.assertEqual(tree.getval(['c']), 3)
         self.assertIsInstance(tree, Tree)
-    
+
     def test_init_from_nested_dict(self):
         tree = Tree({'a': {'c': {'e': 1}}, 'b': {'d': 2}})
         self.assertEqual(tree.getval(['a', 'c', 'e']), 1)
@@ -83,7 +83,7 @@ class TestTree(unittest.TestCase):
         self.assertIsInstance(tree['a'], Tree)
         self.assertEqual(tree.getval(['a', 'b']), 1)
         self.assertEqual(tree.getval(['a', 'c']), 2)
-        
+
     def test_nested_setitem(self):
         tree = Tree()
         tree['a'] = {'b': {'c': 1}, 'd': 2}
@@ -116,25 +116,25 @@ class TestTree(unittest.TestCase):
         self.assertIsInstance(tree['a']['b'], Tree)
         self.assertEqual(tree.getval(['a', 'b', 'c']), 1)
         self.assertEqual(tree.getval(['a', 'd']), 2)
-    
+
     def test_getset(self):
         tree = Tree()
         tree.setval([1, 2, 3, 4], 5)
         self.assertEqual(tree.getval([1, 2, 3, 4]), 5)
-    
+
     def test_getval(self):
         tree = Tree()
         tree[1][2][3] = 4
         self.assertEqual(tree.getval([1, 2, 3]), 4)
         self.assertEqual(tree.getval([1, 2])[3], 4)
         self.assertEqual(tree.getval([1])[2][3], 4)
-    
+
     def test_getval_none(self):
         tree = Tree()
         self.assertIsNone(tree.getval([1]))
         self.assertIsNone(tree.getval([1, 2]))
         self.assertIsNone(tree.getval([3, 4, 5]))
-        
+
     def test_getval_empty(self):
         tree = Tree()
         _ = tree[1][2][3]
@@ -166,7 +166,7 @@ class TestTree(unittest.TestCase):
         self.assertIn((('b', 'c'), 5), l)
         self.assertIn((('b', 'v', 'd'), 3), l)
         self.assertIn((('a',), 1), l)
-        
+
     def test_paths(self):
         tree = Tree()
         tree['b']['c']['e'] = 4
@@ -216,12 +216,12 @@ class TestTree(unittest.TestCase):
         self.assertEquals(tree_2[1][2][3], '123')
         self.assertIsInstance(tree, Tree)
         self.assertIsInstance(tree_2, Tree)
-    
+
     def test_str(self):
         tree = Tree({'a': {'b': 'a'}, 'b': 'c', 'd': {'b': 'c'}})
         self.assertEqual(eval(str(tree)), tree)
-    
-    
+
+
     def test_match(self):
         t = {'a': {'b': 1}, 'c': 2, 'd': {'e': 3}}
         pos_match_equal = {'a': {'b': 1}, 'c': 2, 'd': {'e': 3}}
@@ -233,7 +233,7 @@ class TestTree(unittest.TestCase):
         self.assertTrue(tree.match(pos_match_subset))
         self.assertFalse(tree.match(neg_match_diff))
         self.assertFalse(tree.match(neg_match_superset))
-        
+
     def test_match_empty_tree(self):
         tree = Tree()
         self.assertFalse(tree.match({'a': 1}))

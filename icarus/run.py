@@ -21,12 +21,12 @@ logger = logging.getLogger('main')
 
 def handler(settings, orch, output, signum=None, frame=None):
     """Signal handler
-    
+
     This function is called when the simulator receive SIGTERM, SIGHUP, SIGKILL
     or SIGQUIT from the OS.
-    
+
     Its function is simply to write on a file the partial results.
-    
+
     Parameters
     ----------
     settings : Settings
@@ -72,15 +72,15 @@ def _validate_settings(settings, freeze=True):
         settings.LOG_LEVEL = log_level
         logger.warning('LOG_LEVEL setting not specified. Set to %s'
                      % log_level)
-    if freeze: 
+    if freeze:
         settings.freeze()
 
 
 def run(config_file, output, config_override):
-    """ 
+    """
     Run function. It starts the simulator.
     experiments
-    
+
     Parameters
     ----------
     config : str
