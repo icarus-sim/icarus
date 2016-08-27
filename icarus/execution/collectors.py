@@ -263,7 +263,8 @@ class LinkLoadCollector(DataCollector):
     @inheritdoc(DataCollector)
     def results(self):
         duration = self.t_end - self.t_start
-        link_loads = dict((link, (self.req_count[link] + self.sr*self.cont_count[link])/duration) 
+        link_loads = dict((link, (self.req_count[link] +
+                                  self.sr*self.cont_count[link])/duration)
                           for link in self.req_count)
         link_loads_int = dict((link, load)
                               for link, load in link_loads.items()
@@ -271,8 +272,10 @@ class LinkLoadCollector(DataCollector):
         link_loads_ext = dict((link, load)
                               for link, load in link_loads.items()
                               if self.view.link_type(*link) == 'external')
-        mean_load_int = sum(link_loads_int.values())/len(link_loads_int)
-        mean_load_ext = sum(link_loads_ext.values())/len(link_loads_ext)
+        mean_load_int = sum(link_loads_int.values())/len(link_loads_int) \
+                        if len(link_loads_int) > 0 else 0
+        mean_load_ext = sum(link_loads_ext.values())/len(link_loads_ext) \
+                        if len(link_loads_ext) > 0 else 0
         return Tree({'MEAN_INTERNAL':     mean_load_int, 
                      'MEAN_EXTERNAL':     mean_load_ext,
                      'PER_LINK_INTERNAL': link_loads_int,
