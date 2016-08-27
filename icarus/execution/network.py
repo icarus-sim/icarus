@@ -92,7 +92,9 @@ class NetworkView(object):
             A set of all nodes currently storing the given content
         """
         loc = set(v for v in self.model.cache if self.model.cache[v].has(k))
-        loc.add(self.content_source(k))
+        source = self.content_source(k)
+        if source:
+            loc.add(source)
         return loc
 
     def content_source(self, k):
@@ -106,9 +108,10 @@ class NetworkView(object):
         Returns
         -------
         node : any hashable type
-            The node persistently storing the given content
+            The node persistently storing the given content or None if the
+            source is unavailable
         """
-        return self.model.content_source[k]
+        return self.model.content_source.get(k, None)
 
     def shortest_path(self, s, t):
         """Return the shortest path from *s* to *t*
@@ -224,7 +227,8 @@ class NetworkView(object):
             with caches. Otherwise it is a dict mapping nodes with a cache
             and their size.
         """
-        return self.model.cache_size if size else list(self.model.cache_size.keys())
+        return {v: c.maxlen for v, c in self.model.cache.items()} if size \
+                else list(self.model.cache.keys())
 
     def has_cache(self, node):
         """Check if a node has a content cache.
@@ -350,9 +354,8 @@ class NetworkModel(object):
         # Dictionary mapping each content object to its source
         # dict of location of contents keyed by content ID
         self.content_source = {}
-
-        # Dictionary of cache sizes keyed by node
-        self.cache_size = {}
+        # Dictionary mapping the reverse, i.e. nodes to set of contents stored
+        self.source_node = {}
 
         # Dictionary of link types (internal/external)
         self.link_type = nx.get_edge_attributes(topology, 'type')
@@ -367,32 +370,45 @@ class NetworkModel(object):
             for (u, v), delay in list(self.link_delay.items()):
                 self.link_delay[(v, u)] = delay
 
-        # Initialize attributes
+        cache_size = {}
         for node in topology.nodes_iter():
             stack_name, stack_props = fnss.get_stack(topology, node)
             if stack_name == 'router':
                 if 'cache_size' in stack_props:
-                    self.cache_size[node] = stack_props['cache_size']
+                    cache_size[node] = stack_props['cache_size']
             elif stack_name == 'source':
                 contents = stack_props['contents']
+                self.source_node[node] = contents
                 for content in contents:
                     self.content_source[content] = node
-        if any(c < 1 for c in self.cache_size.values()):
+        if any(c < 1 for c in cache_size.values()):
             logger.warn('Some content caches have size equal to 0. '
-                          'I am setting them to 1 and run the experiment anyway')
-            for node in self.cache_size:
-                if self.cache_size[node] < 1:
-                    self.cache_size[node] = 1
+                        'I am setting them to 1 and run the experiment anyway')
+            for node in cache_size:
+                if cache_size[node] < 1:
+                    cache_size[node] = 1
 
         policy_name = cache_policy['name']
         policy_args = {k: v for k, v in cache_policy.items() if k != 'name'}
         # The actual cache objects storing the content
-        self.cache = {node: CACHE_POLICY[policy_name](self.cache_size[node], **policy_args)
-                          for node in self.cache_size}
+        self.cache = {node: CACHE_POLICY[policy_name](cache_size[node], **policy_args)
+                          for node in cache_size}
 
         # This is for a local un-coordinated cache (currently used only by
         # Hashrouting with edge cache)
         self.local_cache = {}
+
+        # Keep track of nodes and links removed to simulate failures
+        self.removed_nodes = {}
+        # This keeps track of neighbors of a removed node at the time of removal.
+        # It is needed to ensure that when the node is restored only links that
+        # were removed as part of the node removal are restored and to prevent
+        # restoring nodes that were removed manually before removing the node.
+        self.disconnected_neighbors = {}
+        self.removed_links = {}
+        self.removed_sources = {}
+        self.removed_caches = {}
+        self.removed_local_caches = {}
 
 
 class NetworkController(object):
@@ -416,7 +432,7 @@ class NetworkController(object):
         self.collector = None
 
     def attach_collector(self, collector):
-        """Attaches a data collector to which all events will be reported.
+        """Attach a data collector to which all events will be reported.
 
         Parameters
         ----------
@@ -426,8 +442,7 @@ class NetworkController(object):
         self.collector = collector
 
     def detach_collector(self):
-        """Detaches the data collector.
-        """
+        """Detach the data collector."""
         self.collector = None
 
     def start_session(self, timestamp, receiver, content, log):
@@ -610,17 +625,155 @@ class NetworkController(object):
             self.collector.end_session(success)
         self.session = None
 
-    def remove_link(self, u, v):
-        raise NotImplementedError('Method not yet implemented')
+    def rewire_link(self, u, v, up, vp, recompute_paths=True):
+        """Rewire an existing link to new endpoints
 
-    def restore_link(self, u, v):
-        raise NotImplementedError('Method not yet implemented')
+        This method can be used to model mobility patters, e.g., changing
+        attachment points of sources and/or receivers.
 
-    def remove_node(self, v):
-        raise NotImplementedError('Method not yet implemented')
+        Note well. With great power comes great responsibility. Be careful when
+        using this method. In fact as a result of link rewiring, network
+        partitions and other corner cases might occur. Ensure that the
+        implementation of strategies using this method deal with all potential
+        corner cases appropriately.
 
-    def restore_node(self, v):
-        raise NotImplementedError('Method not yet implemented')
+        Parameters
+        ----------
+        u, v : any hashable type
+            Endpoints of link before rewiring
+        up, vp : any hashable type
+            Endpoints of link after rewiring
+        """
+        link = self.model.topology.edge[u][v]
+        self.model.topology.remove_edge(u, v)
+        self.model.topology.add_edge(up, vp, **link)
+        if recompute_paths:
+            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            self.model.shortest_path = symmetrify_paths(shortest_path)
+
+    def remove_link(self, u, v, recompute_paths=True):
+        """Remove a link from the topology and update the network model.
+
+        Note well. With great power comes great responsibility. Be careful when
+        using this method. In fact as a result of link removal, network
+        partitions and other corner cases might occur. Ensure that the
+        implementation of strategies using this method deal with all potential
+        corner cases appropriately.
+
+        Also, note that, for these changes to be effective, the strategy must
+        use fresh data provided by the network view and not storing local copies
+        of network state because they won't be updated by this method.
+
+        Parameters
+        ----------
+        u : any hashable type
+            Origin node
+        v : any hashable type
+            Destination node
+        recompute_paths: bool, optional
+            If True, recompute all shortest paths
+        """
+        self.model.removed_links[(u, v)] = self.model.topology.edge[u][v]
+        self.model.topology.remove_edge(u, v)
+        if recompute_paths:
+            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            self.model.shortest_path = symmetrify_paths(shortest_path)
+
+    def restore_link(self, u, v, recompute_paths=True):
+        """Restore a previously-removed link and update the network model
+
+        Parameters
+        ----------
+        u : any hashable type
+            Origin node
+        v : any hashable type
+            Destination node
+        recompute_paths: bool, optional
+            If True, recompute all shortest paths
+        """
+        self.model.topology.add_edge(u, v, **self.model.removed_links.pop((u, v)))
+        if recompute_paths:
+            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            self.model.shortest_path = symmetrify_paths(shortest_path)
+
+    def remove_node(self, v, recompute_paths=True):
+        """Remove a node from the topology and update the network model.
+
+        Note well. With great power comes great responsibility. Be careful when
+        using this method. In fact, as a result of node removal, network
+        partitions and other corner cases might occur. Ensure that the
+        implementation of strategies using this method deal with all potential
+        corner cases appropriately.
+
+        It should be noted that when this method is called, all links connected
+        to the node to be removed are removed as well. These links are however
+        restored when the node is restored. However, if a link attached to this
+        node was previously removed using the remove_link method, restoring the
+        node won't restore that link as well. It will need to be restored with a
+        call to restore_link.
+
+        This method is normally quite safe when applied to remove cache nodes or
+        routers if this does not cause partitions. If used to remove content
+        sources or receiver, special attention is required. In particular, if
+        a source is removed, the content items stored by that source will no
+        longer be available if not cached elsewhere.
+
+        Also, note that, for these changes to be effective, the strategy must
+        use fresh data provided by the network view and not storing local copies
+        of network state because they won't be updated by this method.
+
+        Parameters
+        ----------
+        v : any hashable type
+            Node to remove
+        recompute_paths: bool, optional
+            If True, recompute all shortest paths
+        """
+        self.model.removed_nodes[v] = self.model.topology.node[v]
+        # First need to remove all links the removed node as endpoint
+        neighbors = self.model.topology.edge[v]
+        self.model.disconnected_neighbors[v] = set(neighbors.keys())
+        for u in self.model.disconnected_neighbors[v]:
+            self.remove_link(v, u, recompute_paths=False)
+        self.model.topology.remove_node(v)
+        if v in self.model.cache:
+            self.model.removed_caches[v] = self.model.cache.pop(v)
+        if v in self.model.local_cache:
+            self.model.removed_local_caches[v] = self.model.local_cache.pop(v)
+        if v in self.model.source_node:
+            self.model.removed_sources[v] = self.model.source_node.pop(v)
+            for content in self.model.removed_sources[v]:
+                self.model.countent_source.pop(content)
+        if recompute_paths:
+            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            self.model.shortest_path = symmetrify_paths(shortest_path)
+
+    def restore_node(self, v, recompute_paths=True):
+        """Restore a previously-removed node and update the network model.
+
+        Parameters
+        ----------
+        v : any hashable type
+            Node to restore
+        recompute_paths: bool, optional
+            If True, recompute all shortest paths
+        """
+        self.model.topology.add_node(v, **self.model.removed_nodes.pop(v))
+        for u in self.model.disconnected_neighbors[v]:
+            if (v, u) in self.model.removed_links:
+                self.restore_link(v, u, recompute_paths=False)
+        self.model.disconnected_neighbors.pop(v)
+        if v in self.model.removed_caches:
+            self.model.cache[v] = self.model.removed_caches.pop(v)
+        if v in self.model.removed_local_caches:
+            self.model.local_cache[v] = self.model.removed_local_caches.pop(v)
+        if v in self.model.removed_sources:
+            self.model.source_node[v] = self.model.removed_sources.pop(v)
+            for content in self.model.source_node[v]:
+                self.model.countent_source[content] = v
+        if recompute_paths:
+            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            self.model.shortest_path = symmetrify_paths(shortest_path)
 
     def reserve_local_cache(self, ratio=0.1):
         """Reserve a fraction of cache as local.
