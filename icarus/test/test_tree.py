@@ -214,6 +214,20 @@ class TestTree(unittest.TestCase):
         tree = Tree({'a': {'b': 'a'}, 'b': 'c', 'd': {'b': 'c'}})
         self.assertEqual(eval(str(tree)), tree)
 
+    def test_dict_1(self):
+        d = {'a': 1, 'b': 2}
+        tree = Tree(d)
+        self.assertEqual(d, tree.dict())
+
+    def test_dict_2(self):
+        d = {'a': {'b': 'a'}, 'b': 'c', 'd': {'b': 'c'}}
+        tree = Tree(d)
+        self.assertEqual(d, tree.dict())
+
+    def test_dict_3(self):
+        d = {'a': {'b': [1, 2, 'v']}, 'b': 'c', 'd': {'b': 4}}
+        tree = Tree(d)
+        self.assertEqual(d, tree.dict())
 
     def test_match(self):
         t = {'a': {'b': 1}, 'c': 2, 'd': {'e': 3}}

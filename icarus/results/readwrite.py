@@ -2,6 +2,7 @@
 """
 import collections
 import copy
+import json
 try:
     import cPickle as pickle
 except ImportError:
@@ -123,7 +124,7 @@ class ResultSet(object):
         self._results.append((parameters, results))
 
     def dump(self):
-        """Dump all results.
+        """Dump all results in a list
 
         Returns
         -------
@@ -134,6 +135,21 @@ class ResultSet(object):
         """
         return list(self._results)
 
+    def json(self, indent=None):
+        """Return a JSON representation of the resultset
+
+        Parameters
+        ----------
+        indent : int, optional
+            If non-negative, pretty print the output with specified indentation
+
+        Returns
+        -------
+        json : str
+            String contatining the JSON representation of the object
+        """
+        d = [(k.dict(str_keys=True), v.dict(str_keys=True)) for k, v in self.dump()]
+        return json.dumps(d, indent=indent)
 
     def filter(self, condition):
         """Return subset of results matching specific conditions
@@ -145,8 +161,6 @@ class ResultSet(object):
             results set. Each parameter, i.e., each key of the dictionary must
             be an iterable object containing the path in the parameters tree
             to the required parameter
-        metrics : dict, optional
-            List of metrics to be reported
 
         Returns
         -------

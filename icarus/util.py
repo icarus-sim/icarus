@@ -76,22 +76,44 @@ class Tree(collections.defaultdict):
             v = Tree(v)
         super(Tree, self).__setitem__(k, v)
 
-    def update(self, e):
-        """Update tree from e, similarly to dict.update
-
-        Parameters
-        ----------
-        """
-        if not isinstance(e, Tree):
-            e = Tree(e)
-        super(Tree, self).update(e)
-
     def __reduce__(self):
         # This code is needed to fix an issue occurring while pickling.
         # Further info here:
         # http://stackoverflow.com/questions/3855428/how-to-pickle-and-unpickle-instances-of-a-class-that-inherits-from-defaultdict
         t = collections.defaultdict.__reduce__(self)
         return (t[0], ()) + t[2:]
+
+    def __str__(self, dictonly=False):
+        """Return a string representation of the tree
+
+        Parameters
+        ----------
+        dictonly : bool, optional
+            If True, just return a representation of a corresponding dictionary
+
+        Returns
+        -------
+        tree : str
+            A string representation of the tree
+        """
+        return "Tree({})".format(self.dict())
+
+    @property
+    def empty(self):
+        """Return True if the tree is empty, False otherwise"""
+        return len(self) == 0
+
+    def update(self, e):
+        """Update tree from e, similarly to dict.update
+
+        Parameters
+        ----------
+        e : Tree
+            The tree to update from
+        """
+        if not isinstance(e, Tree):
+            e = Tree(e)
+        super(Tree, self).update(e)
 
     def paths(self):
         """Return a dictionary mapping all paths to final (non-tree) values
@@ -142,42 +164,26 @@ class Tree(collections.defaultdict):
             tree = tree[i]
         tree[path[-1]] = val
 
-    def pprint(self):
-        """Pretty print the tree
-
-        Returns
-        -------
-        pprint : str
-            A pretty string representation of the tree
-        """
-        return str(self)
-
-    def __str__(self, dictonly=False):
-        """Return a string representation of the tree
+    def dict(self, str_keys=False):
+        """Convert the tree in nested dictionaries
 
         Parameters
         ----------
-        dictonly : bool, optional
-            If True, just return a representation of a corresponding dictionary
+        str_key : bool, optional
+            Convert keys to string. This is useful for example to dump a dict
+            into a JSON object that requires keys to be strings
 
+        Returns
+        -------
+        d : dict
+            A nested dict representation of the tree
         """
-        s = "{" if dictonly else "Tree({"
+        d = {}
         for k, v in self.items():
-            if isinstance(k, str):
-                k = "'%s'" % k
-            else:
-                k = str(k)
-
-            if isinstance(v, Tree):
-                v = v.__str__(True)
-            elif isinstance(v, str):
-                v = "'%s'" % v
-            else:
-                v = str(v)
-            s += "%s: %s, " % (k, v)
-        s = s.rstrip(", ")
-        s += "}" if dictonly else "})"
-        return s
+            k = str(k) if str_keys else k
+            v = v.dict() if isinstance(v, Tree) else v
+            d[k] = v
+        return d
 
     def match(self, condition):
         """Check if the tree matches a given condition.
@@ -204,11 +210,6 @@ class Tree(collections.defaultdict):
         """
         condition = Tree(condition)
         return all(self.getval(path) == val for path, val in condition.paths().items())
-
-    @property
-    def empty(self):
-        """Return True if the tree is empty, False otherwise"""
-        return len(self) == 0
 
 
 class Settings(object):
