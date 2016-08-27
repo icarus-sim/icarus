@@ -17,10 +17,10 @@ __all__ = [
 class NearestReplicaRouting(Strategy):
     """Ideal Nearest Replica Routing (NRR) strategy.
 
-    In this strategy, a request is forwarded to the topologically close node
+    In this strategy, a request is forwarded to the topologically closest node
     holding a copy of the requested item. This strategy is ideal, as it is
     implemented assuming that each node knows the nearest replica of a content
-    without any signalling
+    without any signaling
 
     On the return path, content can be caching according to a variety of
     metacaching policies. LCE and LCD are currently supported.

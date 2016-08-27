@@ -23,21 +23,12 @@ __all__ = [
            ]
 
 
-class Hashrouting(Strategy):
-    """Base class for all hash-routing implementations. Hash-routing
-    implementations are described in [1]_.
-
-    References
-    ----------
-    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
-    Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
-    workshop. Available:
-    https://www.ee.ucl.ac.uk/~lsaino/publications/hashrouting-icn13.pdf
-    """
+class BaseHashrouting(Strategy):
+    """Base class for all hash-routing implementations."""
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(Hashrouting, self).__init__(view, controller)
+        super(BaseHashrouting, self).__init__(view, controller)
         self.cache_nodes = view.cache_nodes()
         self.n_cache_nodes = len(self.cache_nodes)
         # Allocate results of hash function to caching nodes
@@ -75,11 +66,35 @@ class Hashrouting(Strategy):
             return self.clusters[cluster][h % self.cluster_size[cluster]]
         return self.cache_assignment[h % self.n_cache_nodes]
 
+    def process_event(self, time, receiver, content, log):
+        raise NotImplementedError('Cannot use BaseHashrouting class as is. '
+                                  'This class is meant to be extended by other classes.')
+
 
 @register_strategy('HASHROUTING')
-class BaseHashrouting(Hashrouting):
+class Hashrouting(BaseHashrouting):
     """Unified implementation of the three basic hash-routing schemes:
     symmetric, asymmetric and multicast.
+
+    Hash-routing implementations are described in [1]_.
+
+    According to these strategies, edge nodes receiving a content request
+    compute a hash function mapping the content identifier to a specific caching
+    node and forward the request to that specific node. If the cache holds the
+    requested content, it is returned to the user, otherwise it is forwarded to
+    the original source. Similarly, when a content is delivered to the
+    requesting user, it can be cached only by the caching node associated to the
+    content identifier by the hash function.
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
+           Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
+           workshop. Available:
+           https://lorenzosaino.github.io/publications/hashrouting-icn13.pdf
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
 
     def __init__(self, view, controller, routing, **kwargs):
@@ -94,7 +109,7 @@ class BaseHashrouting(Hashrouting):
         routing : str (SYMM | ASYMM | MULTICAST)
             Content routing option
         """
-        super(BaseHashrouting, self).__init__(view, controller)
+        super(Hashrouting, self).__init__(view, controller)
         self.routing = routing
 
     @inheritdoc(Strategy)
@@ -161,10 +176,23 @@ class BaseHashrouting(Hashrouting):
 
 
 @register_strategy('HR_EDGE_CACHE')
-class HashroutingEdge(Hashrouting):
-    """Hash-routing with a fraction of the cache operated un-coordinatedly at
-    each PoP. Here we assume that each receiver is directly connected to one
-    gateway, which is on the path to all other caches
+class HashroutingEdge(BaseHashrouting):
+    """Hybrid hash-routing and edge caching.
+
+    According to this strategy a fraction of the caching space in each cache is
+    reserved for local caching. When a request is issued by a user, it is
+    routed to the closes caching node and this caching node holds a copy of
+    requested content in its local cache even if not authoritative for the
+    requested content.
+
+    Here we assume that each receiver is directly connected to one gateway,
+    which is on the path to all other caches.
+
+    References
+    ----------
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
 
     def __init__(self, view, controller, routing, edge_cache_ratio, **kwargs):
@@ -265,14 +293,19 @@ class HashroutingEdge(Hashrouting):
 
 
 @register_strategy('HR_ON_PATH')
-class HashroutingOnPath(Hashrouting):
-    """Hash-routing with a fraction of the cache operated un-coordinatedly at
-    each PoP
+class HashroutingOnPath(BaseHashrouting):
+    """Hybrid hash-routing and on-path caching.
 
     This strategy differs from HashroutingEdge for the fact that in
     HashroutingEdge, the local fraction of the cache is queried only by traffic
     of endpoints directly attached to the caching node. In HashroutingOnPath
     the local cache is queried by all traffic being forwarded by the node.
+
+    References
+    ----------
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
 
     def __init__(self, view, controller, routing, on_path_cache_ratio, **kwargs):
@@ -382,11 +415,22 @@ class HashroutingOnPath(Hashrouting):
 
 
 @register_strategy('HR_CLUSTER')
-class HashroutingClustered(Hashrouting):
-    """Hash-routing all together in a single strategy"""
+class HashroutingClustered(BaseHashrouting):
+    """Hash-routing with clustering of the network.
 
-    def __init__(self, view, controller, intra_routing, inter_routing='LCE',
-                 **kwargs):
+    According to ths strategy, nodes of the network are divided in a number of
+    clusters and hash-routing is used withing each of this clusters. In case of
+    cache miss at a cluster, requests are forwarded to other clusters on the
+    path to the original source.
+
+    References
+    ----------
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
+    """
+
+    def __init__(self, view, controller, intra_routing, inter_routing='LCE', **kwargs):
         """Constructor
 
         Parameters
@@ -521,11 +565,21 @@ class HashroutingClustered(Hashrouting):
 
 
 @register_strategy('HR_SYMM')
-class HashroutingSymmetric(BaseHashrouting):
+class HashroutingSymmetric(Hashrouting):
     """Hash-routing with symmetric routing (HR SYMM)
 
     According to this strategy, each content is routed following the same path
     of the request.
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
+           Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
+           workshop. Available:
+           https://lorenzosaino.github.io/publications/hashrouting-icn13.pdf
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
 
     @inheritdoc(Strategy)
@@ -534,13 +588,23 @@ class HashroutingSymmetric(BaseHashrouting):
 
 
 @register_strategy('HR_ASYMM')
-class HashroutingAsymmetric(BaseHashrouting):
+class HashroutingAsymmetric(Hashrouting):
     """Hash-routing with asymmetric routing (HR ASYMM)
 
     According to this strategy, each content fetched from an original source,
     as a result of a cache miss, is routed towards the receiver following the
     shortest path. If the authoritative cache is on the path, then it caches
     the content, otherwise not.
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
+           Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
+           workshop. Available:
+           https://lorenzosaino.github.io/publications/hashrouting-icn13.pdf
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
 
     @inheritdoc(Strategy)
@@ -549,15 +613,24 @@ class HashroutingAsymmetric(BaseHashrouting):
 
 
 @register_strategy('HR_MULTICAST')
-class HashroutingMulticast(BaseHashrouting):
-    """
-    Hash-routing implementation with multicast delivery of content packets.
+class HashroutingMulticast(Hashrouting):
+    """Hash-routing implementation with multicast delivery of content packets.
 
     In this strategy, if there is a cache miss, when contents return in
     the domain, they are multicast. One copy is sent to the authoritative cache
     and the other to the receiver. If the cache is on the path from source to
     receiver, this strategy behaves as a normal symmetric hash-routing
     strategy.
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
+           Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
+           workshop. Available:
+           https://lorenzosaino.github.io/publications/hashrouting-icn13.pdf
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
 
     @inheritdoc(Strategy)
@@ -566,7 +639,7 @@ class HashroutingMulticast(BaseHashrouting):
 
 
 @register_strategy('HR_HYBRID_AM')
-class HashroutingHybridAM(Hashrouting):
+class HashroutingHybridAM(BaseHashrouting):
     """Hash-routing implementation with hybrid asymmetric-multicast delivery of
     content packets.
 
@@ -577,6 +650,13 @@ class HashroutingHybridAM(Hashrouting):
     then one copy is sent to the authoritative cache as well. If the cache is
     on the path from source to receiver, this strategy behaves as a normal
     symmetric hash-routing strategy.
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
+           Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
+           workshop. Available:
+           https://lorenzosaino.github.io/publications/hashrouting-icn13.pdf
     """
 
     def __init__(self, view, controller, max_stretch=0.2, **kwargs):
@@ -642,15 +722,21 @@ class HashroutingHybridAM(Hashrouting):
 
 
 @register_strategy('HR_HYBRID_SM')
-class HashroutingHybridSM(Hashrouting):
-    """
-    Hash-routing implementation with hybrid symmetric-multicast delivery of
+class HashroutingHybridSM(BaseHashrouting):
+    """Hash-routing implementation with hybrid symmetric-multicast delivery of
     content packets.
 
     In this implementation, the edge router receiving a content packet decides
     whether to deliver the packet using multicast or symmetric hash-routing
     based on the total cost for delivering the Data to both cache and receiver
     in terms of hops.
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Hash-routing Schemes for
+           Information-Centric Networking, in Proceedings of ACM SIGCOMM ICN'13
+           workshop. Available:
+           https://lorenzosaino.github.io/publications/hashrouting-icn13.pdf
     """
 
     @inheritdoc(Strategy)
