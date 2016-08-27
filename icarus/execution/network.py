@@ -472,7 +472,7 @@ class NetworkController(object):
         if path is None:
             path = self.model.shortest_path[s][t]
         for u, v in path_links(path):
-            self.forward_request_hop(u, v)
+            self.forward_request_hop(u, v, main_path)
 
     def forward_content_path(self, u, v, path=None, main_path=True):
         """Forward a content from node *s* to node *t* over the provided path.
@@ -494,7 +494,7 @@ class NetworkController(object):
         if path is None:
             path = self.model.shortest_path[u][v]
         for u, v in path_links(path):
-            self.forward_content_hop(u, v)
+            self.forward_content_hop(u, v, main_path)
 
     def forward_request_hop(self, u, v, main_path=True):
         """Forward a request over link  u -> v.
