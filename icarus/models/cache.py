@@ -3,6 +3,7 @@
 This module contains the implementations of all the cache replacement policies
 provided by Icarus.
 """
+from __future__ import division
 from collections import deque, defaultdict
 import random
 import abc
@@ -10,7 +11,7 @@ import copy
 
 import numpy as np
 
-from icarus.util import inheritdoc
+from icarus.util import inheritdoc, apportionment
 from icarus.registry import register_cache_policy
 
 
@@ -858,7 +859,7 @@ class SegmentedLruCache(Cache):
     and recency of item reference.
     """
         
-    def __init__(self, maxlen, segments=2, *args, **kwargs):
+    def __init__(self, maxlen, segments=2, alloc=None, *args, **kwargs):
         """Constructor
         
         Parameters
@@ -867,17 +868,24 @@ class SegmentedLruCache(Cache):
             The maximum number of items the cache can store
         segments : int
             The number of segments
+        alloc : list
+            List of floats, summing to 1. Indicates the fraction of overall
+            caching space to be allocated to each segment.
         """
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
             raise ValueError('maxlen must be positive')
         if not isinstance(segments, int) or segments <= 0 or segments > maxlen:
             raise ValueError('segments must be an integer and 0 < segments <= maxlen')
+        if alloc:
+            if len(alloc) != segments:
+                raise ValueError('alloc must be an iterable with as many entries as segments')
+            if np.abs(np.sum(alloc) - 1) > 0.001:
+                raise ValueError('All alloc entries must sum up to 1')
+        else:
+            alloc = [1/segments for _ in range(segments)]
+        self._segment_maxlen = apportionment(maxlen, alloc)
         self._segment = [LinkedSet() for _ in range(segments)]
-        quotient = self._maxlen // segments
-        self._segment_maxlen = [quotient for _ in range(segments)]
-        for i in range(self._maxlen % segments):
-            self._segment_maxlen[i] += 1
         # This map is a dictionary mapping each item in the cache with the
         # segment in which it is located. This is not strictly necessary to
         # locate an item as we could have used the map in each segment.

@@ -1,9 +1,12 @@
 """Utility functions
 """
+from __future__ import division
 import time
 import logging
 import collections
 import copy
+import heapq
+
 import numpy as np
 import networkx as nx
 
@@ -21,6 +24,7 @@ __all__ = [
         'overlay_betweenness_centrality',
         'path_links',
         'multicast_tree',
+        'apportionment'
            ]
 
 class Tree(collections.defaultdict):
@@ -711,3 +715,30 @@ def multicast_tree(shortest_paths, source, destinations):
             continue
         tree = tree.union(set(path_links(shortest_paths[source][d])))
     return tree
+
+def apportionment(n, fracs):
+    """Allocate items to buckets according to a given proportion.
+
+    This function uses the Largest remainder method with the Hare quota.
+
+    Parameters
+    ----------
+    n : int
+        Number of items to allocate to buckets
+    fracs : list of float
+        Proportion of items to allocate to each bucket
+
+    Return
+    ------
+    apportionment : list of int
+        Apportionment of items to buckets
+    """
+    ints, remainders = zip(*[divmod(n*f, 1) for f in fracs])
+    to_alloc = n - sum(ints)
+    ints = list(ints)
+    if to_alloc == 0:
+        return ints
+    idx = heapq.nlargest(to_alloc, range(len(remainders)), remainders.__getitem__)
+    for i in idx:
+        ints[i] += 1
+    return ints

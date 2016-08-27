@@ -306,6 +306,16 @@ class TestLruCache(unittest.TestCase):
 
 class TestSlruCache(unittest.TestCase):
 
+    def test_alloc(self):
+        c = cache.SegmentedLruCache(100, 3, [0.4, 0.21, 0.39])
+        self.assertEqual(list(c._segment_maxlen), [40, 21, 39])
+        self.assertEqual(sum(c._segment_maxlen), c.maxlen)
+
+    def test_alloc_rounding(self):
+        c = cache.SegmentedLruCache(100, 3, [0.402, 0.201, 0.397])
+        self.assertEqual(list(c._segment_maxlen), [40, 20, 40])
+        self.assertEqual(sum(c._segment_maxlen), c.maxlen)
+
     def test_put_get(self):
         c = cache.SegmentedLruCache(9, 3)
         self.assertEqual(c.maxlen, 9)

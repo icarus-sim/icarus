@@ -51,3 +51,7 @@ class TestUtil(unittest.TestCase):
         sp = nx.all_pairs_shortest_path(topo)
         tree = util.multicast_tree(sp, 1, [2, 3])
         self.assertSetEqual(set(tree), set([(1, 2), (1, 3)]))
+
+    def test_apportionment(self):
+        self.assertEqual(util.apportionment(10, [0.53, 0.47]), [5, 5])
+        self.assertEqual(util.apportionment(100, [0.4, 0.21, 0.39]), [40, 21, 39])
