@@ -28,8 +28,8 @@ class TestUniform(unittest.TestCase):
         fnss.add_stack(t, 2, 'source')
         fnss.add_stack(t, 3, 'receiver')
         contentplacement.uniform_content_placement(t, range(10))
-        c1 = t.node[1]['stack'][1]['contents']
-        c2 = t.node[2]['stack'][1]['contents']
+        c1 = t.node[1]['stack'][1].get('contents', set())
+        c2 = t.node[2]['stack'][1].get('contents', set())
         self.assertEqual(len(c1) + len(c2), 10)
 
 class TestWeighted(unittest.TestCase):
