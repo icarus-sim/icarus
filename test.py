@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Run unit tests"""
+import sys
 from os import path, getcwd
 
 def main():
@@ -17,8 +18,9 @@ def main():
         raise RuntimeError("Can't run tests from source directory.\n"
                            "Run 'py.test' from the command line.")
     # Run tests
-    pytest.main(['icarus'])
+    res = pytest.main(['icarus'])
+    return res
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
