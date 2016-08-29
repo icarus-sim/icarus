@@ -7,7 +7,6 @@ language: python
 # Python versions to be tested
 python:
   - "2.7"
-  - "3.3"
   - "3.4"
   - "3.5"
 
@@ -31,13 +30,9 @@ before_install:
   - $PIP_INSTALL pip
   - uname -a
   - printenv
-  # The next two lines fix a crash with multiprocessing on Travis
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-
 
 install:
-  - $PIP_INSTALL atlas numpy scipy matplotlib pytest dateutil pandas statsmodels networkx fnss
+  - $PIP_INSTALL atlas numpy scipy matplotlib pytest pandas statsmodels networkx fnss
 
 script:
   - python test.py
