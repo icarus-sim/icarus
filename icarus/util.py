@@ -56,7 +56,7 @@ class Tree(collections.defaultdict):
                 if not isinstance(data[k], Tree) and isinstance(data[k], dict):
                     data[k] = Tree(data[k])
         # Add processed data to the tree
-        super(Tree, self).__init__(Tree, **data)
+        super(Tree, self).__init__(Tree, data)
         if attr:
             self.update(attr)
 

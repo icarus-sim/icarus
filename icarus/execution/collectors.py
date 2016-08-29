@@ -412,7 +412,7 @@ class CacheHitRatioCollector(DataCollector):
             results['MEAN_OFF_PATH'] = self.off_path_hit_count / n_sess
             results['MEAN_ON_PATH'] = results['MEAN'] - results['MEAN_OFF_PATH']
         if self.cont_hits:
-            cont_set = set(self.cont_cache_hits.keys() + self.cont_serv_hits.keys())
+            cont_set = set(list(self.cont_cache_hits.keys()) + list(self.cont_serv_hits.keys()))
             cont_hits = dict((i, (self.cont_cache_hits[i] / (self.cont_cache_hits[i] + self.cont_serv_hits[i])))
                             for i in cont_set)
             results['PER_CONTENT'] = cont_hits
