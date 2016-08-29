@@ -39,7 +39,7 @@ Icarus dependencies are:
   from the [Python website](http://www.python.org) or, possibly, from the package
   manager of your operating system.
 * The following Python packages: 
-   * **numpy** (versin 1.6 onwards)
+   * **numpy** (version 1.6 onwards)
    * **scipy** (version 0.12 onwards)
    * **matplotlib** (version 1.2 onwards)
    * **networkx** (version 1.6 onwards)
@@ -66,10 +66,12 @@ You can download a stable release in a zip or tar.gz format using the links belo
 
 **Latest version:**
 
- * Version 0.4.0: \[[zip](https://github.com/icarus-sim/icarus/archive/v0.4.0.zip)\] \[[tar.gz](https://github.com/icarus-sim/icarus/archive/v0.4.0.tar.gz)\]
+ * Version 0.6.0: \[[zip](https://github.com/icarus-sim/icarus/archive/v0.6.0.zip)\] \[[tar.gz](https://github.com/icarus-sim/icarus/archive/v0.6.0.tar.gz)\]
 
 **Older versions:**
 
+ * Version 0.5.0: \[[zip](https://github.com/icarus-sim/icarus/archive/v0.5.0.zip)\] \[[tar.gz](https://github.com/icarus-sim/icarus/archive/v0.5.0.tar.gz)\]
+ * Version 0.4.0: \[[zip](https://github.com/icarus-sim/icarus/archive/v0.4.0.zip)\] \[[tar.gz](https://github.com/icarus-sim/icarus/archive/v0.4.0.tar.gz)\]
  * Version 0.3.0: \[[zip](https://github.com/icarus-sim/icarus/archive/v0.3.0.zip)\] \[[tar.gz](https://github.com/icarus-sim/icarus/archive/v0.3.0.tar.gz)\]
  * Version 0.2.1: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.1.tar.gz)
  * Version 0.2: [\[zip\]](https://github.com/icarus-sim/icarus/archive/v0.2.zip) [\[tar.gz\]](https://github.com/icarus-sim/icarus/archive/v0.2.tar.gz)
@@ -214,4 +216,6 @@ For further information about the Icarus simulator, please contact
 [Lorenzo Saino](http://www.ee.ucl.ac.uk/~lsaino)
 
 ## Acknowledgments
-This work has been funded by the EU-Japan initiative, under EU FP7 grant agreement no. 608518 and NICT contract no. 167 ([GreenICN](http://www.greenicn.org/)), and by the EU FP7 grant agreement ICT-248784 ([COMET](http://www.comet-project.org/)).
+This work received funding from the UK EPSRC, under grant agreement no. EP/K019589/1 ([COMIT project](http://www.ee.ucl.ac.uk/comit-project/)),
+the EU-Japan initiative, under EU FP7 grant agreement no. 608518 and NICT contract no. 167 ([GreenICN project](http://www.greenicn.org/))
+and from the EU FP7 program, under grant agreements 318488 ([Flamingo Network of Excellence project](http://www.fp7-flamingo.eu/)).
