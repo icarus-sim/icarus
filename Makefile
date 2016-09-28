@@ -2,17 +2,19 @@ SHELL = /bin/sh
 
 DOC_DIR = doc
 
-.PHONY: run test docclean doc clean
+.PHONY: init test docclean doc clean distclean
 
-all: run
+all: install
 
-# Run Icarus with default configuration
-run:
-	python icarus.py --results results.pickle config.py
+# Install all dependencies as well as Icarus in developer mode
+install:
+	pip install --upgrade pip setuptools
+	pip install --upgrade -r requirements.txt
+	pip install --upgrade -e .
 
 # Run all test cases
 test:
-	python test.py
+	py.test icarus
 
 # Clean documentation
 docclean:
@@ -23,6 +25,9 @@ doc: docclean
 	cd $(DOC_DIR); make html
 
 # Delete temp files
-clean: docclean
+clean: docclean distclean
 	find . -name "*__pycache__" | xargs rm -rf
 	find . -name "*.pyc" | xargs rm -rf
+
+distclean:
+	rm -rf icarus.egg-info MANIFEST

@@ -6,14 +6,14 @@ if sys.version_info[:2] < (2, 7):
     raise ImportError(m % sys.version_info[:2])
 del sys
 
-# Author information
-__author__ = 'Lorenzo Saino, Ioannis Psaras'
 
-# Version information
-__version__ = '0.6.0'
+# Import release information
+import icarus.release as release
 
-# License information
-___license___ = 'GNU GPLv2'
+__author__ = release.author
+__version__ = release.version
+__license__ = release.license_short
+
 
 # List of all modules (even outside Icarus) that contain classes or function
 # needed to be registered with the registry (via a register decorator)

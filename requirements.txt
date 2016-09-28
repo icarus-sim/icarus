@@ -1,0 +1,6 @@
+# Testing
+pytest
+
+# Documentation
+numpydoc
+sphinx
