@@ -5,7 +5,7 @@ import networkx as nx
 import fnss
 
 from icarus.scenarios import IcnTopology
-from icarus.execution.collectors import TestCollector
+from icarus.execution.collectors import DummyCollector
 
 import icarus.execution.network as network
 
@@ -49,7 +49,7 @@ class TestNetworkMvc(unittest.TestCase):
         model = network.NetworkModel(self.topology, cache_policy={'name': 'FIFO'})
         self.view = network.NetworkView(model)
         self.controller = network.NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def test_remove_restore_link(self):

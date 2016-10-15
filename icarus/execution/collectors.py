@@ -24,7 +24,7 @@ __all__ = [
     'LinkLoadCollector',
     'LatencyCollector',
     'PathStretchCollector',
-    'TestCollector'
+    'DummyCollector'
            ]
 
 
@@ -500,10 +500,9 @@ class PathStretchCollector(DataCollector):
         return results
 
 
-@register_data_collector('TEST')
-class TestCollector(DataCollector):
-    """Collector used for test cases only.
-    """
+@register_data_collector('DUMMY')
+class DummyCollector(DataCollector):
+    """Dummy collector to be used for test cases only."""
 
     def __init__(self, view):
         """Constructor
@@ -556,4 +555,3 @@ class TestCollector(DataCollector):
             Summary of session
         """
         return self.session
-

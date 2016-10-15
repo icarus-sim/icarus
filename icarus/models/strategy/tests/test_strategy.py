@@ -4,7 +4,7 @@ import fnss
 
 from icarus.scenarios import IcnTopology
 import icarus.models as strategy
-from icarus.execution import NetworkModel, NetworkView, NetworkController, TestCollector
+from icarus.execution import NetworkModel, NetworkView, NetworkController, DummyCollector
 
 
 class TestHashroutingEdge(unittest.TestCase):
@@ -39,7 +39,7 @@ class TestHashroutingEdge(unittest.TestCase):
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
@@ -299,7 +299,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
@@ -576,7 +576,7 @@ class TestHashroutingClustered(unittest.TestCase):
         self.model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(self.model)
         self.controller = NetworkController(self.model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
@@ -938,7 +938,7 @@ class TestHashrouting(unittest.TestCase):
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
@@ -1292,7 +1292,7 @@ class TestOnPath(unittest.TestCase):
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
@@ -1675,7 +1675,7 @@ class TestPartition(unittest.TestCase):
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
@@ -1780,7 +1780,7 @@ class TestNrr(unittest.TestCase):
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
-        self.collector = TestCollector(self.view)
+        self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def tearDown(self):
