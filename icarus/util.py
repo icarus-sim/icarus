@@ -735,7 +735,7 @@ def apportionment(n, fracs):
         Apportionment of items to buckets
     """
     ints, remainders = zip(*[divmod(n * f, 1) for f in fracs])
-    to_alloc = n - sum(ints)
+    to_alloc = int(n - sum(ints))
     ints = list(ints)
     if to_alloc == 0:
         return ints
