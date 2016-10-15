@@ -1,7 +1,8 @@
-# Ignore binaries and temp files
+# Ignore binaries, packaged files and temp files
 *.pyc
 __pycache__
-*~ 
+*~
+*.egg-info
 
 # Ignore all files starting with . (e.g. .classpath, .*project) but not .gitignore and .travis.yml
 .*
@@ -17,3 +18,6 @@ doc/source/apidoc
 
 # Ignore plot files
 *.pdf
+
+# Ignore patches
+*.patch
