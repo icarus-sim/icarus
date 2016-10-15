@@ -56,6 +56,7 @@ if __name__ == "__main__":
              'Programming Language :: Python :: 3.6',
              'Topic :: Scientific/Engineering',
         ],
+        entry_points={'console_scripts': {"{0} = {0}.main:main".format('icarus')}},
         description=release.description_short,
         long_description=release.description_long,
         python_requires='>=2.7.9, !=3.0.*, !=3.1.*, !=3.2.*',

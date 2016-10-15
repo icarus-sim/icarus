@@ -146,10 +146,44 @@ class ResultSet(object):
         Returns
         -------
         json : str
-            String contatining the JSON representation of the object
+            String containing the JSON representation of the object
         """
         d = [(k.dict(str_keys=True), v.dict(str_keys=True)) for k, v in self.dump()]
         return json.dumps(d, indent=indent)
+
+    def prettyprint(self):
+        """Return a human-readable text representation of the resultset.
+
+        Return
+        ------
+        prettyprint : str
+            Human-readable string representation of the resultset
+        """
+        output = ""
+        n = len(self)
+        for i, (experiment, results) in enumerate(self):
+            output += "EXPERIMENT {}/{}:\n".format(i + 1, n)
+            output += "  CONFIGURATION:\n"
+            for k, v in experiment.items():
+                if isinstance(v, dict):
+                    s = "   * {} ->".format(k)
+                    if 'name' in v:
+                        s += " name: {},".format(v.pop('name'))
+                    for group, value in v.items():
+                        s += " {}: {},".format(group, value)
+                    output += s.rstrip(",") + "\n"
+                else:
+                    output += "   * {} -> {}\n".format(k, v)
+            output += "  RESULTS:\n"
+            for collector, data in results.items():
+                if isinstance(data, dict):
+                    output += "    {}\n".format(collector)
+                    for metric, value in data.items():
+                        output += "     * {}: {}\n".format(metric, value)
+                else:
+                    output += "     * {}: {}\n".format(collector, data)
+            output += "\n"
+        return output
 
     def filter(self, condition):
         """Return subset of results matching specific conditions

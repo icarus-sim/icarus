@@ -20,4 +20,4 @@ export PYTHONPATH=${ICARUS_DIR}:$PYTHONPATH
 
 # Run experiments
 echo "Run experiments"
-python ${ICARUS_DIR}/icarus.py --results ${RESULTS_FILE} ${CONFIG_FILE}
+icarus run --results ${RESULTS_FILE} ${CONFIG_FILE}
