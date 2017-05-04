@@ -31,7 +31,8 @@ __all__ = [
         'topology_tiscali',
         'topology_wide',
         'topology_garr',
-        'topology_rocketfuel_latency'
+        'topology_rocketfuel_latency',
+        'topology_multi_as'
            ]
 
 
@@ -768,3 +769,105 @@ def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_D
         fnss.add_stack(topology, v, 'router')
     return IcnTopology(topology)
 
+
+
+@register_topology_factory('MULTIAS')
+def topology_multi_as(asns, source_ratio=0.1, ext_delay=EXTERNAL_LINK_DELAY, **kwargs):
+    """Parse multiple generic RocketFuel topologies as a multiple AS topology 
+    with annotated latencies. Each topology works as an individual AS. 
+    To each node of the parsed topology it is attached an artificial receiver
+    node. To the routers with highest degree it is also attached a source node.
+    The intra AS links are set with internal delay while inter AS source-router
+    links are set with external delay.
+    Parameters
+    ----------
+    asns : int list
+        AS number list
+    source_ratio : float
+        Ratio between number of source nodes (artificially attached) and routers
+    ext_delay : float
+        Delay on external nodes
+    """
+    if source_ratio < 0 or source_ratio > 1:
+        raise ValueError('source_ratio must be comprised between 0 and 1')
+    f_t = [ path.join(TOPOLOGY_RESOURCES_DIR, 'rocketfuel-latency', str(i), 'latencies.intra') for i in asns]
+    topologytmp = [fnss.parse_rocketfuel_isp_latency(i).to_undirected() for i in f_t]
+    topologylist = [list(nx.connected_component_subgraphs(i))[0] for i in topologytmp]
+    # First mark all current links as inernal
+    for topology in topologylist:
+        j = topologylist.index(topology)
+        while j>=0:
+            topology=nx.relabel_nodes(topology,mapping, copy=False)
+            j -= 1
+    for topology in topologylist:
+        for u, v in topology.edges_iter():
+            topology.edge[u][v]['type'] = 'internal'
+	
+	# Note: I don't need to filter out nodes with degree 1 cause they all have
+    # a greater degree value but we compute degree to decide where to attach sources
+    
+    routerslist = [topology.nodes() for topology in topologylist]
+    # Source attachment
+    n_sourceslist = [int(source_ratio * len(routers)) for routers in routerslist]
+    sourceslist = [None] * len(n_sourceslist) 
+    for n_sources in n_sourceslist:
+        j = n_sourceslist.index(n_sources)
+        sourceslist[j] =['src_%d_%d' % (j,i) for i in range(n_sources)]    
+    
+    deg = [nx.degree(topology) for topology in topologylist]
+
+    # Attach sources based on their degree purely, but they may end up quite clustered
+    routerslistsort = [ sorted(routers, key=lambda k: deg[routerslist.index(routers)][k], reverse=True) for routers in routerslist ]
+    for sources in sourceslist:
+        j = sourceslist.index(sources)
+        for i in range(len(sources)):
+            #intra AS link set as internal, source to router delay bigger than router to receiver
+            topologylist[j].add_edge(sources[i], routerslistsort[j][i], delay=1, type='internal')
+            #inter AS link set as external, AS_i source connect to AS_i+1(cycle of list)  router
+            if j==(len(sourceslist)-1):
+                topologylist[j].add_edge(sources[i], routerslistsort[0][i], delay=ext_delay, type='external')
+            else:            
+                topologylist[j].add_edge(sources[i], routerslistsort[j+1][i], delay=ext_delay, type='external')
+  
+
+    # attach artificial receiver nodes to ICR candidates
+    receiverslist = [None]*len(routerslistsort)
+    for routers in routerslistsort:
+        j = routerslistsort.index(routers)
+        receiverslist[j] = ['rec_%d_%d' % (j,i) for i in range(len(routers))]
+        for i in range(len(routers)):
+            topologylist[j].add_edge(receiverslist[j][i], routers[i], delay=0, type='internal')
+    # Set weights to latency values
+    for topology in topologylist:
+        for u, v in topology.edges_iter():
+            topology.edge[u][v]['weight'] = topology.edge[u][v]['delay']
+
+    #multiple AS topology
+    #we combine and import all the node,edge and attributes after individual definition of each AS
+    #to provide scalability that being easier to change any one of them
+    topo_multiAS = nx.Graph()
+    for topology in topologylist:
+        j = topologylist.index(topology)    
+        for v in topology.nodes():
+            topo_multiAS.add_node(v)
+        topo_multiAS.add_edges_from(topology.edges())
+        delays = nx.get_edge_attributes(topology, 'delay')
+        types = nx.get_edge_attributes(topology, 'type')
+        weights = nx.get_edge_attributes(topology, 'weight')
+        nx.set_edge_attributes(topo_multiAS,'delay',delays)
+        nx.set_edge_attributes(topo_multiAS,'type',types)
+        nx.set_edge_attributes(topo_multiAS,'weight',weights)
+        
+        # Deploy stacks on nodes
+        topo_multiAS.graph['icr_candidates'] = set(routerslistsort[j])
+        for v in sourceslist[j]:
+            fnss.add_stack(topo_multiAS, v, 'source')
+        for v in receiverslist[j]:
+            fnss.add_stack(topo_multiAS, v, 'receiver')
+        for v in routerslistsort[j]:
+            fnss.add_stack(topo_multiAS, v, 'router')
+        
+    return IcnTopology(topo_multiAS)
+
+def mapping(x):
+    return x+1000
