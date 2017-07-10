@@ -1,0 +1,26 @@
+include LICENSE*
+include README*
+include CONTRIBUTING*
+
+# Code for including topologies
+recursive-include resources/topologies *
+
+# Include all examples
+recursive-include examples *.py
+recursive-include examples *.sh
+
+# Include all HTML documentation
+recursive-include doc/build/html *
+prune doc/build/html/.doctrees
+exclude doc/build/html/.buildinfo
+
+# Redundant code but specify just in case of changes to default Distutils behaviour
+global-exclude *~
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude .svn
+global-exclude .git*
+global-exclude .*project
+
+# Exclude this file to avoid unnecessary warnings when installing with pip or easy_install 
+exclude MANIFEST.in
