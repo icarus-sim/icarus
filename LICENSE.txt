@@ -1,5 +1,5 @@
 Icarus ICN caching simulator
-Copyright (C) 2016, Lorenzo Saino and Ioannis Psaras
+Copyright (C) 2017, Lorenzo Saino and Ioannis Psaras
 Contacts: http://icarus-sim.github.io/
 
 This program is free software; you can redistribute it and/or
