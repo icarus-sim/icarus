@@ -42,3 +42,4 @@ del m
 # Imports
 from .models import *
 from .tools import *
+from .runner import run

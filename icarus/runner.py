@@ -56,22 +56,22 @@ def _validate_settings(settings, freeze=True):
             n_proc = mp.cpu_count()
             settings.N_PROCESSES = n_proc
             logger.warning('N_PROCESSES setting not specified. Set to %s'
-                         % str(n_proc))
+                           % str(n_proc))
     if 'N_REPLICATIONS' not in settings:
         n_replications = 1
         settings.N_REPLICATIONS = n_replications
         logger.warning('N_REPLICATIONS setting not specified. Set to %s'
-                     % str(n_replications))
+                       % str(n_replications))
     if 'RESULTS_FORMAT' not in settings:
         res_format = 'PICKLE'
         settings.RESULTS_FORMAT = res_format
         logger.warning('RESULTS_FORMAT setting not specified. Set to %s'
-                     % res_format)
+                       % res_format)
     if 'LOG_LEVEL' not in settings:
         log_level = 'INFO'
         settings.LOG_LEVEL = log_level
         logger.warning('LOG_LEVEL setting not specified. Set to %s'
-                     % log_level)
+                       % log_level)
     if freeze:
         settings.freeze()
 

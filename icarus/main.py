@@ -16,6 +16,7 @@ import click
 
 import icarus
 
+
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
@@ -35,7 +36,7 @@ def main():
 def run(results, config_override, config):
     """Run a set of simulations."""
     config_override = dict(c.split("=") for c in config_override) or None
-    icarus.run.run(config, results, config_override)
+    icarus.run(config, results, config_override)
 
 @main.group(context_settings=CONTEXT_SETTINGS)
 def results():
