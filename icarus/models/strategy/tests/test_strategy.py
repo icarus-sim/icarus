@@ -28,7 +28,7 @@ class TestHashroutingEdge(unittest.TestCase):
         topology.add_path(["r", 1, 2, 3, "s"])
         topology.add_path([1, 4, 3])
         fnss.add_stack(topology, "r", "receiver")
-        fnss.add_stack(topology, "s", "source", {'contents': range(1, 61)})
+        fnss.add_stack(topology, "s", "source", {'contents': list(range(1, 61))})
         for v in (1, 2, 3, 4):
             fnss.add_stack(topology, v, "router", {"cache_size": 4})
         topology.graph['icr_candidates'] = set([1, 2, 3, 4])
