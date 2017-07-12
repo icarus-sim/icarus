@@ -13,12 +13,33 @@ import icarus.execution.network as network
 class TestSymmetrifyPaths(unittest.TestCase):
 
     def test_symmetric_paths(self):
-        topology = fnss.Topology()
-        topology.add_path([1, 2, 4, 5, 3, 6, 1])
-        path = nx.all_pairs_shortest_path(topology)
-        self.assertNotEqual(list(path[1][5]), list(reversed(path[5][1])))
+        path = {1: {
+                    1: [1],
+                    2: [1, 2],
+                    3: [1, 3],
+                    4: [1, 2, 4]
+                },
+                 2: {
+                     1: [2, 1],
+                     2: [2],
+                     3: [2, 1, 3],
+                     4: [2, 4]
+                },
+                 3: {
+                     1: [3, 1],
+                     2: [3, 4, 2],
+                     3: [3],
+                     4: [3, 4]
+                },
+                 4: {
+                     1: [4, 3, 1],
+                     2: [4, 2],
+                     3: [4, 3],
+                     4: [4]}
+                 }
         network.symmetrify_paths(path)
-        self.assertEqual(list(path[1][5]), list(reversed(path[5][1])))
+        self.assertEqual(list(path[1][4]), list(reversed(path[4][1])))
+        self.assertEqual(list(path[2][3]), list(reversed(path[3][2])))
 
 class TestNetworkMvc(unittest.TestCase):
 
@@ -88,8 +109,8 @@ class TestNetworkMvc(unittest.TestCase):
     def test_rewire_link(self):
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
         self.assertEqual(1, self.topology.edge[2][3]['a'])
-        self.controller.rewire_link(1, 5, 1, 8, recompute_paths=True)
-        self.assertEqual([0, 1, 8, 3, 4], self.view.shortest_path(0, 4))
-        self.controller.rewire_link(1, 8, 1, 5, recompute_paths=True)
+        self.controller.rewire_link(1, 5, 1, 3, recompute_paths=True)
+        self.assertEqual([0, 1, 3, 4], self.view.shortest_path(0, 4))
+        self.controller.rewire_link(1, 3, 1, 5, recompute_paths=True)
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
         self.assertEqual(1, self.topology.edge[2][3]['a'])
