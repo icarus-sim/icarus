@@ -14,7 +14,7 @@ which is an object modelling a tree of hierarchically organized configuration
 parameters. Alternatively nested dictionaries can be used instead of trees. In
 this case Icarus will convert them to trees at runtime. It is however suggested
 to use Tree objects because they provide methods that simplify the definition
-of experiments.  
+of experiments.
 
 Experiment definition syntax
 ============================
@@ -82,7 +82,7 @@ Tree topology
  * args:
     * h: height
     * k: branching factor
-    
+
 RocketFuel topologies
  * name: ROCKET_FUEL
  * args:
@@ -90,7 +90,7 @@ RocketFuel topologies
      * source_ratio: ratio of nodes to which attach a content source
      * ext_delay: delay of interdomain links
 
-Internet Topology Zoo topologies 
+Internet Topology Zoo topologies
  * name: GARR, GEANT, TISCALI, WIDE, GEANT_2, GARR_2, TISCALI_2
  * args: None
 
@@ -126,8 +126,8 @@ Trace-driven workload
 content_placement
 -----------------
 Uniform (content uniformly distributed among servers)
- * name: UNIFORM 
- * args: None 
+ * name: UNIFORM
+ * args: None
 
 
 cache_placement
@@ -139,7 +139,7 @@ cache_placement
     * DEGREE -> cache space assigned to all candidate nodes proportionally to their degree
  * args
     * For all:
-       * network_cache: overall network cache (in number of entries) as fraction of content catalogue 
+       * network_cache: overall network cache (in number of entries) as fraction of content catalogue
     * For CONSOLIDATED
        * spread: The fraction of top centrality nodes on which caches are deployed (optional, default: 0.5)
 
@@ -164,7 +164,7 @@ strategy
        * t_tw : float, optional, default=10. The ProbCache t_tw parameter
     * For HR_HYBRID_AM
        * max_stretch: float, optional, default=0.2.
-         The max detour stretch for selecting multicast 
+         The max detour stretch for selecting multicast
 
 
 cache_policy
@@ -178,7 +178,7 @@ cache_policy
     * FIFO  -> First In First Out
  * args:
     * For SLRU:
-       * segments: int, optional, default=2. Number of segments 
+       * segments: int, optional, default=2. Number of segments
 
 
 desc
@@ -215,13 +215,9 @@ PARALLEL_EXECUTION = True
 # This option is ignored if PARALLEL_EXECUTION = False
 N_PROCESSES = cpu_count()
 
-# Granularity of caching.
-# Currently, only OBJECT is supported
-CACHING_GRANULARITY = 'OBJECT'
-
 # Format in which results are saved.
 # Result readers and writers are located in module ./icarus/results/readwrite.py
-# Currently only PICKLE is supported 
+# Currently only PICKLE is supported
 RESULTS_FORMAT = 'PICKLE'
 
 # Number of times each experiment is replicated
@@ -232,10 +228,10 @@ N_REPLICATIONS = 3
 # The implementation of data collectors are located in ./icaurs/execution/collectors.py
 # Remove collectors not needed
 DATA_COLLECTORS = [
-           'CACHE_HIT_RATIO',   # Measure cache hit ratio 
-           'LATENCY',           # Measure request and response latency (based on static link delays)
-           'LINK_LOAD',         # Measure link loads
-           'PATH_STRETCH',      # Measure path stretch
+           'CACHE_HIT_RATIO',  # Measure cache hit ratio
+           'LATENCY',  # Measure request and response latency (based on static link delays)
+           'LINK_LOAD',  # Measure link loads
+           'PATH_STRETCH',  # Measure path stretch
                    ]
 
 
@@ -245,14 +241,14 @@ DATA_COLLECTORS = [
 # Default experiment values, i.e. values shared by all experiments
 
 # Number of content objects
-N_CONTENTS = 3*10**5
+N_CONTENTS = 3 * 10 ** 5
 
 # Number of content requests generated to pre-populate the caches
 # These requests are not logged
-N_WARMUP_REQUESTS = 3*10**5
+N_WARMUP_REQUESTS = 3 * 10 ** 5
 
 # Number of content requests that are measured after warmup
-N_MEASURED_REQUESTS = 6*10**5
+N_MEASURED_REQUESTS = 6 * 10 ** 5
 
 # Number of requests per second (over the whole network)
 REQ_RATE = 1.0
@@ -271,7 +267,7 @@ NETWORK_CACHE = [0.004, 0.002]
 # List of topologies tested
 # Topology implementations are located in ./icarus/scenarios/topology.py
 # Remove topologies not needed
-TOPOLOGIES =  [
+TOPOLOGIES = [
         'GEANT',
         'WIDE',
         'GARR',
@@ -279,7 +275,7 @@ TOPOLOGIES =  [
               ]
 
 # List of caching and routing strategies
-# The code is located in ./icarus/models/strategy.py
+# The code is located in ./icarus/models/strategy/*.py
 # Remove strategies not needed
 STRATEGIES = [
      'LCE',             # Leave Copy Everywhere

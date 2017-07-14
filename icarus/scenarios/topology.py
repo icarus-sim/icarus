@@ -428,7 +428,7 @@ def topology_wide(**kwargs):
     receivers = [27, 28, 3, 5, 4, 7]
     # caches are all remaining nodes --> 27 caches
     routers = [n for n in topology.nodes() if n not in receivers + sources]
-    # All routers can be upgraded to ICN functionalitirs
+    # All routers can be upgraded to ICN functionalities
     icr_candidates = routers
     # set weights and delays on all links
     fnss.set_weights_constant(topology, 1.0)

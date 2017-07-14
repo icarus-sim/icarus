@@ -38,7 +38,7 @@ def uniform_content_placement(topology, contents, seed=None):
     ----------
     topology : Topology
         The topology object
-   contents : iterable
+    contents : iterable
         Iterable of content objects
     source_nodes : list
         List of nodes of the topology which are content sources

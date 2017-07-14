@@ -10,14 +10,6 @@ from icarus.execution import NetworkModel, NetworkView, NetworkController, Dummy
 class TestHashroutingEdge(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    @classmethod
     def topology(cls):
         #
         #              4
@@ -41,9 +33,6 @@ class TestHashroutingEdge(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
 
     def test_hashrouting_symmetric_edge(self):
         hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 0.25)
@@ -270,14 +259,6 @@ class TestHashroutingEdge(unittest.TestCase):
 class TestHashroutingOnPath(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    @classmethod
     def topology(cls):
         #
         #              4
@@ -301,9 +282,6 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
 
     def test_hashrouting_symmetric(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0.25)
@@ -533,14 +511,6 @@ class TestHashroutingOnPath(unittest.TestCase):
 class TestHashroutingClustered(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    @classmethod
     def clustered_topology(cls):
         """Return topology for testing off-path caching strategies
         """
@@ -578,10 +548,6 @@ class TestHashroutingClustered(unittest.TestCase):
         self.controller = NetworkController(self.model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
-
 
     def test_hashrouting_symmetric_lce(self):
         hr = strategy.HashroutingClustered(self.view, self.controller,
@@ -898,14 +864,6 @@ class TestHashroutingClustered(unittest.TestCase):
 class TestHashrouting(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    @classmethod
     def topology(cls):
         """Return topology for testing off-path caching strategies
         """
@@ -940,9 +898,6 @@ class TestHashrouting(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
 
     def test_hashrouting_symmetric(self):
         hr = strategy.HashroutingSymmetric(self.view, self.controller)
@@ -1230,38 +1185,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
 
-    def test_hashrouting_hybrid_sm_multi_options(self):
-        # NOTE: The following test case will fail because NetworkX returns as
-        # shortest path from 4 to 1: 4-5-0-1. There is also another shortest
-        # path: 4-3-2-1. The best delivery strategy overall would be multicast
-        # but because of NetworkX selecting the least convenient shortest path
-        # the computed solution is symmetric with path: 4-5-0-1-2-6.
-        pass
-#        # At time 1, receiver 6 requests content 1, expect multicast
-#        hr = strategy.HashroutingHybridSM(self.view, self.controller)
-#        hr.authoritative_cache = lambda x: x
-#        hr.process_event(1, 6, 1, True)
-#        loc = self.view.content_locations(1)
-#        self.assertEquals(len(loc), 2)
-#        self.assertIn(1, loc)
-#        self.assertIn(4, loc)
-#        summary = self.collector.session_summary()
-#        exp_req_hops = set(((6, 2), (2, 1), (1, 2), (2, 3), (3, 4)))
-#        exp_cont_hops = set(((4, 3), (3, 2), (2, 1), (2, 6)))
-#        req_hops = summary['request_hops']
-#        cont_hops = summary['content_hops']
-#        self.assertSetEqual(exp_req_hops, set(req_hops))
-#        self.assertSetEqual(exp_cont_hops, set(cont_hops))
 
 class TestOnPath(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
 
     @classmethod
     def on_path_topology(cls):
@@ -1294,9 +1219,6 @@ class TestOnPath(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
 
     def test_lce_same_content(self):
         hr = strategy.LeaveCopyEverywhere(self.view, self.controller)
@@ -1634,14 +1556,6 @@ class TestOnPath(unittest.TestCase):
 class TestPartition(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    @classmethod
     def partition_topology(cls):
         #
         #      +-- s1 --+
@@ -1677,9 +1591,6 @@ class TestPartition(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
 
     def test(self):
         hr = strategy.Partition(self.view, self.controller)
@@ -1737,16 +1648,7 @@ class TestPartition(unittest.TestCase):
 
 
 class TestNrr(unittest.TestCase):
-    """Test suite for Nearest Replica Routing strategies
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
+    """Test suite for Nearest Replica Routing strategies"""
 
     @classmethod
     def nrr_topology(cls):
@@ -1782,9 +1684,6 @@ class TestNrr(unittest.TestCase):
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
-
-    def tearDown(self):
-        pass
 
     def test_lce(self):
         hr = strategy.NearestReplicaRouting(self.view, self.controller, metacaching='LCE')
@@ -1831,7 +1730,6 @@ class TestNrr(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(summary['request_hops']))
         self.assertSetEqual(set(exp_cont_hops), set(summary['content_hops']))
         self.assertEqual(3, summary['serving_node'])
-
 
     def test_lcd(self):
         hr = strategy.NearestReplicaRouting(self.view, self.controller, metacaching='LCD')
