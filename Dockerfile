@@ -15,7 +15,8 @@
 #
 # docker run -v `pwd`:/data icarus icarus run -r /data/results.pickle /data/config.py
 #
-FROM python:2.7
+ARG py_ver=2.7
+FROM python:${py_ver}
 
 COPY . /icarus
 WORKDIR /icarus
