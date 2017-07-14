@@ -81,6 +81,13 @@ class Orchestrator(object):
                     % (self.n_exp, self.n_proc))
 
         if self.settings.PARALLEL_EXECUTION:
+            # Starting from Python 3.2, multiprocessing.Pool.apply_async
+            # accepts a new error_callback argument that is a callable for
+            # returning a message when uncaught errors are thrown.
+            # The following lines ensure compatibility with Python < 3.2
+            callbacks = {"callback": self.experiment_callback}
+            if sys.version_info > (3, 2):
+                callbacks["error_callback"] = self.error_callback
             # This job queue is used only to keep track of which jobs have
             # finished and which are still running. Currently this information
             # is used only to handle keyboard interrupts correctly
@@ -92,7 +99,7 @@ class Orchestrator(object):
                     job_queue.append(self.pool.apply_async(run_scenario,
                             args=(self.settings, experiment,
                                   self.seq.assign(), self.n_exp),
-                            callback=self.experiment_callback))
+                            **callbacks))
             self.pool.close()
             # This solution is probably not optimal, but at least makes
             # KeyboardInterrupt work fine, which is crucial if launching the
@@ -123,6 +130,16 @@ class Orchestrator(object):
         logger.info('END | Planned: %d, Completed: %d, Succeeded: %d, Failed: %d',
                     self.n_exp, self.n_fail + self.n_success, self.n_success, self.n_fail)
 
+    def error_callback(self, msg):
+        """Callback method called in case of error in Python > 3.2
+
+        Parameters
+        ----------
+        msg : string
+            Error message
+        """
+        logger.error("FAILURE | Experiment failed: {}".format(msg))
+        self.n_fail += 1
 
     def experiment_callback(self, args):
         """Callback method called by run_scenario
@@ -153,7 +170,6 @@ class Orchestrator(object):
             # Print summary
             logger.info('SUMMARY | Completed: %d, Failed: %d, Scheduled: %d, ETA: %s',
                         self.n_success, self.n_fail, n_scheduled, eta)
-
 
 def run_scenario(settings, params, curr_exp, n_exp):
     """Run a single scenario experiment

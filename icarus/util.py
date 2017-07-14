@@ -251,6 +251,18 @@ class Settings(object):
         else:
             raise ValueError('Setting %s not found' % str(name))
 
+    def __getstate__(self):
+        """Return a representation of the object for pickling purposes.
+
+        Returns
+        -------
+        state : dict
+            State of current object
+        """
+        # This function was implemented because otherwise pickling
+        # under Python 3.x fails
+        return self.__dict__
+
     def __getattr__(self, name):
         """Return value of settings with given name
 

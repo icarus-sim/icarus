@@ -1,5 +1,10 @@
 import unittest
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 import networkx as nx
 import fnss
 
@@ -49,3 +54,22 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(util.apportionment(10, [0.53, 0.47]), [5, 5])
         self.assertEqual(util.apportionment(100, [0.4, 0.21, 0.39]), [40, 21, 39])
         self.assertEqual(util.apportionment(99, [0.2, 0.7, 0.1]), [20, 69, 10])
+
+class TestSettings(unittest.TestCase):
+
+    def test_get_set(self):
+        s = util.Settings()
+        s["key_a"] = "val_a"
+        self.assertIn("key_a", s)
+        self.assertEqual(s["key_a"], "val_a")
+        self.assertEqual(len(s), 1)
+        del s["key_a"]
+        self.assertNotIn("key_a", s)
+        self.assertEqual(len(s), 0)
+
+    def test_pickle_unpickle(self):
+        s = util.Settings()
+        s["key_a"] = "val_a"
+        res = pickle.dumps(s)
+        t = pickle.loads(res)
+        self.assertEqual(s["key_a"], t["key_a"])
