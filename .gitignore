@@ -1,5 +1,5 @@
 # Ignore binaries, packaged files and temp files
-*.pyc
+*.py[cod]
 __pycache__
 *~
 *.egg-info
