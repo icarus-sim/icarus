@@ -1,7 +1,6 @@
 from __future__ import division
 import unittest
 
-import networkx as nx
 import fnss
 
 from icarus.scenarios import IcnTopology
@@ -41,7 +40,7 @@ class TestSymmetrifyPaths(unittest.TestCase):
         self.assertEqual(list(path[1][4]), list(reversed(path[4][1])))
         self.assertEqual(list(path[2][3]), list(reversed(path[3][2])))
 
-class TestNetworkMvc(unittest.TestCase):
+class TestNetworkMVC(unittest.TestCase):
 
     @classmethod
     def build_topology(cls):
