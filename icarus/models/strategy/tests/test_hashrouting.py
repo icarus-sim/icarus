@@ -261,18 +261,19 @@ class TestHashroutingOnPath(unittest.TestCase):
     @classmethod
     def topology(cls):
         #
-        #              4
+        #            4 - 5
         #           /     \
         #  r ---- 1 -- 2 -- 3 ---- s
         #
         topology = IcnTopology()
         topology.add_path(["r", 1, 2, 3, "s"])
-        topology.add_path([1, 4, 3])
+        topology.add_path([1, 4, 5, 3])
         fnss.add_stack(topology, "r", "receiver")
         fnss.add_stack(topology, "s", "source", {'contents': list(range(1, 61))})
-        for v in (1, 2, 3, 4):
+        for v in (1, 2, 3, 4, 5):
             fnss.add_stack(topology, v, "router", {"cache_size": 4})
-        topology.graph['icr_candidates'] = set([1, 2, 3, 4])
+        topology.graph['icr_candidates'] = set([1, 2, 3, 4, 5])
+
         return topology
 
     def setUp(self):
@@ -285,7 +286,7 @@ class TestHashroutingOnPath(unittest.TestCase):
 
     def test_hashrouting_symmetric(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0.25)
-        hr.authoritative_cache = lambda x: ((x - 1) % 4) + 1
+        hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -295,8 +296,8 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertFalse(self.view.local_cache_lookup(2, 4))
         self.assertTrue(self.view.local_cache_lookup(3, 4))
         summary = self.collector.session_summary()
-        exp_req_hops = [("r", 1), (1, 4), (4, 3), (3, "s")]
-        exp_cont_hops = [("s", 3), (3, 4), (4, 1), (1, "r")]
+        exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
+        exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
@@ -318,15 +319,15 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(1, summary['serving_node'])
-        # Now request content 7 which should replace 4 in the local cache of 1
-        # but not 3, because 7 would take space in 3's coordinated ratio
-        hr.process_event(1, "r", 7, True)
-        loc = self.view.content_locations(7)
+        # Now request content 8 which should replace 4 in the local cache of 1
+        # but not 3, because 8 would take space in 3's coordinated ratio
+        hr.process_event(1, "r", 8, True)
+        loc = self.view.content_locations(8)
         self.assertIn("s", loc)
         self.assertIn(3, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 7))
-        self.assertTrue(self.view.local_cache_lookup(2, 7))
-        self.assertFalse(self.view.local_cache_lookup(3, 7))
+        self.assertTrue(self.view.local_cache_lookup(1, 8))
+        self.assertTrue(self.view.local_cache_lookup(2, 8))  # Fails: possibly requests takes path by 4
+        self.assertFalse(self.view.local_cache_lookup(3, 8))
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
@@ -359,7 +360,7 @@ class TestHashroutingOnPath(unittest.TestCase):
 
     def test_hashrouting_symmetric_zero_local(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0)
-        hr.authoritative_cache = lambda x: ((x - 1) % 4) + 1
+        hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -369,8 +370,8 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertFalse(self.view.local_cache_lookup(2, 4))
         self.assertFalse(self.view.local_cache_lookup(3, 4))
         summary = self.collector.session_summary()
-        exp_req_hops = [("r", 1), (1, 4), (4, 3), (3, "s")]
-        exp_cont_hops = [("s", 3), (3, 4), (4, 1), (1, "r")]
+        exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
+        exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
@@ -394,13 +395,13 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertEqual(4, summary['serving_node'])
         # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
-        hr.process_event(1, "r", 7, True)
-        loc = self.view.content_locations(7)
+        hr.process_event(1, "r", 8, True)
+        loc = self.view.content_locations(8)
         self.assertIn("s", loc)
         self.assertIn(3, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 7))
-        self.assertFalse(self.view.local_cache_lookup(2, 7))
-        self.assertFalse(self.view.local_cache_lookup(3, 7))
+        self.assertFalse(self.view.local_cache_lookup(1, 8))
+        self.assertFalse(self.view.local_cache_lookup(2, 8))
+        self.assertFalse(self.view.local_cache_lookup(3, 8))
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
@@ -433,7 +434,7 @@ class TestHashroutingOnPath(unittest.TestCase):
 
     def test_hashrouting_symmetric_zero_coordinated(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 1)
-        hr.authoritative_cache = lambda x: ((x - 1) % 4) + 1
+        hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -443,8 +444,8 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertFalse(self.view.local_cache_lookup(2, 4))
         self.assertTrue(self.view.local_cache_lookup(3, 4))
         summary = self.collector.session_summary()
-        exp_req_hops = [("r", 1), (1, 4), (4, 3), (3, "s")]
-        exp_cont_hops = [("s", 3), (3, 4), (4, 1), (1, "r")]
+        exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
+        exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
@@ -468,12 +469,12 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertEqual(1, summary['serving_node'])
         # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
-        hr.process_event(1, "r", 7, True)
-        loc = self.view.content_locations(7)
+        hr.process_event(1, "r", 8, True)
+        loc = self.view.content_locations(8)
         self.assertIn("s", loc)
         self.assertNotIn(3, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 7))
-        self.assertTrue(self.view.local_cache_lookup(2, 7))
+        self.assertTrue(self.view.local_cache_lookup(1, 8))
+        self.assertTrue(self.view.local_cache_lookup(2, 8))
         # Note: this assertion below is false, because we never store items
         # for the authoritative cache in the uncoordinated section, even if
         # the coordinated cache is empty
