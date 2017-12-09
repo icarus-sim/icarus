@@ -325,7 +325,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertIn("s", loc)
         self.assertIn(3, loc)
         self.assertTrue(self.view.local_cache_lookup(1, 8))
-        self.assertTrue(self.view.local_cache_lookup(2, 8))  # Fails: possibly requests takes path by 4
+        self.assertTrue(self.view.local_cache_lookup(2, 8))
         self.assertFalse(self.view.local_cache_lookup(3, 8))
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
@@ -529,7 +529,7 @@ class TestHashroutingClustered(unittest.TestCase):
         fnss.set_delays_constant(topology, 15, 'ms', [(2, 4)])
         caches = (1, 2, 3, 4, 5, 6)
         contents = [1, 2, 3]
-        clusters = [set([1, 2, 3]), set([4, 5, 6])]
+        clusters = [{1, 2, 3}, {4, 5, 6}]
         topology.graph['icr_candidates'] = set(caches)
         topology.graph['clusters'] = clusters
         fnss.add_stack(topology, "RCV", 'receiver', {})
@@ -865,11 +865,10 @@ class TestHashrouting(unittest.TestCase):
 
     @classmethod
     def topology(cls):
-        """Return topology for testing off-path caching strategies
-        """
+        """Return topology for testing off-path caching strategies"""
         # Topology sketch
         #
-        #     -------- 5 ----------
+        #      -------- 5 ---------
         #    /                      \
         #   /                        \
         # 0 ---- 1 ---- 2 ---- 3 ---- 4
@@ -909,8 +908,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 3), (3, 2), (2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 3), (3, 2), (2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -922,8 +921,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2)))
-        exp_cont_hops = set(((2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2)}
+        exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -935,8 +934,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((6, 2),))
-        exp_cont_hops = set(((2, 6),))
+        exp_req_hops = {(6, 2)}
+        exp_cont_hops = {(2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -951,8 +950,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertEquals(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -964,8 +963,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((6, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 3), (3, 2), (2, 6)))
+        exp_req_hops = {(6, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 3), (3, 2), (2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -977,8 +976,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2)))
-        exp_cont_hops = set(((2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2)}
+        exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -994,8 +993,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 3), (3, 2), (4, 5), (5, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 3), (3, 2), (4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1007,8 +1006,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2)))
-        exp_cont_hops = set(((2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2)}
+        exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1020,8 +1019,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((6, 2),))
-        exp_cont_hops = set(((2, 6),))
+        exp_req_hops = {(6, 2)}
+        exp_cont_hops = {(2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1036,8 +1035,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertEquals(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1049,8 +1048,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0), (4, 3)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 5), (5, 0), (4, 3)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1062,8 +1061,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(5, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 5), (5, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0)))
+        exp_req_hops = {(0, 5), (5, 4)}
+        exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1078,8 +1077,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertEquals(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1091,8 +1090,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((6, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 3), (3, 2), (2, 6)))
+        exp_req_hops = {(6, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 3), (3, 2), (2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1104,8 +1103,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2)))
-        exp_cont_hops = set(((2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2)}
+        exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1121,8 +1120,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 3), (3, 2), (4, 5), (5, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 3), (3, 2), (4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1134,8 +1133,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2)))
-        exp_cont_hops = set(((2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2)}
+        exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1147,8 +1146,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((6, 2),))
-        exp_cont_hops = set(((2, 6),))
+        exp_req_hops = {(6, 2)}
+        exp_cont_hops = {(2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1165,8 +1164,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3), (3, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0), (4, 3)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
+        exp_cont_hops = {(4, 5), (5, 0), (4, 3)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
@@ -1178,8 +1177,8 @@ class TestHashrouting(unittest.TestCase):
         self.assertIn(5, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 5), (5, 4)))
-        exp_cont_hops = set(((4, 5), (5, 0)))
+        exp_req_hops = {(0, 5), (5, 4)}
+        exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
