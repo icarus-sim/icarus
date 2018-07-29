@@ -24,6 +24,11 @@ docclean:
 doc: docclean
 	make -C $(DOC_DIR) html
 
+# Upload documentation to Icarus website
+# requires write permissions to icarus-sim/icarus-sim.github.io
+docupload:
+	make -C $(DOC_DIR) upload
+
 # Delete temp files
 clean: docclean distclean
 	find . -name "*__pycache__" | xargs rm -rf

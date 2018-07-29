@@ -17,7 +17,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(S
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(SRCDIR)
 
-.PHONY: help apidoc init clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+.PHONY: help apidoc init clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext upload
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -161,3 +161,11 @@ doctest: apidoc init
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+upload: html
+	@git clone git@github.com:icarus-sim/icarus-sim.github.io.git $(BUILDDIR)/website
+	@rm -rf $(BUILDDIR)/website/doc/
+	@cp -r $(BUILDDIR)/html $(BUILDDIR)/website/doc
+	@git --git-dir=$(BUILDDIR)/website/.git --work-tree=$(BUILDDIR)/website add .
+	@git --git-dir=$(BUILDDIR)/website/.git --work-tree=$(BUILDDIR)/website commit -a -m "Update documentation"
+	@git --git-dir $(BUILDDIR)/website/.git push origin master
