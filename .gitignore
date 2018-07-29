@@ -21,3 +21,11 @@ doc/source/apidoc
 
 # Ignore patches
 *.patch
+
+# Workloads
+resources/workloads
+
+# Local dev folders
+notes
+secrets
+results
