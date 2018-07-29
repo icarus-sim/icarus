@@ -11,17 +11,12 @@ This document explains how to configure and run the simulator.
 ## Installation
 First, ensure that you have Python installed on your machine with version 2.7.9+ or 3.4+.
 
-Then, clone the repository on your local machine:
-
-    $ git clone https://github.com/icarus-sim/icarus.git
-
-and run the following:
+Then, clone this repository on your local machine and run:
 
     $ make install
 
 This downloads and installs all required dependencies and installs Icarus in _editable_ mode.
-This means that you can make changes directly on the source code of the cloned
-repository to have effect on your installation.
+This means that you can make changes directly on the source code to have effect on your installation.
 
 ## Usage
 You can use Icarus in three different ways:
@@ -70,6 +65,34 @@ understand.
 Finally, Icarus provides utilities for modeling the performance of caches and
 work with traffic traces. The code is included in the `icarus.tools` package.
 These tools are described in detail in [this paper](https://lorenzosaino.github.io/publications/icarus-simutools14.pdf).
+
+## Docker container
+This repository contains a Dockerfile that can be used to build a container running Icarus.
+You need Docker installed on your machine to do so.
+
+You can build a container image with Icarus running:
+
+	docker build [--build-arg py=<python-version>] -t icarus .
+
+where `python-version` is the version of Python you want to use, e.g. `3.6`.
+
+You can now spin a container giving you shell access, which you could use to
+poke around the container and explore the code by running:
+
+	docket run --rm -it icarus
+
+Finally you can run any Icarus command with:
+
+	docker run icarus <COMMAND>
+
+To run a simulation with Icarus it is advisable to mount in the container
+the directories where the config file is located and where you intend
+to store results and access them from the container.
+
+For example, to use config.py and store the result file in the root of the project
+you could run the container with the following command:
+
+	docker run -v `pwd`:/data icarus icarus run -r /data/results.pickle /data/config.py
 
 ## Development setup
 Running `make install` creates a fully functional development environment.
