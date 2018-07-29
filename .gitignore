@@ -3,6 +3,7 @@
 __pycache__
 *~
 *.egg-info
+dist
 
 # Ignore all files starting with . (e.g. .classpath, .*project) but not .gitignore and .travis.yml
 .*

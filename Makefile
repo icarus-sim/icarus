@@ -29,10 +29,11 @@ doc: docclean
 docupload:
 	make -C $(DOC_DIR) upload
 
+
 # Delete temp files
 clean: docclean distclean
 	find . -name "*__pycache__" | xargs rm -rf
 	find . -name "*.pyc" | xargs rm -rf
 
 distclean:
-	rm -rf icarus.egg-info MANIFEST
+	rm -rf icarus.egg-info MANIFEST dist
