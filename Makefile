@@ -18,11 +18,11 @@ test:
 
 # Clean documentation
 docclean:
-	cd $(DOC_DIR); make clean
+	make -C $(DOC_DIR) clean
 
 # Build HTML documentation
 doc: docclean
-	cd $(DOC_DIR); make html
+	make -C $(DOC_DIR) html
 
 # Delete temp files
 clean: docclean distclean
