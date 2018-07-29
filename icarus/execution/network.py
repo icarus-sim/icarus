@@ -345,8 +345,8 @@ class NetworkModel(object):
                              'fnss.Topology or any of its subclasses.')
 
         # Shortest paths of the network
-        self.shortest_path = shortest_path if shortest_path is not None \
-                             else symmetrify_paths(nx.all_pairs_dijkstra_path(topology))
+        self.shortest_path = dict(shortest_path) if shortest_path is not None \
+                             else symmetrify_paths(dict(nx.all_pairs_dijkstra_path(topology)))
 
         # Network topology
         self.topology = topology
@@ -371,7 +371,7 @@ class NetworkModel(object):
                 self.link_delay[(v, u)] = delay
 
         cache_size = {}
-        for node in topology.nodes_iter():
+        for node in topology.nodes():
             stack_name, stack_props = fnss.get_stack(topology, node)
             if stack_name == 'router':
                 if 'cache_size' in stack_props:
@@ -644,11 +644,11 @@ class NetworkController(object):
         up, vp : any hashable type
             Endpoints of link after rewiring
         """
-        link = self.model.topology.edge[u][v]
+        link = self.model.topology.adj[u][v]
         self.model.topology.remove_edge(u, v)
         self.model.topology.add_edge(up, vp, **link)
         if recompute_paths:
-            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            shortest_path = dict(nx.all_pairs_dijkstra_path(self.model.topology))
             self.model.shortest_path = symmetrify_paths(shortest_path)
 
     def remove_link(self, u, v, recompute_paths=True):
@@ -673,10 +673,10 @@ class NetworkController(object):
         recompute_paths: bool, optional
             If True, recompute all shortest paths
         """
-        self.model.removed_links[(u, v)] = self.model.topology.edge[u][v]
+        self.model.removed_links[(u, v)] = self.model.topology.adj[u][v]
         self.model.topology.remove_edge(u, v)
         if recompute_paths:
-            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            shortest_path = dict(nx.all_pairs_dijkstra_path(self.model.topology))
             self.model.shortest_path = symmetrify_paths(shortest_path)
 
     def restore_link(self, u, v, recompute_paths=True):
@@ -693,7 +693,7 @@ class NetworkController(object):
         """
         self.model.topology.add_edge(u, v, **self.model.removed_links.pop((u, v)))
         if recompute_paths:
-            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            shortest_path = dict(nx.all_pairs_dijkstra_path(self.model.topology))
             self.model.shortest_path = symmetrify_paths(shortest_path)
 
     def remove_node(self, v, recompute_paths=True):
@@ -731,7 +731,7 @@ class NetworkController(object):
         """
         self.model.removed_nodes[v] = self.model.topology.node[v]
         # First need to remove all links the removed node as endpoint
-        neighbors = self.model.topology.edge[v]
+        neighbors = self.model.topology.adj[v]
         self.model.disconnected_neighbors[v] = set(neighbors.keys())
         for u in self.model.disconnected_neighbors[v]:
             self.remove_link(v, u, recompute_paths=False)
@@ -745,7 +745,7 @@ class NetworkController(object):
             for content in self.model.removed_sources[v]:
                 self.model.countent_source.pop(content)
         if recompute_paths:
-            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            shortest_path = dict(nx.all_pairs_dijkstra_path(self.model.topology))
             self.model.shortest_path = symmetrify_paths(shortest_path)
 
     def restore_node(self, v, recompute_paths=True):
@@ -772,7 +772,7 @@ class NetworkController(object):
             for content in self.model.source_node[v]:
                 self.model.countent_source[content] = v
         if recompute_paths:
-            shortest_path = nx.all_pairs_dijkstra_path(self.model.topology)
+            shortest_path = dict(nx.all_pairs_dijkstra_path(self.model.topology))
             self.model.shortest_path = symmetrify_paths(shortest_path)
 
     def reserve_local_cache(self, ratio=0.1):

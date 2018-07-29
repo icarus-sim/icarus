@@ -74,12 +74,12 @@ class TestNetworkMVC(unittest.TestCase):
 
     def test_remove_restore_link(self):
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.edge[2][3]['a'])
+        self.assertEqual(1, self.topology.adj[2][3]['a'])
         self.controller.remove_link(2, 3, recompute_paths=True)
         self.assertEqual([0, 1, 5, 6, 7, 8, 3, 4], self.view.shortest_path(0, 4))
         self.controller.restore_link(2, 3, recompute_paths=True)
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.edge[2][3]['a'])
+        self.assertEqual(1, self.topology.adj[2][3]['a'])
 
     def test_remove_restore_node(self):
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
@@ -107,9 +107,9 @@ class TestNetworkMVC(unittest.TestCase):
 
     def test_rewire_link(self):
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.edge[2][3]['a'])
+        self.assertEqual(1, self.topology.adj[2][3]['a'])
         self.controller.rewire_link(1, 5, 1, 3, recompute_paths=True)
         self.assertEqual([0, 1, 3, 4], self.view.shortest_path(0, 4))
         self.controller.rewire_link(1, 3, 1, 5, recompute_paths=True)
         self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.edge[2][3]['a'])
+        self.assertEqual(1, self.topology.adj[2][3]['a'])

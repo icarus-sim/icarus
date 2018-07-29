@@ -295,7 +295,7 @@ class CacheLessForMore(Strategy):
         topology = view.topology()
         if use_ego_betw:
             self.betw = dict((v, nx.betweenness_centrality(nx.ego_graph(topology, v))[v])
-                             for v in topology.nodes_iter())
+                             for v in topology.nodes())
         else:
             self.betw = nx.betweenness_centrality(topology)
 

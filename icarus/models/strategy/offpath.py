@@ -54,8 +54,8 @@ class NearestReplicaRouting(Strategy):
         self.metacaching = metacaching
         self.implementation = implementation
         self.radius = radius
-        self.distance = nx.all_pairs_dijkstra_path_length(self.view.topology(),
-                                                          weight='delay')
+        self.distance = dict(nx.all_pairs_dijkstra_path_length(self.view.topology(),
+                                                               weight='delay'))
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):

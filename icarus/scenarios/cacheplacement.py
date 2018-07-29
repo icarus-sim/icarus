@@ -203,11 +203,11 @@ def optimal_median_cache_placement(topology, cache_budget, n_cache_nodes,
                          % (len(icr_candidates), n_cache_nodes))
     elif len(icr_candidates) == n_cache_nodes:
         caches = list(icr_candidates)
-        cache_assignment = {v: list(topology.edge[v].keys())[0]
+        cache_assignment = {v: list(topology.adj[v].keys())[0]
                             for v in topology.receivers()}
     else:
         # Need to optimally allocate caching nodes
-        distances = nx.all_pairs_dijkstra_path_length(topology, weight=weight)
+        distances = dict(nx.all_pairs_dijkstra_path_length(topology, weight=weight))
         sources = topology.sources()
         d = {u: {} for u in icr_candidates}
         for u in icr_candidates:
@@ -218,7 +218,7 @@ def optimal_median_cache_placement(topology, cache_budget, n_cache_nodes,
                 else:
                     d[v][u] = distances[v][u] + (hit_ratio * source_dist)
         allocation, caches, _ = compute_p_median(distances, n_cache_nodes)
-        cache_assignment = {v: allocation[list(topology.edge[v].keys())[0]]
+        cache_assignment = {v: allocation[list(topology.adj[v].keys())[0]]
                             for v in topology.receivers()}
 
     cache_size = iround(cache_budget / n_cache_nodes)
@@ -260,7 +260,7 @@ def optimal_hashrouting_cache_placement(topology, cache_budget, n_cache_nodes,
         caches = list(icr_candidates)
     else:
         # Need to optimally allocate caching nodes
-        distances = nx.all_pairs_dijkstra_path_length(topology, weight=weight)
+        distances = dict(nx.all_pairs_dijkstra_path_length(topology, weight=weight))
         d = {}
         for v in icr_candidates:
             d[v] = 0

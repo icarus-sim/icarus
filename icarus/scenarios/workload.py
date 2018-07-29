@@ -88,7 +88,7 @@ class StationaryWorkload(object):
             raise ValueError('alpha must be positive')
         if beta < 0:
             raise ValueError('beta must be positive')
-        self.receivers = [v for v in topology.nodes_iter()
+        self.receivers = [v for v in topology.nodes()
                      if topology.node[v]['stack'][0] == 'receiver']
         self.zipf = TruncatedZipfDist(alpha, n_contents)
         self.n_contents = n_contents
@@ -101,7 +101,7 @@ class StationaryWorkload(object):
         self.beta = beta
         if beta != 0:
             degree = nx.degree(self.topology)
-            self.receivers = sorted(self.receivers, key=lambda x: degree[iter(topology.edge[x]).next()], reverse=True)
+            self.receivers = sorted(self.receivers, key=lambda x: degree[iter(topology.adj[x]).next()], reverse=True)
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 
     def __iter__(self):
@@ -160,7 +160,7 @@ class GlobetraffWorkload(object):
         """Constructor"""
         if beta < 0:
             raise ValueError('beta must be positive')
-        self.receivers = [v for v in topology.nodes_iter()
+        self.receivers = [v for v in topology.nodes()
                      if topology.node[v]['stack'][0] == 'receiver']
         self.n_contents = 0
         with open(contents_file, 'r') as f:
@@ -174,7 +174,7 @@ class GlobetraffWorkload(object):
         if beta != 0:
             degree = nx.degree(self.topology)
             self.receivers = sorted(self.receivers, key=lambda x:
-                                    degree[iter(topology.edge[x]).next()],
+                                    degree[iter(topology.adj[x]).next()],
                                     reverse=True)
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 
@@ -254,7 +254,7 @@ class TraceDrivenWorkload(object):
         self.n_measured = n_measured
         self.reqs_file = reqs_file
         self.rate = rate
-        self.receivers = [v for v in topology.nodes_iter()
+        self.receivers = [v for v in topology.nodes()
                           if topology.node[v]['stack'][0] == 'receiver']
         self.contents = []
         with open(contents_file, 'r', buffering=self.buffering) as f:
@@ -264,7 +264,7 @@ class TraceDrivenWorkload(object):
         if beta != 0:
             degree = nx.degree(topology)
             self.receivers = sorted(self.receivers, key=lambda x:
-                                    degree[iter(topology.edge[x]).next()],
+                                    degree[iter(topology.adj[x]).next()],
                                     reverse=True)
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 

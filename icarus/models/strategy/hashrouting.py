@@ -214,7 +214,7 @@ class HashroutingEdge(BaseHashrouting):
         super(HashroutingEdge, self).__init__(view, controller)
         self.routing = routing
         self.controller.reserve_local_cache(edge_cache_ratio)
-        self.proxy = {v: list(self.view.topology().edge[v].keys())[0]
+        self.proxy = {v: list(self.view.topology().adj[v].keys())[0]
                         for v in self.view.topology().receivers()}
         if any(v not in self.view.topology().cache_nodes() for v in self.proxy.values()):
             raise ValueError('There are receivers connected to a proxy without cache')
@@ -451,7 +451,7 @@ class HashroutingClustered(BaseHashrouting):
         self.intra_routing = intra_routing
         self.inter_routing = inter_routing
         self.cluster_topology = extract_cluster_level_topology(view.topology())
-        self.cluster_sp = nx.all_pairs_shortest_path(self.cluster_topology)
+        self.cluster_sp = dict(nx.all_pairs_shortest_path(self.cluster_topology))
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):

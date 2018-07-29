@@ -143,7 +143,7 @@ def extract_cluster_level_topology(topology):
         # There is only one huge cluster
         cluster_topology.add_node(cluster_set.pop())
         return cluster_topology
-    for u, v in topology.edges_iter():
+    for u, v in topology.edges():
         cluster_u = cluster_map[u]
         cluster_v = cluster_map[v]
         if cluster_u != cluster_v:
@@ -196,7 +196,7 @@ def deploy_clusters(topology, clusters, assign_src_rcv=True):
     if any(deg[v] > 1 for v in src_rcv):
         raise ValueError("There are at least one source or receiver with degree >= 1")
     for v in src_rcv:
-        next_node = list(topology.edge[v].keys())[0]
+        next_node = list(topology.adj[v].keys())[0]
         topology.node[v]['cluster'] = topology.node[next_node]['cluster']
 
 
@@ -231,15 +231,15 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
     topology = nx.convert_node_labels_to_integers(topology, label_attribute='label')
 
     if distance is not None:
-        for u, v in topology.edges_iter():
-            if distance not in topology.edge[u][v]:
+        for u, v in topology.edges():
+            if distance not in topology.adj[u][v]:
                 raise ValueError('Edge (%s, %s) does not have a %s attribute'
                                  % (str(topology.node[u]['label']),
                                     str(topology.node[v]['label']),
                                     distance))
 
     n = topology.number_of_nodes()
-    path = nx.all_pairs_shortest_path(topology)
+    path = dict(nx.all_pairs_shortest_path(topology))
     distances = np.zeros((n, n))
 
     for u in path:
@@ -250,7 +250,7 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
             # Extract all edges of a path
             edges = path_links(path[u][v])
             if distance is not None:
-                distances[u][v] = distances[v][u] = sum(topology.edge[u][v][distance]
+                distances[u][v] = distances[v][u] = sum(topology.adj[u][v][distance]
                                                         for u, v in edges)
             else:
                 distances[u][v] = distances[v][u] = len(edges)
