@@ -2,7 +2,7 @@
 #
 # Some useful commands:
 #
-# Build:        docker build -t icarus .
+# Build:        docker build [--build-arg py=<python-version>] -t icarus .
 # Open shell:   docket run --rm -it icarus
 # Run command:  docker run icarus <COMMAND>
 #
@@ -15,8 +15,8 @@
 #
 # docker run -v `pwd`:/data icarus icarus run -r /data/results.pickle /data/config.py
 #
-ARG py_ver=2.7
-FROM python:${py_ver}
+ARG py=3.6
+FROM python:${py}
 
 COPY . /icarus
 WORKDIR /icarus
