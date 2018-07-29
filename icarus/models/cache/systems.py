@@ -230,9 +230,9 @@ class ArrayCache(object):
             if len(weights) != self._n_caches:
                 raise ValueError("weights must have as many elements as nr of caches")
             randvar = DiscreteDist(weights)
-            self.select_cache = lambda : self._caches[randvar.rv() - 1]
+            self.select_cache = lambda: self._caches[randvar.rv() - 1]
         else:
-            self.select_cache = lambda : random.choice(self._caches)
+            self.select_cache = lambda: random.choice(self._caches)
 
     def __len__(self):
         return self._len
