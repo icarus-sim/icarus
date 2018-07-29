@@ -94,7 +94,7 @@ you could run the container with the following command:
 
 	docker run -v `pwd`:/data icarus icarus run -r /data/results.pickle /data/config.py
 
-## Development setup
+## Development
 Running `make install` creates a fully functional development environment.
 You can run all test cases with:
 
