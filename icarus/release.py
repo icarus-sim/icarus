@@ -12,7 +12,7 @@ maintainer_email = author_email
 
 # version information
 # Used by __init__, doc and setup
-version = '0.6.0'
+version = '0.7.0'
 
 # License information
 # Used by __init__, doc and setup
