@@ -27,7 +27,7 @@ CACHING_GRANULARITY = 'OBJECT'
 
 # Format in which results are saved.
 # Result readers and writers are located in module ./icarus/results/readwrite.py
-# Currently only PICKLE is supported 
+# Currently only PICKLE is supported
 RESULTS_FORMAT = 'PICKLE'
 
 # List of metrics to be measured in the experiments
@@ -48,9 +48,9 @@ experiment['topology']['delay'] = 10
 # Set workload
 experiment['workload'] = {
          'name':       'STATIONARY',
-         'n_contents': 10**5,
-         'n_warmup':   10**2,
-         'n_measured': 4*10**2,
+         'n_contents': 10 ** 5,
+         'n_warmup':   10 ** 2,
+         'n_measured': 4 * 10 ** 2,
          'alpha':      1.0,
          'rate':       1
                        }
