@@ -1,5 +1,6 @@
 import unittest
 
+import networkx as nx
 import fnss
 
 from icarus.scenarios import IcnTopology
@@ -22,7 +23,7 @@ class TestNrr(unittest.TestCase):
         # 1 ---- 3 ---- 5
         #
         topology = IcnTopology(fnss.Topology())
-        topology.add_path([0, 2, 4, "s", 5, 3, 1])
+        nx.add_path(topology, [0, 2, 4, "s", 5, 3, 1])
         topology.add_edge(2, 3)
         receivers = (0, 1)
         source = "s"
@@ -49,7 +50,7 @@ class TestNrr(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(3, len(loc))
+        self.assertEqual(3, len(loc))
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)
@@ -63,7 +64,7 @@ class TestNrr(unittest.TestCase):
         self.assertEqual("s", summary['serving_node'])
         hr.process_event(1, 1, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(4, len(loc))
+        self.assertEqual(4, len(loc))
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)
@@ -77,7 +78,7 @@ class TestNrr(unittest.TestCase):
         self.assertEqual(2, summary['serving_node'])
         hr.process_event(1, 1, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(4, len(loc))
+        self.assertEqual(4, len(loc))
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)
@@ -95,7 +96,7 @@ class TestNrr(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(2, len(loc))
+        self.assertEqual(2, len(loc))
         self.assertNotIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)
@@ -109,7 +110,7 @@ class TestNrr(unittest.TestCase):
         self.assertEqual("s", summary['serving_node'])
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(3, len(loc))
+        self.assertEqual(3, len(loc))
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)
@@ -123,7 +124,7 @@ class TestNrr(unittest.TestCase):
         self.assertEqual(4, summary['serving_node'])
         hr.process_event(1, 1, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(4, len(loc))
+        self.assertEqual(4, len(loc))
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)
@@ -137,7 +138,7 @@ class TestNrr(unittest.TestCase):
         self.assertEqual(2, summary['serving_node'])
         hr.process_event(1, 1, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(4, len(loc))
+        self.assertEqual(4, len(loc))
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         self.assertIn("s", loc)

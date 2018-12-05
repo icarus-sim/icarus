@@ -70,7 +70,7 @@ class TestPMedian(unittest.TestCase):
         Expected facilities: 1, 4
         """
         t = fnss.Topology()
-        t.add_path("ABCDEF")
+        nx.add_path(t, "ABCDEF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("C", "D")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
@@ -89,7 +89,7 @@ class TestPMedian(unittest.TestCase):
         Expected facilities: 1, 4
         """
         t = fnss.Topology()
-        t.add_path("ACBEDF")
+        nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
@@ -107,7 +107,7 @@ class TestPMedian(unittest.TestCase):
         Expected facilities: 1, 4
         """
         t = fnss.Topology()
-        t.add_path("ACBEDF")
+        nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
@@ -123,7 +123,7 @@ class TestPMedian(unittest.TestCase):
         Expected facilities: 1, 4
         """
         t = fnss.Topology()
-        t.add_path("ACBEDF")
+        nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
@@ -141,7 +141,7 @@ class TestPMedian(unittest.TestCase):
         Expected facilities: 1, 4
         """
         t = fnss.Topology()
-        t.add_path("ACBEDF")
+        nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))

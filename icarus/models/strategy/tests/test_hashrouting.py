@@ -1,5 +1,6 @@
 import unittest
 
+import networkx as nx
 import fnss
 
 from icarus.scenarios import IcnTopology
@@ -17,8 +18,8 @@ class TestHashroutingEdge(unittest.TestCase):
         #  r ---- 1 -- 2 -- 3 ---- s
         #
         topology = IcnTopology()
-        topology.add_path(["r", 1, 2, 3, "s"])
-        topology.add_path([1, 4, 5, 3])
+        nx.add_path(topology, ["r", 1, 2, 3, "s"])
+        nx.add_path(topology, [1, 4, 5, 3])
         fnss.add_stack(topology, "r", "receiver")
         fnss.add_stack(topology, "s", "source", {'contents': list(range(1, 61))})
         for v in (1, 2, 3, 4, 5):
@@ -266,8 +267,8 @@ class TestHashroutingOnPath(unittest.TestCase):
         #  r ---- 1 -- 2 -- 3 ---- s
         #
         topology = IcnTopology()
-        topology.add_path(["r", 1, 2, 3, "s"])
-        topology.add_path([1, 4, 5, 3])
+        nx.add_path(topology, ["r", 1, 2, 3, "s"])
+        nx.add_path(topology, [1, 4, 5, 3])
         fnss.add_stack(topology, "r", "receiver")
         fnss.add_stack(topology, "s", "source", {'contents': list(range(1, 61))})
         for v in (1, 2, 3, 4, 5):
@@ -522,9 +523,9 @@ class TestHashroutingClustered(unittest.TestCase):
         # RCV ---- 1 ---- 2 -[HIGH_DELAY]--- 4 ---- 5 ---- SRC
         #
         topology = IcnTopology()
-        topology.add_path(['RCV', 1, 2, 4, 5, 'SRC'])
-        topology.add_path([2, 3, 1])
-        topology.add_path([5, 6, 4])
+        nx.add_path(topology, ['RCV', 1, 2, 4, 5, 'SRC'])
+        nx.add_path(topology, [2, 3, 1])
+        nx.add_path(topology, [5, 6, 4])
         fnss.set_delays_constant(topology, 1, 'ms')
         fnss.set_delays_constant(topology, 15, 'ms', [(2, 4)])
         caches = (1, 2, 3, 4, 5, 6)
@@ -557,7 +558,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertIn(6, loc)
@@ -572,7 +573,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertIn(6, loc)
@@ -588,7 +589,7 @@ class TestHashroutingClustered(unittest.TestCase):
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertIn(6, loc)
@@ -609,7 +610,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 1)
+        self.assertEqual(len(loc), 1)
         self.assertIn("SRC", loc)
         self.assertNotIn(3, loc)
         self.assertNotIn(6, loc)
@@ -624,7 +625,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect miss again, but this time caches will be populated
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(2, loc)
         self.assertIn(5, loc)
@@ -639,7 +640,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect hit
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(2, loc)
         self.assertIn(5, loc)
@@ -660,7 +661,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertIn(6, loc)
@@ -675,7 +676,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertIn(6, loc)
@@ -691,7 +692,7 @@ class TestHashroutingClustered(unittest.TestCase):
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertIn(6, loc)
@@ -712,7 +713,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(2, len(loc))
+        self.assertEqual(2, len(loc))
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertNotIn(6, loc)
@@ -727,7 +728,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertNotIn(6, loc)
@@ -743,7 +744,7 @@ class TestHashroutingClustered(unittest.TestCase):
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertNotIn(6, loc)
@@ -764,7 +765,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 1)
+        self.assertEqual(len(loc), 1)
         self.assertIn("SRC", loc)
         self.assertNotIn(3, loc)
         self.assertNotIn(6, loc)
@@ -779,7 +780,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect miss again, but this time caches will be populated
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(2, loc)
         self.assertIn(5, loc)
@@ -794,7 +795,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect hit
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn("SRC", loc)
         self.assertIn(2, loc)
         self.assertIn(5, loc)
@@ -815,7 +816,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertNotIn(6, loc)
@@ -830,7 +831,7 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertNotIn(6, loc)
@@ -846,7 +847,7 @@ class TestHashroutingClustered(unittest.TestCase):
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(2, len(loc))
+        self.assertEqual(2, len(loc))
         self.assertIn("SRC", loc)
         self.assertIn(3, loc)
         self.assertNotIn(6, loc)
@@ -904,7 +905,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -917,7 +918,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 2 repeat request, expect cache hit
         hr.process_event(2, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -930,7 +931,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 6, expect hit
         hr.process_event(3, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -947,7 +948,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 1)
+        self.assertEqual(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
@@ -959,7 +960,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 6, expect miss but cache insertion
         hr.process_event(2, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -972,7 +973,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 0 again, expect hit
         hr.process_event(3, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -989,7 +990,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1002,7 +1003,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 2 repeat request, expect cache hit
         hr.process_event(2, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1015,7 +1016,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 6, expect hit
         hr.process_event(3, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1032,7 +1033,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2, expect asymmetric
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 1)
+        self.assertEqual(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
@@ -1044,7 +1045,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 2, receiver 0 requests content 3, expect multicast
         hr.process_event(3, 0, 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1057,7 +1058,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 3, receiver 0 requests content 5, expect symm = mcast = asymm
         hr.process_event(3, 0, 5, True)
         loc = self.view.content_locations(5)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(5, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1074,7 +1075,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 1)
+        self.assertEqual(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
@@ -1086,7 +1087,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 6, expect miss but cache insertion
         hr.process_event(2, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1099,7 +1100,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 0 again, expect hit
         hr.process_event(3, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1116,7 +1117,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1129,7 +1130,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 2 repeat request, expect cache hit
         hr.process_event(2, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1142,7 +1143,7 @@ class TestHashrouting(unittest.TestCase):
         # Now request from node 6, expect hit
         hr.process_event(3, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1160,7 +1161,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2, expect asymmetric
         hr.process_event(1, 0, 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -1173,7 +1174,7 @@ class TestHashrouting(unittest.TestCase):
         # At time 2, receiver 0 requests content 5, expect symm = mcast = asymm
         hr.process_event(2, 0, 5, True)
         loc = self.view.content_locations(5)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(5, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()

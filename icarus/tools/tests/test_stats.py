@@ -10,8 +10,8 @@ class TestMeansConfidenceInterval(unittest.TestCase):
 
     def test_all_equal(self):
         mean, err = stats.means_confidence_interval([1, 1, 1, 1, 1], 0.95)
-        self.assertEquals(1, mean)
-        self.assertEquals(0, err)
+        self.assertEqual(1, mean)
+        self.assertEqual(0, err)
 
 
 class TestDiscreteDist(unittest.TestCase):

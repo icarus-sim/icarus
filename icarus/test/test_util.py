@@ -45,7 +45,7 @@ class TestUtil(unittest.TestCase):
 
     def test_multicast_tree(self):
         topo = fnss.Topology()
-        topo.add_path([2, 1, 3, 4])
+        nx.add_path(topo, [2, 1, 3, 4])
         sp = dict(nx.all_pairs_shortest_path(topo))
         tree = util.multicast_tree(sp, 1, [2, 3])
         self.assertSetEqual(set(tree), set([(1, 2), (1, 3)]))

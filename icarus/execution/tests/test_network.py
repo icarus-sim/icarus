@@ -1,6 +1,7 @@
 from __future__ import division
 import unittest
 
+import networkx as nx
 import fnss
 
 from icarus.scenarios import IcnTopology
@@ -52,8 +53,8 @@ class TestNetworkMVC(unittest.TestCase):
         #        5 -- 6 - 7 -- 8
         #
         topology = IcnTopology()
-        topology.add_path([0, 1, 2, 3, 4], a=1, b=1)
-        topology.add_path([1, 5, 6, 7, 8, 3], b=2, c=2)
+        nx.add_path(topology, [0, 1, 2, 3, 4], a=1, b=1)
+        nx.add_path(topology, [1, 5, 6, 7, 8, 3], b=2, c=2)
         source = 4
         receiver = 0
         caches = (1, 2, 3, 5, 6, 7, 8)

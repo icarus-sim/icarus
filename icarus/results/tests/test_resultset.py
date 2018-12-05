@@ -26,26 +26,26 @@ class TestResultSet(unittest.TestCase):
         pass
 
     def test_len(self):
-        self.assertEquals(3, len(self.rs))
+        self.assertEqual(3, len(self.rs))
 
     def test_getitem(self):
         cond, metric = self.rs[0]
-        self.assertEquals(self.cond_a, cond)
-        self.assertEquals(self.metric, metric)
+        self.assertEqual(self.cond_a, cond)
+        self.assertEqual(self.metric, metric)
 
     def test_filter_match(self):
         filtered_rs = self.rs.filter({'gamma': 3})
-        self.assertEquals(3, len(filtered_rs))
+        self.assertEqual(3, len(filtered_rs))
         filtered_rs = self.rs.filter({'beta': 2})
-        self.assertEquals(2, len(filtered_rs))
+        self.assertEqual(2, len(filtered_rs))
         filtered_rs = self.rs.filter({'beta':-2})
-        self.assertEquals(1, len(filtered_rs))
+        self.assertEqual(1, len(filtered_rs))
         filtered_rs = self.rs.filter({'alpha': 1, 'beta': 2})
-        self.assertEquals(1, len(filtered_rs))
+        self.assertEqual(1, len(filtered_rs))
         filtered_rs = self.rs.filter({'gamma': 1})
-        self.assertEquals(0, len(filtered_rs))
+        self.assertEqual(0, len(filtered_rs))
         filtered_rs = self.rs.filter({'alpha':-1, 'beta':-2})
-        self.assertEquals(0, len(filtered_rs))
+        self.assertEqual(0, len(filtered_rs))
 
     def test_json(self):
         a = {"d": [1, 2, "v"], "p": 1}

@@ -1,5 +1,6 @@
 import unittest
 
+import networkx as nx
 import fnss
 
 import icarus.scenarios as cacheplacement
@@ -56,7 +57,7 @@ class TestOptimalHashroutingCachePlacement(unittest.TestCase):
         #
         topo = fnss.Topology()
         icr_candidates = ["c1", "c2", "c3"]
-        topo.add_path(icr_candidates)
+        nx.add_path(topo, icr_candidates)
         topo.add_edge("c1", "s1")
         topo.add_edge("c2", "s1")
         topo.add_edge("c3", "s1")
@@ -118,7 +119,7 @@ class TestOptimalMedianCachePlacement(unittest.TestCase):
         #
         topo = fnss.Topology()
         icr_candidates = ["c1", "c2", "c3"]
-        topo.add_path(icr_candidates)
+        nx.add_path(topo, icr_candidates)
         topo.add_edge("c2", "s1")
         topo.add_edge("c2", "s2")
         topo.add_edge("c1", "r1")
@@ -198,7 +199,7 @@ class TestClusteredHashroutingCachePlacement(unittest.TestCase):
                             cache_budget, n_clusters, 'cluster_const')
         clusters = self.topo.graph['clusters']
         self.assertEqual(n_clusters, len(clusters))
-        self.assertEquals(len(self.topo.graph['icr_candidates']), sum(len(c) for c in clusters))
+        self.assertEqual(len(self.topo.graph['icr_candidates']), sum(len(c) for c in clusters))
         for c in clusters:
             if 0 in c:
                 self.assertSetEqual(set([0, 1, 2]), c)
@@ -214,7 +215,7 @@ class TestClusteredHashroutingCachePlacement(unittest.TestCase):
                             cache_budget, n_clusters, 'node_const')
         clusters = self.topo.graph['clusters']
         self.assertEqual(n_clusters, len(clusters))
-        self.assertEquals(len(self.topo.graph['icr_candidates']), sum(len(c) for c in clusters))
+        self.assertEqual(len(self.topo.graph['icr_candidates']), sum(len(c) for c in clusters))
         for c in clusters:
             if 0 in c:
                 self.assertSetEqual(set([0, 1, 2]), c)

@@ -96,6 +96,23 @@ class IcnTopology(fnss.Topology):
                    and self.node[v]['stack'][0] == 'receiver')
 
 
+def largest_connected_component_subgraph(topology):
+    """Returns the largst connected component subgraph
+
+    Parameters
+    ----------
+    topology : IcnTopology
+        The topology object
+
+    Returns
+    -------
+    largest_connected_component_subgraphs : IcnTopology
+        The topology of the largest connected component
+    """
+    c = max(nx.connected_components(topology), key=len)
+    return topology.subgraph(c)
+
+
 @register_topology_factory('TREE')
 def topology_tree(k, h, delay=1, **kwargs):
     """Returns a tree topology, with a source at the root, receivers at the
@@ -292,7 +309,7 @@ def topology_geant(**kwargs):
     topology = fnss.parse_topology_zoo(path.join(TOPOLOGY_RESOURCES_DIR,
                                                  'Geant2012.graphml')
                                        ).to_undirected()
-    topology = list(nx.connected_component_subgraphs(topology))[0]
+    topology = largest_connected_component_subgraph(topology)
     deg = nx.degree(topology)
     receivers = [v for v in topology.nodes() if deg[v] == 1]  # 8 nodes
     icr_candidates = [v for v in topology.nodes() if deg[v] > 2]  # 19 nodes
@@ -345,7 +362,7 @@ def topology_tiscali(**kwargs):
     topology = fnss.parse_rocketfuel_isp_map(path.join(TOPOLOGY_RESOURCES_DIR,
                                                        '3257.r0.cch')
                                              ).to_undirected()
-    topology = list(nx.connected_component_subgraphs(topology))[0]
+    topology = largest_connected_component_subgraph(topology)
     # degree of nodes
     deg = nx.degree(topology)
     # nodes with degree = 1
@@ -581,7 +598,7 @@ def topology_geant2(**kwargs):
     topology = fnss.parse_topology_zoo(path.join(TOPOLOGY_RESOURCES_DIR,
                                                  'Geant2012.graphml')
                                        ).to_undirected()
-    topology = list(nx.connected_component_subgraphs(topology))[0]
+    topology = largest_connected_component_subgraph(topology)
     deg = nx.degree(topology)
     receivers = [v for v in topology.nodes() if deg[v] == 1]  # 8 nodes
     # attach sources to topology
@@ -642,7 +659,7 @@ def topology_tiscali2(**kwargs):
     topology = fnss.parse_rocketfuel_isp_map(path.join(TOPOLOGY_RESOURCES_DIR,
                                                        '3257.r0.cch')
                                              ).to_undirected()
-    topology = list(nx.connected_component_subgraphs(topology))[0]
+    topology = largest_connected_component_subgraph(topology)
     # degree of nodes
     deg = nx.degree(topology)
     # nodes with degree = 1
@@ -728,7 +745,7 @@ def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_D
         raise ValueError('source_ratio must be comprised between 0 and 1')
     f_topo = path.join(TOPOLOGY_RESOURCES_DIR, 'rocketfuel-latency', str(asn), 'latencies.intra')
     topology = fnss.parse_rocketfuel_isp_latency(f_topo).to_undirected()
-    topology = list(nx.connected_component_subgraphs(topology))[0]
+    topology = largest_connected_component_subgraph(topology)
     # First mark all current links as inernal
     for u, v in topology.edges():
         topology.adj[u][v]['type'] = 'internal'

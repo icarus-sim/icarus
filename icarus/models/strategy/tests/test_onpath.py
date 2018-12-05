@@ -1,5 +1,6 @@
 import unittest
 
+import networkx as nx
 import fnss
 
 from icarus.scenarios import IcnTopology
@@ -46,7 +47,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 4)
+        self.assertEqual(len(loc), 4)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
@@ -61,7 +62,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect hit
         hr.process_event(1, 5, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 4)
+        self.assertEqual(len(loc), 4)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
@@ -79,7 +80,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 4)
+        self.assertEqual(len(loc), 4)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
@@ -94,12 +95,12 @@ class TestOnPath(unittest.TestCase):
         # request content 3 from 5
         hr.process_event(1, 5, 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(1, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -112,13 +113,13 @@ class TestOnPath(unittest.TestCase):
         # request content 3 from , hit in 2
         hr.process_event(1, 0, 3, True)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 4)
+        self.assertEqual(len(loc), 4)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 1)
+        self.assertEqual(len(loc), 1)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         exp_req_hops = set(((0, 1), (1, 2)))
@@ -133,7 +134,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(1, loc)
         self.assertNotIn(2, loc)
         self.assertNotIn(3, loc)
@@ -149,7 +150,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect hit
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(1, loc)
         self.assertNotIn(2, loc)
         self.assertNotIn(3, loc)
@@ -164,7 +165,7 @@ class TestOnPath(unittest.TestCase):
         self.assertEqual(1, summary['serving_node'])
         hr.process_event(1, 5, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertNotIn(3, loc)
@@ -179,7 +180,7 @@ class TestOnPath(unittest.TestCase):
         self.assertEqual(4, summary['serving_node'])
         hr.process_event(1, 5, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertNotIn(3, loc)
@@ -198,7 +199,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -211,7 +212,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect hit in 3
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
@@ -225,7 +226,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect hit in 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 4)
+        self.assertEqual(len(loc), 4)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
@@ -240,7 +241,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect hit in 1
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 4)
+        self.assertEqual(len(loc), 4)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(3, loc)
@@ -255,12 +256,12 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 3, expect miss and eviction of 2 from 3
         hr.process_event(1, 0, 3, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(3, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -276,7 +277,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -289,7 +290,7 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 2, expect hit
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 3)
+        self.assertEqual(len(loc), 3)
         self.assertIn(1, loc)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
@@ -303,11 +304,11 @@ class TestOnPath(unittest.TestCase):
         # receiver 0 requests 3, expect miss
         hr.process_event(1, 0, 3, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(1, loc)
         self.assertIn(4, loc)
         loc = self.view.content_locations(3)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(2, loc)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
@@ -322,7 +323,7 @@ class TestOnPath(unittest.TestCase):
         hr = strategy.RandomChoice(self.view, self.controller)
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(len(loc), 2)
+        self.assertEqual(len(loc), 2)
         self.assertIn(4, loc)
         summary = self.collector.session_summary()
         self.assertEqual(4, summary['serving_node'])
@@ -387,7 +388,7 @@ class TestPartition(unittest.TestCase):
         #
         topo = fnss.Topology()
         icr_candidates = ["c1", "router", "c2"]
-        topo.add_path(icr_candidates)
+        nx.add_path(topo, icr_candidates)
         topo.add_edge("r1", "router")
         topo.add_edge("r2", "router")
         topo.add_edge("c1", "s1")
@@ -418,7 +419,7 @@ class TestPartition(unittest.TestCase):
         # receiver 0 requests 2, expect miss
         hr.process_event(1, "r1", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(2, len(loc))
+        self.assertEqual(2, len(loc))
         self.assertIn("s1", loc)
         self.assertIn("c1", loc)
         self.assertNotIn("c2", loc)
@@ -431,7 +432,7 @@ class TestPartition(unittest.TestCase):
         # receiver 0 requests 2, expect hit
         hr.process_event(1, "r1", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(2, len(loc))
+        self.assertEqual(2, len(loc))
         self.assertIn("s1", loc)
         self.assertIn("c1", loc)
         self.assertNotIn("c2", loc)
@@ -444,7 +445,7 @@ class TestPartition(unittest.TestCase):
         # Now try with other partition
         hr.process_event(1, "r2", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(3, len(loc))
+        self.assertEqual(3, len(loc))
         self.assertIn("s1", loc)
         self.assertIn("c1", loc)
         self.assertIn("c2", loc)
@@ -456,7 +457,7 @@ class TestPartition(unittest.TestCase):
         self.assertEqual("s1", summary['serving_node'])
         hr.process_event(1, "r2", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEquals(3, len(loc))
+        self.assertEqual(3, len(loc))
         self.assertIn("s1", loc)
         self.assertIn("c1", loc)
         self.assertIn("c2", loc)

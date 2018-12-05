@@ -356,4 +356,4 @@ class YCSBWorkload(object):
             event = {'op': op, 'item': item, 'log': log}
             yield event
             req_counter += 1
-        raise StopIteration()
+        return
