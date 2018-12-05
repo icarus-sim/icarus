@@ -4,10 +4,11 @@ __pycache__
 *~
 *.egg-info
 dist
+build
 
-# Ignore all files starting with . (e.g. .classpath, .*project) but not .gitignore and .travis.yml
+# Ignore all dotfiles (e.g. .classpath, .*project) but not .git* and .travis.yml
 .*
-!.gitignore
+!.git*
 !.travis.yml
 
 # Ignore results
