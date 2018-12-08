@@ -3,7 +3,7 @@
 # Some useful commands:
 #
 # Build:        docker build [--build-arg py=<python-version>] -t icarus .
-# Open shell:   docket run --rm -it icarus
+# Open shell:   docker run --rm -it icarus
 # Run command:  docker run icarus <COMMAND>
 #
 # To run a simulation with Icarus it is advisable to mount in the container
