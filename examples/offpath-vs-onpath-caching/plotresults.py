@@ -4,14 +4,11 @@
 from __future__ import division
 import os
 import argparse
-import collections
 import logging
 
-import numpy as np
 import matplotlib.pyplot as plt
 
-from icarus.util import Settings, Tree, config_logging, step_cdf
-from icarus.tools import means_confidence_interval
+from icarus.util import Settings, config_logging
 from icarus.results import plot_lines, plot_bar_chart
 from icarus.registry import RESULTS_READER
 
@@ -349,6 +346,7 @@ def main():
                         help="the configuration file")
     args = parser.parse_args()
     run(args.config, args.results, args.output)
+
 
 if __name__ == '__main__':
     main()
