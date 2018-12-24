@@ -178,8 +178,8 @@ def plot_lines(resultset, desc, filename, plotdir):
         yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
     else:
         yvals = ymetrics
-    plot_args = desc['plot_args'] if 'plot_args' in desc else {}
-    plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    plot_args = desc.get('plot_args', {})
+    plot_empty = desc.get('plotempty', True)
     empty = True
     for i in range(len(yvals)):
         means = np.zeros(len(xvals))
@@ -344,7 +344,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
         plt.ylabel(desc['ylabel'])
     if 'filter' not in desc or desc['filter'] is None:
         desc['filter'] = {}
-    plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    plot_empty = desc.get('plotempty', True)
 
     ymetrics = desc['ymetrics']
     ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
@@ -548,7 +548,7 @@ def plot_cdf(resultset, desc, filename, plotdir):
     if 'filter' not in desc or desc['filter'] is None:
         desc['filter'] = {}
     step = desc['step'] if 'step' in desc else True
-    plot_empty = desc['plotempty'] if 'plotempty' in desc else True
+    plot_empty = desc.get('plotempty', True)
     ymetrics = desc['ymetrics']
     ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
     ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
