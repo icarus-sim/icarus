@@ -27,4 +27,4 @@ icarus run --results ${RESULTS_FILE} ${CONFIG_FILE}
 
 # Plot results
 echo "Plot results"
-python ${CURR_DIR}/plotresults.py --results ${RESULTS_FILE} --output ${PLOTS_DIR} ${CONFIG_FILE} 
+python ${CURR_DIR}/plotresults.py --results ${RESULTS_FILE} --output ${PLOTS_DIR} ${CONFIG_FILE}
