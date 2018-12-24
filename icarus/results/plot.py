@@ -332,10 +332,10 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
         selected by Matplotlib
     """
     fig = plt.figure()
-    if 'title' in desc:
-        plt.title(desc['title'])
     _, ax1 = plt.subplots()
     plt.grid(b=True, which='major', color='k', axis='y', linestyle=':')
+    if 'title' in desc:
+        plt.title(desc['title'])
     # Set axis below bars
     ax1.set_axisbelow(True)
     if 'xlabel' in desc:
