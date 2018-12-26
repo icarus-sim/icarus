@@ -1,16 +1,18 @@
 """Functions for importing and analyzing traffic traces"""
 from __future__ import division
 
-import math
 import collections
+import math
 import time
-import dateutil
 import types
 
-import numpy as np
-from scipy.stats import chisquare
+import dateutil
 
 from icarus.tools import TruncatedZipfDist
+
+import numpy as np
+
+from scipy.stats import chisquare
 
 
 __all__ = [
@@ -138,9 +140,11 @@ def zipf_fit(obs_freqs, need_sorting=False):
         # Sort in descending order
         obs_freqs = -np.sort(-obs_freqs)
     n = len(obs_freqs)
+
     def log_likelihood(alpha):
-        return np.sum(obs_freqs * (alpha * np.log(np.arange(1.0, n + 1)) + \
-                       math.log(sum(1.0 / np.arange(1.0, n + 1) ** alpha))))
+        return np.sum(obs_freqs * (alpha * np.log(np.arange(1.0, n + 1)) +
+                      math.log(sum(1.0 / np.arange(1.0, n + 1) ** alpha))))
+
     # Find optimal alpha
     alpha = minimize_scalar(log_likelihood)['x']
     # Calculate goodness of fit

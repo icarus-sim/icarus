@@ -4,15 +4,16 @@ This module contains the implementations of all the cache replacement policies
 provided by Icarus.
 """
 from __future__ import division
-from collections import deque, defaultdict
-import random
+
 import abc
 import copy
+import random
+from collections import defaultdict, deque
+
+from icarus.registry import register_cache_policy
+from icarus.util import apportionment, inheritdoc
 
 import numpy as np
-
-from icarus.util import inheritdoc, apportionment
-from icarus.registry import register_cache_policy
 
 
 __all__ = [
@@ -174,7 +175,7 @@ class LinkedSet(object):
         top : any hashable type
             The item at the top or *None* if the set is empty
         """
-        if self._top == None:  # No elements to pop
+        if self._top is None:  # No elements to pop
             return None
         k = self._top.val
         if self._top == self._bottom:  # One single element
@@ -193,7 +194,7 @@ class LinkedSet(object):
         bottom : any hashable type
             The item at the bottom or *None* if the set is empty
         """
-        if self._bottom == None:  # No elements to pop
+        if self._bottom is None:  # No elements to pop
             return None
         k = self._bottom.val
         if self._bottom == self._top:  # One single element
@@ -215,7 +216,7 @@ class LinkedSet(object):
         if k in self._map:
             raise KeyError('The item %s is already in the set' % str(k))
         n = self._Node(val=k, up=None, down=self._top)
-        if self._top == self._bottom == None:
+        if self._top == self._bottom is None:
             self._bottom = n
         else:
             self._top.up = n
@@ -233,7 +234,7 @@ class LinkedSet(object):
         if k in self._map:
             raise KeyError('The item %s is already in the set' % str(k))
         n = self._Node(val=k, up=self._bottom, down=None)
-        if self._top == self._bottom == None:
+        if self._top == self._bottom is None:
             self._top = n
         else:
             self._bottom.down = n
@@ -251,9 +252,9 @@ class LinkedSet(object):
         if k not in self._map:
             raise KeyError('Item %s not in the set' % str(k))
         n = self._map[k]
-        if n.up == None:  # already on top or there is only one element
+        if n.up is None:  # already on top or there is only one element
             return
-        if n.down == None:  # bottom but not top: there are at least two elements
+        if n.down is None:  # bottom but not top: there are at least two elements
             self._bottom = n.up
         else:
             n.down.up = n.up
@@ -279,9 +280,9 @@ class LinkedSet(object):
         if k not in self._map:
             raise KeyError('Item %s not in the set' % str(k))
         n = self._map[k]
-        if n.down == None:  # already at the bottom or there is only one element
+        if n.down is None:  # already at the bottom or there is only one element
             return
-        if n.up == None:
+        if n.up is None:
             self._top = n.down
         else:
             n.up.down = n.down
@@ -289,7 +290,7 @@ class LinkedSet(object):
         new_down = n.down.down
         new_up = n.down
         new_up.down = n
-        if new_down != None:
+        if new_down is not None:
             new_down.up = n
         else:
             self._bottom = n
@@ -307,9 +308,9 @@ class LinkedSet(object):
         if k not in self._map:
             raise KeyError('Item %s not in the set' % str(k))
         n = self._map[k]
-        if n.up == None:  # already on top or there is only one element
+        if n.up is None:  # already on top or there is only one element
             return
-        if n.down == None:  # at the bottom, there are at least two elements
+        if n.down is None:  # at the bottom, there are at least two elements
             self._bottom = n.up
         else:
             n.down.up = n.up
@@ -331,9 +332,9 @@ class LinkedSet(object):
         if k not in self._map:
             raise KeyError('Item %s not in the set' % str(k))
         n = self._map[k]
-        if n.down == None:  # already at bottom or there is only one element
+        if n.down is None:  # already at bottom or there is only one element
             return
-        if n.up == None:  # at the top, there are at least two elements
+        if n.up is None:  # at the top, there are at least two elements
             self._top = n.down
         else:
             n.up.down = n.down
@@ -359,7 +360,7 @@ class LinkedSet(object):
         if i not in self._map:
             raise KeyError('Item %s not in the set' % str(i))
         n = self._map[i]
-        if n.up == None:  # Insert on top
+        if n.up is None:  # Insert on top
             return self.append_top(k)
         # Now I know I am inserting between two actual elements
         m = self._Node(k, up=n.up, down=n)
@@ -382,7 +383,7 @@ class LinkedSet(object):
         if i not in self._map:
             raise KeyError('Item %s not in the set' % str(i))
         n = self._map[i]
-        if n.down == None:  # Insert on top
+        if n.down is None:  # Insert on top
             return self.append_bottom(k)
         # Now I know I am inserting between two actual elements
         m = self._Node(k, up=n, down=n.down)
@@ -406,7 +407,7 @@ class LinkedSet(object):
         index : int
             The index of the item
         """
-        if not k in self._map:
+        if k not in self._map:
             raise KeyError('The item %s is not in the set' % str(k))
         index = 0
         curr = self._top
@@ -736,6 +737,7 @@ class NullCache(Cache):
     def clear(self):
         pass
 
+
 @register_cache_policy('MIN')
 class BeladyMinCache(Cache):
     """Belady's MIN cache replacement policy
@@ -869,7 +871,7 @@ class LruCache(Cache):
         position : int
             The current position of the item in the cache
         """
-        if not k in self._cache:
+        if k not in self._cache:
             raise ValueError('The item %s is not in the cache' % str(k))
         return self._cache.index(k)
 
@@ -1068,7 +1070,7 @@ class SegmentedLruCache(Cache):
         position : int
             The current position of the item in the cache
         """
-        if not k in self._cache:
+        if k not in self._cache:
             raise ValueError('The item %s is not in the cache' % str(k))
         seg = self._cache[k]
         position = self._segment[seg].index(k)
@@ -1164,7 +1166,6 @@ class InCacheLfuCache(Cache):
     @inheritdoc(Cache)
     def clear(self):
         self._cache.clear()
-
 
 
 @register_cache_policy('PERFECT_LFU')
@@ -1398,7 +1399,7 @@ class ClimbCache(Cache):
         position : int
             The current position of the item in the cache
         """
-        if not k in self._cache:
+        if k not in self._cache:
             raise ValueError('The item %s is not in the cache' % str(k))
         return self._cache.index(k)
 
@@ -1458,6 +1459,7 @@ class ClimbCache(Cache):
     @inheritdoc(Cache)
     def clear(self):
         self._cache.clear()
+
 
 @register_cache_policy('RAND')
 class RandEvictionCache(Cache):
@@ -1635,9 +1637,11 @@ def rand_insert_cache(cache, p, seed=None):
     cache = copy.deepcopy(cache)
     random.seed(seed)
     c_put = cache.put
+
     def put(k, *args, **kwargs):
         if random.random() < p:
             return c_put(k)
+
     cache.put = put
     cache.put.__doc__ = c_put.__doc__
     return cache
@@ -1851,7 +1855,7 @@ def ttl_cache(cache, f_time):
             Cutoff expiration time
         """
         while cache._exp_list.bottom is not None and \
-              cache.expiry[cache._exp_list.bottom] < expiry:
+                cache.expiry[cache._exp_list.bottom] < expiry:
             expired = cache._exp_list.pop_bottom()
             cache.expiry.pop(expired)
             c_remove(expired)
@@ -1894,7 +1898,7 @@ def ttl_cache(cache, f_time):
         if ttl is not None:
             if expires is not None:
                 raise ValueError('Both expires and ttl parameters provided. '
-                             'Only one can be provided.')
+                                 'Only one can be provided.')
             if ttl <= 0:
                 # if TTL is not positive, then do not cache the content at all
                 return None
@@ -1966,6 +1970,7 @@ def ttl_cache(cache, f_time):
     cache.clear.__doc__ = c_clear.__doc__
 
     return cache
+
 
 def ttl_keyval_cache():
     pass

@@ -19,27 +19,28 @@ class TestSymmetrifyPaths(unittest.TestCase):
                     3: [1, 3],
                     4: [1, 2, 4]
                 },
-                 2: {
+                2: {
                      1: [2, 1],
                      2: [2],
                      3: [2, 1, 3],
                      4: [2, 4]
                 },
-                 3: {
+                3: {
                      1: [3, 1],
                      2: [3, 4, 2],
                      3: [3],
                      4: [3, 4]
                 },
-                 4: {
+                4: {
                      1: [4, 3, 1],
                      2: [4, 2],
                      3: [4, 3],
                      4: [4]}
-                 }
+                }
         network.symmetrify_paths(path)
         self.assertEqual(list(path[1][4]), list(reversed(path[4][1])))
         self.assertEqual(list(path[2][3]), list(reversed(path[3][2])))
+
 
 class TestNetworkMVC(unittest.TestCase):
 

@@ -1,8 +1,8 @@
 """This package contains code providing various functionalities useful in
-caching research. 
+caching research.
 
 Examples include code for importing and analyzing traffic traces, modeling the
-behavior of caches and statistical utilities. 
+behavior of caches and statistical utilities.
 """
 from .stats import *
 from .cacheperf import *

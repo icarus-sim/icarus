@@ -6,10 +6,12 @@ import numpy as np
 
 import icarus.models as cache
 
+
 class TestLinkedSet(unittest.TestCase):
 
     def link_consistency(self, linked_set):
-        """Checks that links of a linked set are consistent iterating from top
+        """
+        Checks that links of a linked set are consistent iterating from top
         or from bottom.
 
         This method depends on the internal implementation of the LinkedSet
@@ -331,6 +333,7 @@ class TestLruCache(unittest.TestCase):
         self.assertEqual(c.position(3), 2)
         self.assertEqual(c.position(4), 3)
 
+
 class TestSlruCache(unittest.TestCase):
 
     def test_alloc(self):
@@ -463,6 +466,7 @@ class TestSlruCache(unittest.TestCase):
         self.assertEqual(c.dump(serialized=True), [1, 2, 3, 4])
         self.assertEqual(c.dump(), [1, 2, 3, 4])
 
+
 class TestFifoCache(unittest.TestCase):
 
     def test_fifo(self):
@@ -504,7 +508,6 @@ class TestFifoCache(unittest.TestCase):
         c.remove(5)
         self.assertEqual(len(c), 3)
         self.assertEqual(c.dump(), [4, 3, 1])
-
 
 
 class TestClimbCache(unittest.TestCase):
@@ -562,7 +565,6 @@ class TestClimbCache(unittest.TestCase):
         self.assertEqual(c.position(2), 1)
         self.assertEqual(c.position(3), 2)
         self.assertEqual(c.position(4), 3)
-
 
 
 class TestRandCache(unittest.TestCase):
@@ -803,7 +805,6 @@ class TestInsertAfterKHits(unittest.TestCase):
         self.assertGreater(len(c.clear.__doc__), 0)
 
 
-
 class TestRandInsert(unittest.TestCase):
 
     def test_rand_insert(self):
@@ -866,6 +867,7 @@ class TestRandInsert(unittest.TestCase):
         self.assertGreater(len(c.put.__doc__), 0)
         self.assertGreater(len(c.dump.__doc__), 0)
         self.assertGreater(len(c.clear.__doc__), 0)
+
 
 class TestKeyValCache(unittest.TestCase):
 

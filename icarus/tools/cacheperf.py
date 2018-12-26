@@ -5,6 +5,7 @@ from __future__ import division
 import math
 
 import numpy as np
+
 from scipy.optimize import fsolve
 
 from icarus.tools import TruncatedZipfDist, DiscreteDist
@@ -573,8 +574,10 @@ def numeric_per_content_cache_hit_ratio(pdf, cache, warmup=None, measure=None,
         items in the population. If a target is specified, then it returns
         the cache hit ratio of only the specified item.
     """
-    if warmup is None: warmup = 10 * len(pdf)
-    if measure is None: measure = 30 * len(pdf)
+    if warmup is None:
+        warmup = 10 * len(pdf)
+    if measure is None:
+        measure = 30 * len(pdf)
     z = DiscreteDist(pdf, seed)
     for _ in range(warmup):
         content = z.rv()

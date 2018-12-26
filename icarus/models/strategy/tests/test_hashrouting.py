@@ -108,7 +108,6 @@ class TestHashroutingEdge(unittest.TestCase):
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(4, summary['serving_node'])
 
-
     def test_hashrouting_symmetric_edge_zero_local(self):
         hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 0)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
@@ -181,7 +180,6 @@ class TestHashroutingEdge(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(4, summary['serving_node'])
-
 
     def test_hashrouting_symmetric_edge_zero_coordinated(self):
         hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 1)
@@ -357,7 +355,6 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(4, summary['serving_node'])
 
-
     def test_hashrouting_symmetric_zero_local(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
@@ -430,7 +427,6 @@ class TestHashroutingOnPath(unittest.TestCase):
         self.assertSetEqual(set(exp_req_hops), set(req_hops))
         self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
         self.assertEqual(4, summary['serving_node'])
-
 
     def test_hashrouting_symmetric_zero_coordinated(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 1)
@@ -861,7 +857,6 @@ class TestHashroutingClustered(unittest.TestCase):
         self.assertEqual("SRC", summary['serving_node'])
 
 
-
 class TestHashrouting(unittest.TestCase):
 
     @classmethod
@@ -1153,7 +1148,6 @@ class TestHashrouting(unittest.TestCase):
         cont_hops = summary['content_hops']
         self.assertSetEqual(exp_req_hops, set(req_hops))
         self.assertSetEqual(exp_cont_hops, set(cont_hops))
-
 
     def test_hashrouting_hybrid_sm(self):
         hr = strategy.HashroutingHybridSM(self.view, self.controller)
