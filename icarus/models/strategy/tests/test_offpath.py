@@ -7,6 +7,7 @@ from icarus.scenarios import IcnTopology
 import icarus.models as strategy
 from icarus.execution import NetworkModel, NetworkView, NetworkController, DummyCollector
 
+
 class TestNrr(unittest.TestCase):
     """Test suite for Nearest Replica Routing strategies"""
 

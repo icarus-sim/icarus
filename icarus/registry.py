@@ -27,6 +27,7 @@ RESULTS_READER = {}
 # Dictionary storying all results writer functions keyed by ID
 RESULTS_WRITER = {}
 
+
 def register_decorator(register):
     """Returns a decorator that register a class or function to a specified
     register

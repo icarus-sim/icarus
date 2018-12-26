@@ -131,7 +131,6 @@ class TestPMedian(unittest.TestCase):
         self.assertEqual(2, cost)
 
 
-
     def test_p_median_6(self):
         """
         Test topology:
@@ -146,6 +145,6 @@ class TestPMedian(unittest.TestCase):
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
         allocation, facilities, cost = algorithms.compute_p_median(distances, 6)
-        self.assertDictEqual({i:i for i in "ABCDEF"}, allocation)
+        self.assertDictEqual({i: i for i in "ABCDEF"}, allocation)
         self.assertSetEqual(set("ABCDEF"), facilities)
         self.assertEqual(0, cost)

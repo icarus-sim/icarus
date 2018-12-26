@@ -55,6 +55,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(util.apportionment(100, [0.4, 0.21, 0.39]), [40, 21, 39])
         self.assertEqual(util.apportionment(99, [0.2, 0.7, 0.1]), [20, 69, 10])
 
+
 class TestSettings(unittest.TestCase):
 
     def test_get_set(self):

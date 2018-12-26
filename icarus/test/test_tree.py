@@ -10,6 +10,7 @@ except ImportError:
 
 from icarus.util import Tree
 
+
 class TestTree(unittest.TestCase):
 
     @classmethod

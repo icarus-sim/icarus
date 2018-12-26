@@ -18,7 +18,7 @@ import networkx as nx
 import fnss
 
 from icarus.registry import CACHE_POLICY
-from icarus.util import path_links, iround
+from icarus.util import iround, path_links
 
 __all__ = [
     'NetworkModel',
@@ -27,6 +27,7 @@ __all__ = [
           ]
 
 logger = logging.getLogger('orchestration')
+
 
 def symmetrify_paths(shortest_paths):
     """Make paths symmetric

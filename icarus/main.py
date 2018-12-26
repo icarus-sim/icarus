@@ -29,19 +29,24 @@ write = icarus.registry.RESULTS_WRITER['PICKLE']
 def main():
     pass
 
+
 @main.command(context_settings=CONTEXT_SETTINGS)
-@click.option('--results', '-r', required=True, help='The file on which results will be saved')
-@click.option('--config-override', '-c', multiple=True, help='Override specific key=value parameter of configuration file')
+@click.option('--results', '-r', required=True,
+              help='The file on which results will be saved')
+@click.option('--config-override', '-c', multiple=True,
+              help='Override specific key=value parameter of configuration file')
 @click.argument('config', nargs=1, required=True)
 def run(results, config_override, config):
     """Run a set of simulations."""
     config_override = dict(c.split("=") for c in config_override) or None
     icarus.run(config, results, config_override)
 
+
 @main.group(context_settings=CONTEXT_SETTINGS)
 def results():
     """Process results from a previous simulation"""
     pass
+
 
 @results.command('merge', context_settings=CONTEXT_SETTINGS)
 @click.option('--output', '-o', nargs=1, required=True, help='The output file')
@@ -49,6 +54,7 @@ def results():
 def merge_results(output, inputs):
     """Merge multiple results files into one."""
     write(sum((read(i) for i in inputs[1:]), read(inputs[0])), output)
+
 
 @results.command('print', context_settings=CONTEXT_SETTINGS)
 @click.option('--json', '-j', is_flag=True, help='Print results in JSON format')

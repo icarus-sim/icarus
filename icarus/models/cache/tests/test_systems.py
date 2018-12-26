@@ -30,7 +30,6 @@ class TestPathCache(unittest.TestCase):
         self.assertFalse(c.get(1))
         self.assertEqual(c.dump(serialized=False), [[3, 4], [3, 4], [4, 3]])
 
-
     def test_has(self):
         c = cache.PathCache([cache.LruCache(2) for _ in range(3)])
         c.put(2)
@@ -64,6 +63,7 @@ class TestPathCache(unittest.TestCase):
         self.assertTrue(c.has(1))
         self.assertFalse(c.has(2))
         self.assertTrue(c.has(3))
+
 
 class TestTreeCache(unittest.TestCase):
 
@@ -125,7 +125,7 @@ class TestArrayCache(unittest.TestCase):
 class TestShardedCache(unittest.TestCase):
 
     def test_put_get_has(self):
-        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x : x % 3)
+        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x: x % 3)
         c.put(4)
         self.assertEqual(c.dump(serialized=False), [[], [4], []])
         self.assertTrue(c.has(4))
@@ -145,7 +145,7 @@ class TestShardedCache(unittest.TestCase):
         self.assertFalse(c.get(4))
 
     def test_put_get_scan(self):
-        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x : x % 3)
+        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x: x % 3)
         self.assertEqual(c.put(0), None)
         self.assertEqual(c.dump(serialized=False), [[0], [], []])
         self.assertEqual(c.put(1), None)
@@ -166,7 +166,7 @@ class TestShardedCache(unittest.TestCase):
         self.assertEqual(c.dump(serialized=False), [[6, 3], [7, 4], [8, 5]])
 
     def test_remove(self):
-        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x : x % 3)
+        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x: x % 3)
         self.assertEqual(c.dump(serialized=False), [[], [], []])
         c.put(0)
         self.assertEqual(c.dump(serialized=False), [[0], [], []])

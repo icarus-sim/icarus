@@ -395,7 +395,8 @@ class HashroutingOnPath(BaseHashrouting):
                     self.controller.put_content_local_cache(v)
         elif self.routing == 'MULTICAST':
             main_path = set(path_links(self.view.shortest_path(serving_node, receiver)))
-            mcast_tree = multicast_tree(self.view.all_pairs_shortest_paths(), serving_node, [receiver, cache])
+            mcast_tree = multicast_tree(self.view.all_pairs_shortest_paths(),
+                                        serving_node, [receiver, cache])
             cache_branch = mcast_tree.difference(main_path)
             for u, v in cache_branch:
                 self.controller.forward_content_hop(u, v, main_path=False)
@@ -712,7 +713,8 @@ class HashroutingHybridAM(BaseHashrouting):
                     if cache_path[i] != recv_path[i]:
                         fork_node = cache_path[i - 1]
                         break
-                else: fork_node = cache
+                else:
+                    fork_node = cache
                 self.controller.forward_content_path(source, receiver, main_path=True)
                 # multicast to cache only if stretch is under threshold
                 if len(self.view.shortest_path(fork_node, cache)) - 1 < self.max_stretch:
@@ -777,7 +779,8 @@ class HashroutingHybridSM(BaseHashrouting):
                     if cache_path[i] != recv_path[i]:
                         fork_node = cache_path[i - 1]
                         break
-                else: fork_node = cache
+                else:
+                    fork_node = cache
 
                 symmetric_path_len = len(self.view.shortest_path(source, cache)) + \
                                      len(self.view.shortest_path(cache, receiver)) - 2

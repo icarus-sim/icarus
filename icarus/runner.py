@@ -48,7 +48,7 @@ def _validate_settings(settings, freeze=True):
     if 'EXPERIMENT_QUEUE' not in settings:
         logger.error('No EXPERIMENT_QUEUE setting found. Exiting')
         sys.exit(-1)
-    if not 'PARALLEL_EXECUTION' in settings:
+    if 'PARALLEL_EXECUTION' not in settings:
         settings.PARALLEL_EXECUTION = False
         logger.warning('PARALLEL_EXECUTION setting not specified. Set to False')
     elif settings.PARALLEL_EXECUTION:

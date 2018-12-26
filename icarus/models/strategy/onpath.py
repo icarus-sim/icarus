@@ -253,7 +253,7 @@ class ProbCache(Strategy):
             serving_node = v
         # Return content
         path = list(reversed(self.view.shortest_path(receiver, serving_node)))
-        c = len([v for v in path if self.view.has_cache(v)])
+        c = len([node for node in path if self.view.has_cache(node)])
         x = 0.0
         for hop in range(1, len(path)):
             u = path[hop - 1]
@@ -374,6 +374,7 @@ class RandomBernoulli(Strategy):
                 if random.random() < self.p:
                     self.controller.put_content(v)
         self.controller.end_session()
+
 
 @register_strategy('RAND_CHOICE')
 class RandomChoice(Strategy):

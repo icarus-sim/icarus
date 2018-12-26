@@ -8,8 +8,8 @@ class TestResultSet(unittest.TestCase):
     def setUpClass(cls):
         cls.rs = ResultSet()
         cls.cond_a = {'alpha': 1, 'beta': 2, 'gamma': 3}
-        cls.cond_b = {'alpha':-1, 'beta': 2, 'gamma': 3}
-        cls.cond_c = {'alpha': 1, 'beta':-2, 'gamma': 3}
+        cls.cond_b = {'alpha': -1, 'beta': 2, 'gamma': 3}
+        cls.cond_c = {'alpha': 1, 'beta': -2, 'gamma': 3}
         cls.metric = {'m1': 1, 'm2': 2, 'm3': 3}
         cls.rs.add(cls.cond_a, cls.metric)
         cls.rs.add(cls.cond_b, cls.metric)
@@ -38,13 +38,13 @@ class TestResultSet(unittest.TestCase):
         self.assertEqual(3, len(filtered_rs))
         filtered_rs = self.rs.filter({'beta': 2})
         self.assertEqual(2, len(filtered_rs))
-        filtered_rs = self.rs.filter({'beta':-2})
+        filtered_rs = self.rs.filter({'beta': -2})
         self.assertEqual(1, len(filtered_rs))
         filtered_rs = self.rs.filter({'alpha': 1, 'beta': 2})
         self.assertEqual(1, len(filtered_rs))
         filtered_rs = self.rs.filter({'gamma': 1})
         self.assertEqual(0, len(filtered_rs))
-        filtered_rs = self.rs.filter({'alpha':-1, 'beta':-2})
+        filtered_rs = self.rs.filter({'alpha': -1, 'beta': -2})
         self.assertEqual(0, len(filtered_rs))
 
     def test_json(self):

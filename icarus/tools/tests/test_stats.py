@@ -24,6 +24,7 @@ class TestDiscreteDist(unittest.TestCase):
         pdf_2 = stats.DiscreteDist(pdf_1).pdf
         self.assertTrue(all(pdf_1[i] == pdf_2[i] for i in range(len(pdf_1))))
 
+
 class TestTruncatedZipfDist(unittest.TestCase):
 
     def test_pdf_sum(self):
@@ -76,4 +77,3 @@ class TestCdf(unittest.TestCase):
         for i in range(len(exp_x)):
             self.assertAlmostEqual(x[i], exp_x[i])
             self.assertAlmostEqual(cdf[i], exp_cdf[i])
-

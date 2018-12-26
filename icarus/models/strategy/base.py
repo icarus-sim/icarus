@@ -55,7 +55,6 @@ class Strategy(object):
                                   'a process_event method')
 
 
-
 @register_strategy('NO_CACHE')
 class NoCache(Strategy):
     """Strategy without any caching

@@ -636,6 +636,7 @@ def topology_geant2(**kwargs):
             topology.adj[u][v]['type'] = 'internal'
     return IcnTopology(topology)
 
+
 @register_topology_factory('TISCALI_2')
 def topology_tiscali2(**kwargs):
     """Return a scenario based on Tiscali topology, parsed from RocketFuel dataset
@@ -784,4 +785,3 @@ def topology_rocketfuel_latency(asn, source_ratio=0.1, ext_delay=EXTERNAL_LINK_D
     for v in routers:
         fnss.add_stack(topology, v, 'router')
     return IcnTopology(topology)
-

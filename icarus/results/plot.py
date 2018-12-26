@@ -426,7 +426,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
                (separation + n_bars * width) * np.arange(len(xticks)),
                xticks)
     if 'legend' in desc:
-        legend = [desc['legend'][l] for l in yvals] if 'legend'in desc else yvals
+        legend = [desc['legend'][line] for line in yvals] if 'legend' in desc else yvals
         legend_args = desc['legend_args'] if 'legend_args' in desc else {}
         if 'legend_loc' in desc:
             legend_args['loc'] = desc['legend_loc']

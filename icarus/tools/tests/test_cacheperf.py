@@ -59,6 +59,7 @@ class TestLaoutarisPerContentCacheHitRatio(unittest.TestCase):
             self.assertGreaterEqual(h, 0)
             self.assertLessEqual(h, 1)
 
+
 class TestCheApproximation(unittest.TestCase):
 
     @classmethod

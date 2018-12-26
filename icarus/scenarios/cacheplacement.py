@@ -329,4 +329,3 @@ def clustered_hashrouting_cache_placement(topology, cache_budget, n_clusters,
                 topology.node[v]['stack'][1]['cache_size'] = cache_size
     else:
         raise ValueError('clustering policy %s not supported' % policy)
-

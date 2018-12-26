@@ -2,13 +2,14 @@
 replacement policies.
 """
 from __future__ import division
+
 import math
+
+from icarus.tools import DiscreteDist, TruncatedZipfDist
 
 import numpy as np
 
 from scipy.optimize import fsolve
-
-from icarus.tools import TruncatedZipfDist, DiscreteDist
 
 
 __all__ = [
@@ -239,8 +240,10 @@ def che_characteristic_time_generalized(pdf, cache_size, policy, **policy_args):
     IEEE Conference on Computer Communications (INFOCOM'14), April 2014
     """
     p_in = che_p_in_func(pdf, cache_size, policy, **policy_args)
+
     def func_t(t):
         return np.sum(p_in(pdf, t)) - cache_size
+
     return fsolve(func_t, x0=cache_size)[0]
 
 
@@ -382,8 +385,8 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
         # Calculate discriminator and find roots
         discr = y_N ** 2 - h_2
         if discr > 0:
-            r_x = (x_N + cubrt(0.5 / a * (-y_N + math.sqrt(discr))) \
-                   + cubrt(0.5 / a * (-y_N - math.sqrt(discr))),)
+            r_x = (x_N + cubrt(0.5 / a * (-y_N + math.sqrt(discr))) +
+                   cubrt(0.5 / a * (-y_N - math.sqrt(discr))),)
         elif discr == 0:
             delta = math.sqrt(delta_2)
             r1 = r2 = x_N + delta
@@ -409,8 +412,12 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
     Lambda = 1.0 / H_N_a
     # Find values of r
     if order == 2:
-        alpha_2 = (0.5 * Lambda ** 2 * H_N_2a) - (0.5 * Lambda ** 3 * C * H_N_3a) + (0.25 * Lambda ** 4 * C ** 2 * H_N_4a)
-        alpha_1 = -(Lambda * H_N_a) + (0.5 * Lambda ** 3 * C ** 2 * H_N_3a) - (0.5 * Lambda ** 4 * C ** 3 * H_N_4a)
+        alpha_2 = (0.5 * Lambda ** 2 * H_N_2a) - \
+                  (0.5 * Lambda ** 3 * C * H_N_3a) + \
+                  (0.25 * Lambda ** 4 * C ** 2 * H_N_4a)
+        alpha_1 = -(Lambda * H_N_a) + \
+                   (0.5 * Lambda ** 3 * C ** 2 * H_N_3a) - \
+                   (0.5 * Lambda ** 4 * C ** 3 * H_N_4a)
         alpha_0 = C + (0.25 * Lambda ** 4 * C ** 4 * H_N_4a)
         # Calculate discriminant to verify if there are real solutions
         discr = alpha_1 ** 2 - 4 * alpha_2 * alpha_0
@@ -428,13 +435,14 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
         H_N_6a = H(N, 6 * alpha)
         # Calculate coefficients of the 3rd order equation
         alpha_3 = -(Lambda ** 3 / 6 * H_N_3a) + (Lambda ** 4 * C / 6 * H_N_4a) - \
-                  (Lambda ** 5 * C ** 2 / 12 * H_N_5a) + (Lambda ** 6 * C ** 3 / 36 * H_N_6a)
+                   (Lambda ** 5 * C ** 2 / 12 * H_N_5a) + (Lambda ** 6 * C ** 3 / 36 * H_N_6a)
         alpha_2 = (Lambda ** 2 / 2 * H_N_2a) - (Lambda ** 4 * C ** 2 / 4 * H_N_4a) + \
                   (Lambda ** 5 * C ** 3 / 6 * H_N_5a) - (Lambda ** 6 * C ** 4 / 12 * H_N_6a)
         alpha_1 = -Lambda * H_N_a + (Lambda ** 4 * C ** 3 / 6 * H_N_4a) - \
-                  (Lambda ** 5 * C ** 4 / 12 * H_N_5a) + (Lambda ** 6 * C ** 5 / 12 * H_N_6a)
+                                    (Lambda ** 5 * C ** 4 / 12 * H_N_5a) + \
+                                    (Lambda ** 6 * C ** 5 / 12 * H_N_6a)
         alpha_0 = C - (Lambda ** 4 * C ** 4 / 12 * H_N_4a) - \
-                  (Lambda ** 6 * C ** 6 / 36 * H_N_6a)
+                      (Lambda ** 6 * C ** 6 / 36 * H_N_6a)
         # Solve 3rd order equation
         r_x = solve_3rd_order_equation(alpha_3, alpha_2, alpha_1, alpha_0)
     else:
@@ -621,8 +629,10 @@ def numeric_cache_hit_ratio(pdf, cache, warmup=None, measure=None, seed=None):
     cache_hit_ratio : float
         The cache hit ratio
     """
-    if warmup is None: warmup = 10 * len(pdf)
-    if measure is None: measure = 30 * len(pdf)
+    if warmup is None:
+        warmup = 10 * len(pdf)
+    if measure is None:
+        measure = 30 * len(pdf)
     z = DiscreteDist(pdf, seed)
     for _ in range(warmup):
         content = z.rv()
@@ -667,8 +677,10 @@ def numeric_cache_hit_ratio_2_layers(pdf, l1_cache, l2_cache,
     cache_hit_ratio : dict
         Dictionary with keys "l1_hits", "l2_hits" and "total_hits"
     """
-    if warmup is None: warmup = 10 * len(pdf)
-    if measure is None: measure = 30 * len(pdf)
+    if warmup is None:
+        warmup = 10 * len(pdf)
+    if measure is None:
+        measure = 30 * len(pdf)
     z = DiscreteDist(pdf, seed)
     for _ in range(warmup):
         content = z.rv()

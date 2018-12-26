@@ -171,6 +171,7 @@ class Orchestrator(object):
             logger.info('SUMMARY | Completed: %d, Failed: %d, Scheduled: %d, ETA: %s',
                         self.n_success, self.n_fail, n_scheduled, eta)
 
+
 def run_scenario(settings, params, curr_exp, n_exp):
     """Run a single scenario experiment
 

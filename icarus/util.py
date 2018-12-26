@@ -27,6 +27,7 @@ __all__ = [
         'apportionment'
            ]
 
+
 class Tree(collections.defaultdict):
     """Tree data structure
 
@@ -642,7 +643,7 @@ def can_import(statement):
         return False
 
 
-def overlay_betwenness_centrality(topology, origins=None, destinations=None,
+def overlay_betweenness_centrality(topology, origins=None, destinations=None,
                                   normalized=True, endpoints=False):
     """Calculate the betweenness centrality of a graph but only regarding the
     paths from a set of origins nodes to a set of destinations node.
@@ -728,6 +729,7 @@ def multicast_tree(shortest_paths, source, destinations):
             continue
         tree = tree.union(set(path_links(shortest_paths[source][d])))
     return tree
+
 
 def apportionment(n, fracs):
     """Allocate items to buckets according to a given proportion.

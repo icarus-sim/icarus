@@ -150,6 +150,7 @@ class DataCollector(object):
         """
         pass
 
+
 # Note: The implementation of CollectorProxy could be improved to avoid having
 # to rewrite almost identical methods, for example by playing with __dict__
 # attribute. However, it was implemented this way to make it more readable and
@@ -265,15 +266,15 @@ class LinkLoadCollector(DataCollector):
     def results(self):
         duration = self.t_end - self.t_start
         used_links = set(self.req_count.keys()).union(set(self.cont_count.keys()))
-        link_loads = dict((link, (self.req_size * self.req_count[link] +
-                                  self.content_size * self.cont_count[link]) / duration)
-                          for link in used_links)
-        link_loads_int = dict((link, load)
-                              for link, load in link_loads.items()
-                              if self.view.link_type(*link) == 'internal')
-        link_loads_ext = dict((link, load)
-                              for link, load in link_loads.items()
-                              if self.view.link_type(*link) == 'external')
+        link_loads = {link: (self.req_size * self.req_count[link] +
+                             self.content_size * self.cont_count[link]) / duration
+                      for link in used_links}
+        link_loads_int = {link: load
+                          for link, load in link_loads.items()
+                          if self.view.link_type(*link) == 'internal'}
+        link_loads_ext = {link: load
+                          for link, load in link_loads.items()
+                          if self.view.link_type(*link) == 'external'}
         mean_load_int = sum(link_loads_int.values()) / len(link_loads_int) \
                         if len(link_loads_int) > 0 else 0
         mean_load_ext = sum(link_loads_ext.values()) / len(link_loads_ext) \
@@ -413,8 +414,11 @@ class CacheHitRatioCollector(DataCollector):
             results['MEAN_ON_PATH'] = results['MEAN'] - results['MEAN_OFF_PATH']
         if self.cont_hits:
             cont_set = set(list(self.cont_cache_hits.keys()) + list(self.cont_serv_hits.keys()))
-            cont_hits = dict((i, (self.cont_cache_hits[i] / (self.cont_cache_hits[i] + self.cont_serv_hits[i])))
-                            for i in cont_set)
+            cont_hits = {i: (
+                                self.cont_cache_hits[i] /
+                                (self.cont_cache_hits[i] + self.cont_serv_hits[i])
+                            )
+                         for i in cont_set}
             results['PER_CONTENT'] = cont_hits
         if self.per_node:
             for v in self.per_node_cache_hits:

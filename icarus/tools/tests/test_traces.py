@@ -8,6 +8,7 @@ import icarus.tools as traces
 from icarus.tools import TruncatedZipfDist
 from icarus.util import can_import
 
+
 class TestZipfFit(unittest.TestCase):
 
     @classmethod
@@ -58,5 +59,3 @@ class TestZipfFit(unittest.TestCase):
         freqs = np.asarray([random.randint(0, 20) for _ in range(100)])
         _, p = traces.zipf_fit(freqs)
         self.assertLessEqual(p, p_max)
-
-
