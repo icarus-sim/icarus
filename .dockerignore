@@ -1,16 +1,13 @@
 # Ignore binaries, packaged files and temp files
-*.py[cod]
+*.pyc
 __pycache__
 *~
 *.egg-info
 dist
 build
 
-# Ignore all dotfiles (e.g. .classpath, .*project) but not .git* and .travis.yml
+# Ignore all dotfiles . (e.g., .git, .gitignore, .travis.yml, etc...)
 .*
-!.git*
-!.travis.yml
-!.dockerignore
 
 # Ignore results
 *.pickle

@@ -2,7 +2,7 @@
 #
 # Some useful commands:
 #
-# Build:        docker build [--build-arg py=<python-version>] -t icarus .
+# Build:        docker build [--build-arg PYTHON_VERSION=<python-version>] -t icarus .
 # Open shell:   docker run --rm -it icarus
 # Run command:  docker run icarus <COMMAND>
 #
@@ -15,8 +15,22 @@
 #
 # docker run -v `pwd`:/data icarus icarus run -r /data/results.pickle /data/config.py
 #
-ARG py=3.6
-FROM python:${py}
+ARG PYTHON_VERSION=3.7
+FROM python:${PYTHON_VERSION}
+
+# Uncomment the following line to use pypy3
+# FROM pypy:3
+
+RUN apt-get update \
+  && apt-get install -y -q \
+    libatlas-dev \
+    libatlas-base-dev \
+    liblapack-dev \
+    gfortran \
+    libsuitesparse-dev \
+    libgdal-dev \
+    graphviz \
+    mono-devel
 
 COPY . /icarus
 WORKDIR /icarus
