@@ -5,7 +5,7 @@ PLOTS_DIR ?= plots
 .PHONY: check_icarus_installed run plot clean
 
 check_icarus_installed:
-	[ -x "$(shell which icarus)" ] || { echo "Icaurs is not installed. Install it first."; exit 1; }
+	[ -x "$(shell which icarus)" ] || { echo "Icarus is not installed. Install it first."; exit 1; }
 
 run: check_icarus_installed
 	echo "Run experiments"

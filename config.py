@@ -225,7 +225,7 @@ RESULTS_FORMAT = 'PICKLE'
 N_REPLICATIONS = 3
 
 # List of metrics to be measured in the experiments
-# The implementation of data collectors are located in ./icaurs/execution/collectors.py
+# The implementation of data collectors are located in ./icarus/execution/collectors.py
 # Remove collectors not needed
 DATA_COLLECTORS = [
            'CACHE_HIT_RATIO',  # Measure cache hit ratio
