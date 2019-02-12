@@ -1,16 +1,15 @@
 CONFIG_FILE ?= config.py
 RESULTS_FILE ?= results.pickle
 
-.PHONY: check_icarus_installed run clean
+.PHONY: check_installed run clean
 
-check_icarus_installed:
-	[ -x "$(shell which icarus)" ] || { echo "Icarus is not installed. Install it first."; exit 1; }
+all: run
 
-run: check_icarus_installed
-	echo "Run experiments"
+check_installed:
+	@[ -x "$(shell which icarus)" ] || { echo "Icarus is not installed. Install it first."; exit 1; }
+
+run: check_installed
 	icarus run --results $(RESULTS_FILE) $(CONFIG_FILE)
 
 clean:
 	rm -rf $(RESULTS_FILE)
-
-all: run
