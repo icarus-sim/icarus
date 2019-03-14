@@ -13,7 +13,7 @@ run: check_installed
 	@echo "Run experiments..."
 	icarus run --results $(RESULTS_FILE) $(CONFIG_FILE)
 
-plot: check_icarus_installed
+plot: check_installed
 	@echo "Plot results..."
 	python plotresults.py --results $(RESULTS_FILE) --output $(PLOTS_DIR) $(CONFIG_FILE)
 
