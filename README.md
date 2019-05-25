@@ -79,7 +79,7 @@ where `python-version` is the version of Python you want to use, e.g. `3.6`.
 You can now spin a container giving you shell access, which you could use to
 poke around the container and explore the code by running:
 
-	docket run --rm -it icarus
+	docker run --rm -it icarus
 
 Finally you can run any Icarus command with:
 
