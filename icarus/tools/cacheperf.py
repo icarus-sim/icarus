@@ -205,9 +205,9 @@ def che_characteristic_time_simplified(pdf, cache_size):
     r : float
         The characteristic time.
     """
+    pdf = np.asarray(pdf)
     def func_r(r):
-        return sum(math.exp(-pdf[j] * r) for j in range(len(pdf))) \
-               - len(pdf) + cache_size
+        return np.sum(np.exp(-pdf * r)) - len(pdf) + cache_size
     return fsolve(func_r, x0=cache_size)[0]
 
 
@@ -261,7 +261,7 @@ def che_cache_hit_ratio_simplified(pdf, cache_size):
     return sum(pdf[i] * ch[i] for i in range(len(pdf)))
 
 
-def che_p_in_func(pdf, cache_size, policy, **policy_args):
+def che_p_in_func(pdf, policy, **policy_args):
     """Return function to compute cache hit ratio of a policy given probability
     of a content being requested and characteristic time
 
@@ -269,8 +269,6 @@ def che_p_in_func(pdf, cache_size, policy, **policy_args):
     ----------
     pdf : array-like
         The probability density function of an item being requested
-    cache_size : int
-        The size of the cache (in number of items)
     policy : str
         The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
     """
@@ -284,7 +282,7 @@ def che_p_in_func(pdf, cache_size, policy, **policy_args):
     elif policy in ('FIFO', 'RANDOM'):
         p_in = lambda p, t: p * t / (1 + p * t)
     else:
-        raise ValueError('policy %s not recognized' % policy)
+        raise ValueError('policy {} not recognized'.format(policy))
     return p_in
 
 
@@ -314,7 +312,7 @@ def che_characteristic_time_generalized(pdf, cache_size, policy, **policy_args):
     performance analysis of caching systems," in Proceedings of the 2014
     IEEE Conference on Computer Communications (INFOCOM'14), April 2014
     """
-    p_in = che_p_in_func(pdf, cache_size, policy, **policy_args)
+    p_in = che_p_in_func(pdf, policy, **policy_args)
 
     def func_t(t):
         return np.sum(p_in(pdf, t)) - cache_size
@@ -350,7 +348,7 @@ def che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy,
     performance analysis of caching systems," in Proceedings of the 2014
     IEEE Conference on Computer Communications (INFOCOM'14), April 2014
     """
-    p_in = che_p_in_func(pdf, cache_size, policy, **policy_args)
+    p_in = che_p_in_func(pdf, policy, **policy_args)
     t = che_characteristic_time_generalized(pdf, cache_size, policy, **policy_args)
     return p_in(pdf, t)
 
