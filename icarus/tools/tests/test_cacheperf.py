@@ -60,6 +60,37 @@ class TestLaoutarisPerContentCacheHitRatio(unittest.TestCase):
             self.assertLessEqual(h, 1)
 
 
+class TestFaginApproximation(unittest.TestCase):
+
+    # Numerically evaluated cache hit ratio for alpha=0.8, n=100 and c=40 is ~ 0.64
+    # Fagin characteristic time is ~ 71.89
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pdf = stats.TruncatedZipfDist(alpha=0.8, n=100).pdf
+        cls.cache_size = 40
+
+    def test_fagin_characteristic_time(self):
+        t = cacheperf.fagin_characteristic_time(self.pdf, self.cache_size)
+        self.assertGreaterEqual(t, self.cache_size)
+        self.assertGreaterEqual(t, 71.8)
+        self.assertLessEqual(t, 72)
+
+    def test_fagin_cache_hit_ratio(self):
+        h = cacheperf.fagin_cache_hit_ratio(self.pdf, self.cache_size)
+        self.assertGreaterEqual(h, 0.63)
+        self.assertLessEqual(h, 0.66)
+
+    def test_fagin_per_content_cache_hit_ratio(self):
+        H = cacheperf.fagin_per_content_cache_hit_ratio(self.pdf, self.cache_size)
+        prev_h = 1
+        for h in H:
+            self.assertGreaterEqual(h, 0)
+            self.assertLessEqual(h, 1)
+            self.assertLessEqual(h, prev_h)
+            prev_h = h
+
+
 class TestCheApproximation(unittest.TestCase):
 
     @classmethod

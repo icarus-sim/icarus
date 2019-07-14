@@ -13,6 +13,9 @@ from scipy.optimize import fsolve
 
 
 __all__ = [
+       'fagin_characteristic_time',
+       'fagin_per_content_cache_hit_ratio',
+       'fagin_cache_hit_ratio',
        'che_characteristic_time',
        'che_per_content_cache_hit_ratio',
        'che_cache_hit_ratio',
@@ -31,6 +34,78 @@ __all__ = [
        'numeric_cache_hit_ratio_2_layers',
        'trace_driven_cache_hit_ratio'
           ]
+
+
+def fagin_characteristic_time(pdf, cache_size):
+    """Return the characteristic time of an LRU cache under a given IRM
+    workload, as defined by Fagin.
+
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+
+    Returns
+    -------
+    r : float
+        The characteristic time.
+    """
+    pdf = np.asarray(pdf)
+    def func_r(r):
+        return np.sum((1 - pdf)**r) - len(pdf) + cache_size
+    return fsolve(func_r, x0=cache_size)[0]
+
+
+def fagin_per_content_cache_hit_ratio(pdf, cache_size, target=None):
+    """Estimate the cache hit ratio of an item or of all items using the Fagin's
+    approximation. This version uses a single characteristic time for all
+    contents.
+
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+    target : int, optional
+        The item index for which cache hit ratio is requested. If not
+        specified, the function calculates the cache hit ratio of all the items
+        in the population.
+
+    Returns
+    -------
+    cache_hit_ratio : array of float or float
+        If target is None, returns an array with the cache hit ratios of all
+        items in the population. If a target is specified, then it returns
+        the cache hit ratio of only the specified item.
+    """
+    items = range(len(pdf)) if target is None else [target]
+    r = fagin_characteristic_time(pdf, cache_size)
+    hit_ratio = [1 - (1 - pdf[i])**r for i in items]
+    return hit_ratio if target is None else hit_ratio[0]
+
+
+def fagin_cache_hit_ratio(pdf, cache_size):
+    """Estimate the overall cache hit ratio of an LRU cache under generic IRM
+    demand using the Fagin's approximation. This version uses a single
+    characteristic time for all contents.
+
+    Parameters
+    ----------
+    pdf : array-like
+        The probability density function of an item being requested
+    cache_size : int
+        The size of the cache (in number of items)
+
+    Returns
+    -------
+    cache_hit_ratio : float
+        The overall cache hit ratio
+    """
+    ch = fagin_per_content_cache_hit_ratio(pdf, cache_size)
+    return sum(pdf[i] * ch[i] for i in range(len(pdf)))
 
 
 def che_characteristic_time(pdf, cache_size, target=None):
