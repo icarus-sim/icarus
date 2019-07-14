@@ -1,15 +1,13 @@
-# After changing this file, check it on:
-#   http://lint.travis-ci.org/
-sudo: false
+dist: xenial
 
 language: python
 
 # Python versions to be tested
 python:
   - "2.7"
-  - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7"
 
 addons:
   apt:
