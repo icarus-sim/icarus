@@ -18,19 +18,20 @@
 ARG PYTHON_VERSION=3.7
 FROM python:${PYTHON_VERSION}
 
-# Uncomment the following line to use pypy3
+# Uncomment the following line to use pypy3. Building numpy and scipy on pypy3 is very slow.
 # FROM pypy:3
 
 RUN apt-get update \
   && apt-get install -y -q \
-    libatlas-dev \
-    libatlas-base-dev \
-    liblapack-dev \
     gfortran \
-    libsuitesparse-dev \
-    libgdal-dev \
     graphviz \
-    mono-devel
+    libatlas-base-dev \
+    libatlas-dev \
+    libgdal-dev \
+    liblapack-dev \
+    libsuitesparse-dev \
+    mono-devel \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY . /icarus
 WORKDIR /icarus
