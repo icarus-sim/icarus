@@ -874,38 +874,38 @@ def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
     caches = topology.cache_nodes()
     overall_req_rate = sum(req_rates.values())
 
-    req_ratios = {k: v / overall_req_rate for k, v in req_rates.iteritems()}
+    req_ratios = {k: v / overall_req_rate for k, v in req_rates.items()}
     # Calculate overall latency
 
     # This is the latency component between receivers and caches
     if routing == 'SYMM':
         latency = (1 / len(caches)) * \
                   sum(rate * (latencies[recv][cache] + latencies[cache][recv])
-                      for recv, rate in req_ratios.iteritems() for cache in caches)
+                      for recv, rate in req_ratios.items() for cache in caches)
         # This is the latency component between caches and sources
         latency += ((1 - hit_ratio) / len(caches)) * \
                    sum(ratio * (latencies[cache][source] + latencies[source][cache])
                        for cache in caches
-                       for source, ratio in source_content_ratio.iteritems())
+                       for source, ratio in source_content_ratio.items())
     elif routing == 'MULTICAST':
         # Latency leg receiver-cache
         latency = (1 / len(caches)) * \
           sum(rate * (latencies[recv][cache])
-              for recv, rate in req_ratios.iteritems() for cache in caches)
+              for recv, rate in req_ratios.items() for cache in caches)
         # Latency leg cache-receiver (hit case)
         latency += (hit_ratio / len(caches)) * \
           sum(rate * (latencies[cache][recv])
-              for recv, rate in req_ratios.iteritems() for cache in caches)
+              for recv, rate in req_ratios.items() for cache in caches)
         # Latency leg caches-sources (miss case)
         latency += ((1 - hit_ratio) / len(caches)) * \
                     sum(ratio * (latencies[cache][source])
                         for cache in caches
-                        for source, ratio in source_content_ratio.iteritems())
+                        for source, ratio in source_content_ratio.items())
         # Latency leg sources-receivers (miss case)
         latency += (1 - hit_ratio) * \
                     sum(source_ratio * req_ratio * (latencies[source][receiver])
-                        for receiver, req_ratio in req_ratios.iteritems()
-                        for source, source_ratio in source_content_ratio.iteritems())
+                        for receiver, req_ratio in req_ratios.items()
+                        for source, source_ratio in source_content_ratio.items())
     else:
         # Should never reach this block anyway
         raise ValueError("Routing {} not supported".format(routing))
