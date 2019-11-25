@@ -249,6 +249,15 @@ def optimal_hashrouting_cache_placement(topology, cache_budget, n_cache_nodes,
         The expected global cache hit ratio
     weight : str, optional
         The weight attribute. Default is 'delay'
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
+           Operator-managed Content Caching, to appear in IEEE Transactions on
+           Network and Service Management (TNSM)
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
     n_cache_nodes = int(n_cache_nodes)
     icr_candidates = topology.graph['icr_candidates']
@@ -299,6 +308,15 @@ def clustered_hashrouting_cache_placement(topology, cache_budget, n_clusters,
     distance : str
         The attribute used to quantify distance between pairs of nodes.
         Default is 'delay'
+
+    References
+    ----------
+    .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
+           Operator-managed Content Caching, to appear in IEEE Transactions on
+           Network and Service Management (TNSM)
+    .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
+           University College London, Dec. 2015. Available:
+           http://discovery.ucl.ac.uk/1473436/
     """
     icr_candidates = topology.graph['icr_candidates']
     if n_clusters <= 0 or n_clusters > len(icr_candidates):
