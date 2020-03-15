@@ -15,7 +15,7 @@
 #
 # docker run -v `pwd`:/data icarus icarus run -r /data/results.pickle /data/config.py
 #
-ARG PYTHON_VERSION=3.7
+ARG PYTHON_VERSION=3.8
 FROM python:${PYTHON_VERSION}
 
 # Uncomment the following line to use pypy3. Building numpy and scipy on pypy3 is very slow.
