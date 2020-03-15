@@ -1,10 +1,10 @@
-SHELL = /bin/bash
+SHELL = /bin/bash -euo pipefail
 
 DOC_DIR = doc
 
-PYTHON_VERSION ?= 3.7
+PYTHON_VERSION ?= 3.8
 
-.PHONY: install test doc docclean docupload clean distclean build-container docker-shell
+.PHONY: install test doc doc-clean doc-upload clean dist-clean build-container docker-shell
 
 all: install
 
@@ -25,23 +25,22 @@ test:
 	py.test icarus
 
 # Build HTML documentation
-doc: docclean
+doc: doc-clean
 	make -C $(DOC_DIR) html
 
 # Clean documentation
-docclean:
+doc-clean:
 	make -C $(DOC_DIR) clean
 
 # Upload documentation to Icarus website
 # requires write permissions to icarus-sim/icarus-sim.github.io
-docupload:
+doc-upload:
 	make -C $(DOC_DIR) upload
 
 # Delete temp files
-clean: docclean distclean
-	find . -name "*__pycache__" | xargs rm -rf
-	find . -name "*.pyc" | xargs rm -rf
+clean: doc-clean dist-clean
+	find . -name "*.py[cod]" -o -name "*__pycache__" | xargs rm -rf
 
 # Delete build files
-distclean:
+dist-clean:
 	rm -rf icarus.egg-info MANIFEST dist
