@@ -69,3 +69,9 @@ class TestYCBS(unittest.TestCase):
         self.assertTrue(ev_3['log'])
         self.assertIn(ev_3['item'], range(1, n_items + 1))
         self.assertEqual(ev_3['op'], "READ")
+
+    def test_iter(self):
+        for event in workload.YCSBWorkload("C", 5, 1, 2):
+            self.assertIn('op', event)
+            self.assertIn('item', event)
+            self.assertIn('log', event)

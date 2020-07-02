@@ -174,7 +174,7 @@ def parse_url_list(path):
     with open(path) as f:
         for line in f:
             yield line
-    raise StopIteration()
+    return
 
 
 def parse_wikibench(path):
@@ -199,7 +199,7 @@ def parse_wikibench(path):
                 timestamp=entry[1],
                 url=entry[2]
                       )
-    raise StopIteration()
+    return
 
 
 def parse_squid(path):
@@ -254,7 +254,7 @@ def parse_squid(path):
                 hostname=hostname,
                 content_type=content_type
                       )
-    raise StopIteration()
+    return
 
 
 def parse_youtube_umass(path):
@@ -308,7 +308,7 @@ def parse_youtube_umass(path):
                 video_id=video_id,
                 content_server_addr=content_server_addr,
                       )
-    raise StopIteration()
+    return
 
 
 def parse_common_log_format(path):
@@ -351,4 +351,4 @@ def parse_common_log_format(path):
                 bytes=n_bytes
                         )
             yield t, event
-    raise StopIteration()
+    return

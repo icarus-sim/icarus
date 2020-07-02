@@ -118,7 +118,7 @@ class StationaryWorkload(object):
             event = {'receiver': receiver, 'content': content, 'log': log}
             yield (t_event, event)
             req_counter += 1
-        raise StopIteration()
+        return
 
 
 @register_workload('GLOBETRAFF')
@@ -188,7 +188,7 @@ class GlobetraffWorkload(object):
                     receiver = self.receivers[self.receiver_dist.rv() - 1]
                 event = {'receiver': receiver, 'content': content, 'size': size}
                 yield (timestamp, event)
-        raise StopIteration()
+        return
 
 
 @register_workload('TRACE_DRIVEN')
@@ -283,7 +283,7 @@ class TraceDrivenWorkload(object):
                 yield (t_event, event)
                 req_counter += 1
                 if(req_counter >= self.n_warmup + self.n_measured):
-                    raise StopIteration()
+                    return
             raise ValueError("Trace did not contain enough requests")
 
 
