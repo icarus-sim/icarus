@@ -7,10 +7,10 @@ from setuptools import find_packages, setup
 
 # Packages required to run Icarus
 requires = [
-    'networkx (>=2.0,<=2.2)',
+    'networkx (>=2.0)',
     'numpy (>=1.4)',
     'scipy (>=0.16)',
-    'fnss (>=0.8.2)',
+    'fnss (>=0.9.0)',
     'matplotlib (>=1.5.3)',
     'python-dateutil (>=2.5.3)',
     'click (>=6.6)'
