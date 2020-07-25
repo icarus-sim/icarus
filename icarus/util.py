@@ -622,27 +622,6 @@ def step_cdf(x, y):
     return sx, sy
 
 
-def can_import(statement):
-    """Try executing an import statement and return True if succeeds or False
-    otherwise
-
-    Parameters
-    ----------
-    statement : string
-        The import statement
-
-    Returns
-    -------
-    can_import : bool
-        True if can import, False otherwise
-    """
-    try:
-        exec(statement)
-        return True
-    except ImportError:
-        return False
-
-
 def overlay_betweenness_centrality(topology, origins=None, destinations=None,
                                   normalized=True, endpoints=False):
     """Calculate the betweenness centrality of a graph but only regarding the

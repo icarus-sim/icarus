@@ -1,10 +1,9 @@
 from __future__ import division
-import unittest
 
 import icarus.execution as collectors
 
 
-class TestLinkLoadCollector(unittest.TestCase):
+class TestLinkLoadCollector(object):
 
     def test_internal_external_custom_size(self):
 
@@ -34,14 +33,14 @@ class TestLinkLoadCollector(unittest.TestCase):
 
         int_load = res['PER_LINK_INTERNAL']
         ext_load = res['PER_LINK_EXTERNAL']
-        self.assertEqual(2 * req_size / 2, int_load[(1, 2)])
-        self.assertEqual(2 * cont_size / 2, int_load[(2, 1)])
-        self.assertEqual(req_size / 2, ext_load[(2, 3)])
-        self.assertEqual(cont_size / 2, ext_load[(3, 2)])
+        assert 2 * req_size / 2 == int_load[(1, 2)]
+        assert 2 * cont_size / 2 == int_load[(2, 1)]
+        assert req_size / 2 == ext_load[(2, 3)]
+        assert cont_size / 2 == ext_load[(3, 2)]
         mean_int = res['MEAN_INTERNAL']
         mean_ext = res['MEAN_EXTERNAL']
-        self.assertEqual((req_size + cont_size) / 2, mean_int)
-        self.assertEqual((req_size + cont_size) / 4, mean_ext)
+        assert (req_size + cont_size) / 2 == mean_int
+        assert (req_size + cont_size) / 4 == mean_ext
 
     def test_internal_links_only(self):
 
@@ -70,8 +69,8 @@ class TestLinkLoadCollector(unittest.TestCase):
         res = c.results()
         mean_ext = res['MEAN_EXTERNAL']
         ext_load = res['PER_LINK_EXTERNAL']
-        self.assertEqual(0, mean_ext)
-        self.assertEqual(0, len(ext_load))
+        assert 0 == mean_ext
+        assert 0 == len(ext_load)
 
     def test_external_links_only(self):
 
@@ -100,11 +99,11 @@ class TestLinkLoadCollector(unittest.TestCase):
         res = c.results()
         mean_ext = res['MEAN_INTERNAL']
         ext_load = res['PER_LINK_INTERNAL']
-        self.assertEqual(0, mean_ext)
-        self.assertEqual(0, len(ext_load))
+        assert 0 == mean_ext
+        assert 0 == len(ext_load)
 
 
-class TestLatencyCollector(unittest.TestCase):
+class TestLatencyCollector(object):
 
     def test_base(self):
 
@@ -127,7 +126,7 @@ class TestLatencyCollector(unittest.TestCase):
         c.end_session()
 
         res = c.results()
-        self.assertEqual((10 + 20 + 2 * (2 + 4)) / 2, res['MEAN'])
+        assert (10 + 20 + 2 * (2 + 4)) / 2 == res['MEAN']
 
     def test_main_path(self):
 
@@ -152,10 +151,10 @@ class TestLatencyCollector(unittest.TestCase):
         c.end_session()
 
         res = c.results()
-        self.assertEqual((10 + 20 + 2 * (2 + 4)) / 2, res['MEAN'])
+        assert (10 + 20 + 2 * (2 + 4)) / 2 == res['MEAN']
 
 
-class TestCacheHitRatioCollector(unittest.TestCase):
+class TestCacheHitRatioCollector(object):
 
     def test_base(self):
 
@@ -172,7 +171,7 @@ class TestCacheHitRatioCollector(unittest.TestCase):
         c.end_session()
 
         res = c.results()
-        self.assertEqual(0.5, res['MEAN'])
+        assert 0.5 == res['MEAN']
 
     def test_per_node(self):
 
@@ -201,8 +200,8 @@ class TestCacheHitRatioCollector(unittest.TestCase):
         c.end_session()
 
         res = c.results()
-        self.assertEqual({1: 0.4, 2: 0.2, 3: 0.2}, res['PER_NODE_CACHE_HIT_RATIO'])
-        self.assertEqual({4: 0.2}, res['PER_NODE_SERVER_HIT_RATIO'])
+        assert {1: 0.4, 2: 0.2, 3: 0.2} == res['PER_NODE_CACHE_HIT_RATIO']
+        assert {4: 0.2} == res['PER_NODE_SERVER_HIT_RATIO']
 
     def test_per_content(self):
 
@@ -235,4 +234,4 @@ class TestCacheHitRatioCollector(unittest.TestCase):
         c.end_session()
 
         res = c.results()
-        self.assertEqual({1: 0.5, 2: 0.25}, res['PER_CONTENT'])
+        assert {1: 0.5, 2: 0.25} == res['PER_CONTENT']

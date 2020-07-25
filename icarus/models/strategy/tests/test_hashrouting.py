@@ -1,5 +1,3 @@
-import unittest
-
 import networkx as nx
 import fnss
 
@@ -8,7 +6,7 @@ import icarus.models as strategy
 from icarus.execution import NetworkModel, NetworkView, NetworkController, DummyCollector
 
 
-class TestHashroutingEdge(unittest.TestCase):
+class TestHashroutingEdge(object):
 
     @classmethod
     def topology(cls):
@@ -27,7 +25,7 @@ class TestHashroutingEdge(unittest.TestCase):
         topology.graph['icr_candidates'] = {1, 2, 3, 4, 5}
         return topology
 
-    def setUp(self):
+    def setup_method(self):
         topology = self.topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
@@ -41,72 +39,72 @@ class TestHashroutingEdge(unittest.TestCase):
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(1, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 1 == summary['serving_node']
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
         loc = self.view.content_locations(8)
-        self.assertIn("s", loc)
-        self.assertIn(3, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 8))
-        self.assertFalse(self.view.local_cache_lookup(2, 8))
-        self.assertFalse(self.view.local_cache_lookup(3, 8))
+        assert "s" in loc
+        assert 3 in loc
+        assert self.view.local_cache_lookup(1, 8)
+        assert not self.view.local_cache_lookup(2, 8)
+        assert not self.view.local_cache_lookup(3, 8)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Verify where 4 is still stored
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         # Request again 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(4, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 4 == summary['serving_node']
 
     def test_hashrouting_symmetric_edge_zero_local(self):
         hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 0)
@@ -114,72 +112,72 @@ class TestHashroutingEdge(unittest.TestCase):
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(4, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 4 == summary['serving_node']
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
         loc = self.view.content_locations(8)
-        self.assertIn("s", loc)
-        self.assertIn(3, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 8))
-        self.assertFalse(self.view.local_cache_lookup(2, 8))
-        self.assertFalse(self.view.local_cache_lookup(3, 8))
+        assert "s" in loc
+        assert 3 in loc
+        assert not self.view.local_cache_lookup(1, 8)
+        assert not self.view.local_cache_lookup(2, 8)
+        assert not self.view.local_cache_lookup(3, 8)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Verify where 4 is still stored
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         # Request again 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(4, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 4 == summary['serving_node']
 
     def test_hashrouting_symmetric_edge_zero_coordinated(self):
         hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 1)
@@ -187,75 +185,75 @@ class TestHashroutingEdge(unittest.TestCase):
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertNotIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 not in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertNotIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 not in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(1, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 1 == summary['serving_node']
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
         loc = self.view.content_locations(8)
-        self.assertIn("s", loc)
-        self.assertNotIn(3, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 8))
-        self.assertFalse(self.view.local_cache_lookup(2, 8))
-        self.assertFalse(self.view.local_cache_lookup(3, 8))
+        assert "s" in loc
+        assert 3 not in loc
+        assert self.view.local_cache_lookup(1, 8)
+        assert not self.view.local_cache_lookup(2, 8)
+        assert not self.view.local_cache_lookup(3, 8)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Verify where 4 is still stored
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         # Request again 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertNotIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 not in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(1, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 1 == summary['serving_node']
 
 
-class TestHashroutingOnPath(unittest.TestCase):
+class TestHashroutingOnPath(object):
 
     @classmethod
     def topology(cls):
@@ -274,7 +272,7 @@ class TestHashroutingOnPath(unittest.TestCase):
         topology.graph['icr_candidates'] = {1, 2, 3, 4, 5}
         return topology
 
-    def setUp(self):
+    def setup_method(self):
         topology = self.topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
@@ -288,72 +286,72 @@ class TestHashroutingOnPath(unittest.TestCase):
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(1, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 1 == summary['serving_node']
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
         loc = self.view.content_locations(8)
-        self.assertIn("s", loc)
-        self.assertIn(3, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 8))
-        self.assertTrue(self.view.local_cache_lookup(2, 8))
-        self.assertFalse(self.view.local_cache_lookup(3, 8))
+        assert "s" in loc
+        assert 3 in loc
+        assert self.view.local_cache_lookup(1, 8)
+        assert self.view.local_cache_lookup(2, 8)
+        assert not self.view.local_cache_lookup(3, 8)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Verify where 4 is still stored
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         # Request again 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(4, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 4 == summary['serving_node']
 
     def test_hashrouting_symmetric_zero_local(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0)
@@ -361,72 +359,72 @@ class TestHashroutingOnPath(unittest.TestCase):
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(4, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 4 == summary['serving_node']
         # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
         loc = self.view.content_locations(8)
-        self.assertIn("s", loc)
-        self.assertIn(3, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 8))
-        self.assertFalse(self.view.local_cache_lookup(2, 8))
-        self.assertFalse(self.view.local_cache_lookup(3, 8))
+        assert "s" in loc
+        assert 3 in loc
+        assert not self.view.local_cache_lookup(1, 8)
+        assert not self.view.local_cache_lookup(2, 8)
+        assert not self.view.local_cache_lookup(3, 8)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Verify where 4 is still stored
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         # Request again 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertIn(4, loc)
-        self.assertFalse(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertFalse(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 in loc
+        assert not self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert not self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(4, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 4 == summary['serving_node']
 
     def test_hashrouting_symmetric_zero_coordinated(self):
         hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 1)
@@ -434,78 +432,78 @@ class TestHashroutingOnPath(unittest.TestCase):
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertNotIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 not in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertNotIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 not in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(1, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 1 == summary['serving_node']
         # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
         loc = self.view.content_locations(8)
-        self.assertIn("s", loc)
-        self.assertNotIn(3, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 8))
-        self.assertTrue(self.view.local_cache_lookup(2, 8))
+        assert "s" in loc
+        assert 3 not in loc
+        assert self.view.local_cache_lookup(1, 8)
+        assert self.view.local_cache_lookup(2, 8)
         # Note: this assertion below is false, because we never store items
         # for the authoritative cache in the uncoordinated section, even if
         # the coordinated cache is empty
-        self.assertFalse(self.view.local_cache_lookup(3, 7))
+        assert not self.view.local_cache_lookup(3, 7)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("s", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "s" == summary['serving_node']
         # Verify where 4 is still stored
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         # Request again 4
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
-        self.assertIn("s", loc)
-        self.assertNotIn(4, loc)
-        self.assertTrue(self.view.local_cache_lookup(1, 4))
-        self.assertFalse(self.view.local_cache_lookup(2, 4))
-        self.assertTrue(self.view.local_cache_lookup(3, 4))
+        assert "s" in loc
+        assert 4 not in loc
+        assert self.view.local_cache_lookup(1, 4)
+        assert not self.view.local_cache_lookup(2, 4)
+        assert self.view.local_cache_lookup(3, 4)
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(1, summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert 1 == summary['serving_node']
 
 
-class TestHashroutingClustered(unittest.TestCase):
+class TestHashroutingClustered(object):
 
     @classmethod
     def clustered_topology(cls):
@@ -538,7 +536,7 @@ class TestHashroutingClustered(unittest.TestCase):
             topology.node[v]["cluster"] = (v - 1) // 3
         return topology
 
-    def setUp(self):
+    def setup_method(self):
         topology = self.clustered_topology()
         self.model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(self.model)
@@ -554,49 +552,49 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertIn(6, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6), (6, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 6), (6, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertIn(6, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 3)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 3
         # Delete entry on first cluster, expect hit on second cluster
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertIn(6, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6)]
         exp_cont_hops = [(6, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 6)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 6
 
     def test_hashrouting_asymmetric_lce(self):
         hr = strategy.HashroutingClustered(self.view, self.controller,
@@ -606,48 +604,48 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 1)
-        self.assertIn("SRC", loc)
-        self.assertNotIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert len(loc) == 1
+        assert "SRC" in loc
+        assert 3 not in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6), (6, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect miss again, but this time caches will be populated
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(2, loc)
-        self.assertIn(5, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 2 in loc
+        assert 5 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 2), (2, 4), (4, 5), (5, 'SRC')]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect hit
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(2, loc)
-        self.assertIn(5, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 2 in loc
+        assert 5 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 2)]
         exp_cont_hops = [(2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 2)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 2
 
     def test_hashrouting_multicast_lce(self):
         hr = strategy.HashroutingClustered(self.view, self.controller,
@@ -657,49 +655,49 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertIn(6, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6), (6, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 6), (5, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertIn(6, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 3)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 3
         # Delete entry on first cluster, expect hit on second cluster
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertIn(6, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6)]
         exp_cont_hops = [(6, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 6)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 6
 
     def test_hashrouting_symmetric_edge(self):
         hr = strategy.HashroutingClustered(self.view, self.controller,
@@ -709,49 +707,49 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(2, len(loc))
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert 2 == len(loc)
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 2)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert len(loc) == 2
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 3)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 3
         # Delete entry on first cluster, expect miss
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 2)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert len(loc) == 2
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("SRC", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "SRC" == summary['serving_node']
 
     def test_hashrouting_asymmetric_edge(self):
         hr = strategy.HashroutingClustered(self.view, self.controller,
@@ -761,48 +759,48 @@ class TestHashroutingClustered(unittest.TestCase):
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 1)
-        self.assertIn("SRC", loc)
-        self.assertNotIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert len(loc) == 1
+        assert "SRC" in loc
+        assert 3 not in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect miss again, but this time caches will be populated
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(2, loc)
-        self.assertIn(5, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 2 in loc
+        assert 5 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 2), (2, 4), (4, 5), (5, 'SRC')]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect hit
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 3)
-        self.assertIn("SRC", loc)
-        self.assertIn(2, loc)
-        self.assertIn(5, loc)
+        assert len(loc) == 3
+        assert "SRC" in loc
+        assert 2 in loc
+        assert 5 in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 2)]
         exp_cont_hops = [(2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 2)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 2
 
     def test_hashrouting_multicast_edge(self):
         hr = strategy.HashroutingClustered(self.view, self.controller,
@@ -812,52 +810,52 @@ class TestHashroutingClustered(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 2)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert len(loc) == 2
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], "SRC")
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 2)
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert len(loc) == 2
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual(summary['serving_node'], 3)
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert summary['serving_node'] == 3
         # Delete entry on first cluster, expect miss
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(2, len(loc))
-        self.assertIn("SRC", loc)
-        self.assertIn(3, loc)
-        self.assertNotIn(6, loc)
+        assert 2 == len(loc)
+        assert "SRC" in loc
+        assert 3 in loc
+        assert 6 not in loc
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(set(exp_req_hops), set(req_hops))
-        self.assertSetEqual(set(exp_cont_hops), set(cont_hops))
-        self.assertEqual("SRC", summary['serving_node'])
+        assert set(exp_req_hops) == set(req_hops)
+        assert set(exp_cont_hops) == set(cont_hops)
+        assert "SRC" == summary['serving_node']
 
 
-class TestHashrouting(unittest.TestCase):
+class TestHashrouting(object):
 
     @classmethod
     def topology(cls):
@@ -886,7 +884,7 @@ class TestHashrouting(unittest.TestCase):
             fnss.add_stack(topology, v, 'receiver', {})
         return topology
 
-    def setUp(self):
+    def setup_method(self):
         topology = self.topology()
         model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
         self.view = NetworkView(model)
@@ -900,42 +898,42 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # At time 2 repeat request, expect cache hit
         hr.process_event(2, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect hit
         hr.process_event(3, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2)}
         exp_cont_hops = {(2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
 
     def test_hashrouting_asymmetric(self):
         hr = strategy.HashroutingAsymmetric(self.view, self.controller)
@@ -943,41 +941,41 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 1)
-        self.assertIn(4, loc)
+        assert len(loc) == 1
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect miss but cache insertion
         hr.process_event(2, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 0 again, expect hit
         hr.process_event(3, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
 
     def test_hashrouting_multicast(self):
         hr = strategy.HashroutingMulticast(self.view, self.controller)
@@ -985,42 +983,42 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # At time 2 repeat request, expect cache hit
         hr.process_event(2, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect hit
         hr.process_event(3, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2)}
         exp_cont_hops = {(2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
 
     def test_hashrouting_hybrid_am(self):
         hr = strategy.HashroutingHybridAM(self.view, self.controller, max_stretch=0.3)
@@ -1028,41 +1026,41 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2, expect asymmetric
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 1)
-        self.assertIn(4, loc)
+        assert len(loc) == 1
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # At time 2, receiver 0 requests content 3, expect multicast
         hr.process_event(3, 0, 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(3, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 3 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0), (4, 3)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # At time 3, receiver 0 requests content 5, expect symm = mcast = asymm
         hr.process_event(3, 0, 5, True)
         loc = self.view.content_locations(5)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(5, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 5 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 5), (5, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
 
     def test_hashrouting_hybrid_am_max_stretch_0(self):
         hr = strategy.HashroutingHybridAM(self.view, self.controller, max_stretch=0)
@@ -1070,41 +1068,41 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 1)
-        self.assertIn(4, loc)
+        assert len(loc) == 1
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect miss but cache insertion
         hr.process_event(2, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 0 again, expect hit
         hr.process_event(3, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
 
     def test_hashrouting_hybrid_am_max_stretch_1(self):
         hr = strategy.HashroutingHybridAM(self.view, self.controller, max_stretch=1.0)
@@ -1112,42 +1110,42 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # At time 2 repeat request, expect cache hit
         hr.process_event(2, 0, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect hit
         hr.process_event(3, 6, 2, True)
         loc = self.view.content_locations(2)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(2, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 2 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2)}
         exp_cont_hops = {(2, 6)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
 
     def test_hashrouting_hybrid_sm(self):
         hr = strategy.HashroutingHybridSM(self.view, self.controller)
@@ -1155,26 +1153,26 @@ class TestHashrouting(unittest.TestCase):
         # At time 1, receiver 0 requests content 2, expect asymmetric
         hr.process_event(1, 0, 3, True)
         loc = self.view.content_locations(3)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(3, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 3 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0), (4, 3)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)
         # At time 2, receiver 0 requests content 5, expect symm = mcast = asymm
         hr.process_event(2, 0, 5, True)
         loc = self.view.content_locations(5)
-        self.assertEqual(len(loc), 2)
-        self.assertIn(5, loc)
-        self.assertIn(4, loc)
+        assert len(loc) == 2
+        assert 5 in loc
+        assert 4 in loc
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 5), (5, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
         req_hops = summary['request_hops']
         cont_hops = summary['content_hops']
-        self.assertSetEqual(exp_req_hops, set(req_hops))
-        self.assertSetEqual(exp_cont_hops, set(cont_hops))
+        assert exp_req_hops == set(req_hops)
+        assert exp_cont_hops == set(cont_hops)

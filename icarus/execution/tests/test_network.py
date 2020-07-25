@@ -1,5 +1,4 @@
 from __future__ import division
-import unittest
 
 import networkx as nx
 import fnss
@@ -10,7 +9,7 @@ from icarus.execution.collectors import DummyCollector
 import icarus.execution.network as network
 
 
-class TestSymmetrifyPaths(unittest.TestCase):
+class TestSymmetrifyPaths(object):
 
     def test_symmetric_paths(self):
         path = {1: {
@@ -38,11 +37,11 @@ class TestSymmetrifyPaths(unittest.TestCase):
                      4: [4]}
                 }
         network.symmetrify_paths(path)
-        self.assertEqual(list(path[1][4]), list(reversed(path[4][1])))
-        self.assertEqual(list(path[2][3]), list(reversed(path[3][2])))
+        assert list(path[1][4]) == list(reversed(path[4][1]))
+        assert list(path[2][3]) == list(reversed(path[3][2]))
 
 
-class TestNetworkMVC(unittest.TestCase):
+class TestNetworkMVC(object):
 
     @classmethod
     def build_topology(cls):
@@ -66,7 +65,7 @@ class TestNetworkMVC(unittest.TestCase):
             fnss.add_stack(topology, v, 'router', {'cache_size': 1})
         return topology
 
-    def setUp(self):
+    def setup_method(self):
         self.topology = self.build_topology()
         model = network.NetworkModel(self.topology, cache_policy={'name': 'FIFO'})
         self.view = network.NetworkView(model)
@@ -75,43 +74,43 @@ class TestNetworkMVC(unittest.TestCase):
         self.controller.attach_collector(self.collector)
 
     def test_remove_restore_link(self):
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.adj[2][3]['a'])
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.topology.adj[2][3]['a']
         self.controller.remove_link(2, 3, recompute_paths=True)
-        self.assertEqual([0, 1, 5, 6, 7, 8, 3, 4], self.view.shortest_path(0, 4))
+        assert [0, 1, 5, 6, 7, 8, 3, 4] == self.view.shortest_path(0, 4)
         self.controller.restore_link(2, 3, recompute_paths=True)
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.adj[2][3]['a'])
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.topology.adj[2][3]['a']
 
     def test_remove_restore_node(self):
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.view.cache_nodes(size=True)[2])
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.view.cache_nodes(size=True)[2]
         self.controller.remove_node(2, recompute_paths=True)
-        self.assertEqual([0, 1, 5, 6, 7, 8, 3, 4], self.view.shortest_path(0, 4))
-        self.assertNotIn(2, self.view.cache_nodes())
+        assert [0, 1, 5, 6, 7, 8, 3, 4] == self.view.shortest_path(0, 4)
+        assert 2 not in self.view.cache_nodes()
         self.controller.restore_node(2, recompute_paths=True)
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.view.cache_nodes(size=True)[2])
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.view.cache_nodes(size=True)[2]
 
     def test_joint_remove_restore_node_link(self):
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
         self.controller.remove_link(2, 3, recompute_paths=True)
-        self.assertEqual([0, 1, 5, 6, 7, 8, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.view.cache_nodes(size=True)[2])
+        assert [0, 1, 5, 6, 7, 8, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.view.cache_nodes(size=True)[2]
         self.controller.remove_node(2, recompute_paths=True)
-        self.assertEqual([0, 1, 5, 6, 7, 8, 3, 4], self.view.shortest_path(0, 4))
-        self.assertNotIn(2, self.view.cache_nodes())
+        assert [0, 1, 5, 6, 7, 8, 3, 4] == self.view.shortest_path(0, 4)
+        assert 2 not in self.view.cache_nodes()
         self.controller.restore_node(2, recompute_paths=True)
-        self.assertEqual(1, self.view.cache_nodes(size=True)[2])
-        self.assertEqual([0, 1, 5, 6, 7, 8, 3, 4], self.view.shortest_path(0, 4))
+        assert 1 == self.view.cache_nodes(size=True)[2]
+        assert [0, 1, 5, 6, 7, 8, 3, 4] == self.view.shortest_path(0, 4)
         self.controller.restore_link(2, 3, recompute_paths=True)
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
 
     def test_rewire_link(self):
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.adj[2][3]['a'])
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.topology.adj[2][3]['a']
         self.controller.rewire_link(1, 5, 1, 3, recompute_paths=True)
-        self.assertEqual([0, 1, 3, 4], self.view.shortest_path(0, 4))
+        assert [0, 1, 3, 4] == self.view.shortest_path(0, 4)
         self.controller.rewire_link(1, 3, 1, 5, recompute_paths=True)
-        self.assertEqual([0, 1, 2, 3, 4], self.view.shortest_path(0, 4))
-        self.assertEqual(1, self.topology.adj[2][3]['a'])
+        assert [0, 1, 2, 3, 4] == self.view.shortest_path(0, 4)
+        assert 1 == self.topology.adj[2][3]['a']

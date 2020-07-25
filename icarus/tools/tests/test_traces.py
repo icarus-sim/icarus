@@ -1,26 +1,20 @@
-import unittest
-
 import random
 
 import numpy as np
+import pytest
 
 import icarus.tools as traces
 from icarus.tools import TruncatedZipfDist
-from icarus.util import can_import
+
+try:
+    from scipy.optimize import minimize_scalar
+except ImportError:
+    minimize_scalar = None
 
 
-class TestZipfFit(unittest.TestCase):
+class TestZipfFit(object):
 
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    @unittest.skipIf(not can_import("from scipy.optimize import minimize_scalar"),
-                     "Scipy not installed or version < 0.12")
+    @pytest.mark.skipif(not minimize_scalar, reason="scipy not installed")
     def test_expected_fit(self):
         """Test that the Zipf fit function correctly estimates the alpha
         parameter of a known Zipf distribution"""
@@ -31,11 +25,10 @@ class TestZipfFit(unittest.TestCase):
         for a in alpha:
             z = TruncatedZipfDist(a, n)
             est_a, p = traces.zipf_fit(z.pdf)
-            self.assertLessEqual(np.abs(a - est_a), alpha_tolerance)
-            self.assertGreaterEqual(p, p_min)
+            assert np.abs(a - est_a) <= alpha_tolerance
+            assert p >= p_min
 
-    @unittest.skipIf(not can_import("from scipy.optimize import minimize_scalar"),
-                     "Scipy not installed or version < 0.12")
+    @pytest.mark.skipif(not minimize_scalar, reason="scipy not installed")
     def test_expected_fit_not_sorted(self):
         """Test that the Zipf fit function correctly estimates the alpha
         parameter of a known Zipf distribution"""
@@ -47,15 +40,14 @@ class TestZipfFit(unittest.TestCase):
             pdf = TruncatedZipfDist(a, n).pdf
             np.random.shuffle(pdf)
             est_a, p = traces.zipf_fit(pdf, need_sorting=True)
-            self.assertLessEqual(np.abs(a - est_a), alpha_tolerance)
-            self.assertGreaterEqual(p, p_min)
+            assert np.abs(a - est_a) <= alpha_tolerance
+            assert p >= p_min
 
-    @unittest.skipIf(not can_import("from scipy.optimize import minimize_scalar"),
-                     "Scipy not installed or version < 0.12")
+    @pytest.mark.skipif(not minimize_scalar, reason="scipy not installed")
     def test_no_fit(self):
         """Test that the Zipf fit function correctly identifies a non-Zipfian
         distribution"""
         p_max = 0.02
         freqs = np.asarray([random.randint(0, 20) for _ in range(100)])
         _, p = traces.zipf_fit(freqs)
-        self.assertLessEqual(p, p_max)
+        assert p <= p_max

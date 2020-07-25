@@ -22,7 +22,7 @@ install:
 
 # Run all test cases
 test:
-	py.test icarus
+	python -m pytest icarus
 
 # Build HTML documentation
 doc: doc-clean

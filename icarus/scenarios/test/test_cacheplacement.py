@@ -1,14 +1,12 @@
-import unittest
-
 import networkx as nx
 import fnss
 
 import icarus.scenarios as cacheplacement
 
 
-class TestRadomCachePlacement(unittest.TestCase):
+class TestRadomCachePlacement(object):
 
-    def setUp(self):
+    def setup_method(self):
         self.topo = fnss.line_topology(6)
         fnss.add_stack(self.topo, 0, 'receiver')
         self.topo.graph['icr_candidates'] = []
@@ -23,17 +21,17 @@ class TestRadomCachePlacement(unittest.TestCase):
         actual_cache_nodes = 0
         for v in topo.nodes():
             if 'cache_size' in topo.node[v]['stack'][1]:
-                self.assertEqual(int(cache_budget / cache_nodes), topo.node[v]['stack'][1]['cache_size'])
+                assert int(cache_budget / cache_nodes) == topo.node[v]['stack'][1]['cache_size']
                 actual_cache_budget += topo.node[v]['stack'][1]['cache_size']
                 actual_cache_nodes += 1
-        self.assertGreater(cache_budget + cache_nodes, actual_cache_budget)
-        self.assertLess(cache_budget - cache_nodes, actual_cache_budget)
-        self.assertEqual(cache_nodes, actual_cache_nodes)
+        assert cache_budget + cache_nodes > actual_cache_budget
+        assert cache_budget - cache_nodes < actual_cache_budget
+        assert cache_nodes == actual_cache_nodes
 
     def test_random_cache_placement_all_nodes(self):
         cacheplacement.random_cache_placement(self.topo, 100, 4)
         for i in range(1, 5):
-            self.assertEqual(25, self.topo.node[i]['stack'][1]['cache_size'])
+            assert 25 == self.topo.node[i]['stack'][1]['cache_size']
 
     def test_random_cache_placement_some_nodes_a(self):
         self.verify_random_assignment(self.topo, 100, 2)
@@ -45,9 +43,9 @@ class TestRadomCachePlacement(unittest.TestCase):
         self.verify_random_assignment(self.topo, 100, 4)
 
 
-class TestOptimalHashroutingCachePlacement(unittest.TestCase):
+class TestOptimalHashroutingCachePlacement(object):
 
-    def setUp(self):
+    def setup_method(self):
         #
         #       -- s1 --
         #     /     |    \
@@ -82,34 +80,34 @@ class TestOptimalHashroutingCachePlacement(unittest.TestCase):
         cacheplacement.optimal_hashrouting_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
         if'cache_size' in self.topo.node["c1"]['stack'][1]:
-            self.assertEqual(0, self.topo.node["c1"]['stack'][1]['cache_size'])
-        self.assertEqual(30, self.topo.node["c2"]['stack'][1]['cache_size'])
+            assert 0 == self.topo.node["c1"]['stack'][1]['cache_size']
+        assert 30 == self.topo.node["c2"]['stack'][1]['cache_size']
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            self.assertEqual(0, self.topo.node["c3"]['stack'][1]['cache_size'])
+            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
 
     def test_optimal_hashrouting_cache_placement_b(self):
         cache_budget = 30
         cache_nodes = 2
         cacheplacement.optimal_hashrouting_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        self.assertEqual(15, self.topo.node["c1"]['stack'][1]['cache_size'])
-        self.assertEqual(15, self.topo.node["c2"]['stack'][1]['cache_size'])
+        assert 15 == self.topo.node["c1"]['stack'][1]['cache_size']
+        assert 15 == self.topo.node["c2"]['stack'][1]['cache_size']
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            self.assertEqual(0, self.topo.node["c3"]['stack'][1]['cache_size'])
+            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
 
     def test_optimal_hashrouting_cache_placement_c(self):
         cache_budget = 30
         cache_nodes = 3
         cacheplacement.optimal_hashrouting_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        self.assertEqual(10, self.topo.node["c1"]['stack'][1]['cache_size'])
-        self.assertEqual(10, self.topo.node["c2"]['stack'][1]['cache_size'])
-        self.assertEqual(10, self.topo.node["c3"]['stack'][1]['cache_size'])
+        assert 10 == self.topo.node["c1"]['stack'][1]['cache_size']
+        assert 10 == self.topo.node["c2"]['stack'][1]['cache_size']
+        assert 10 == self.topo.node["c3"]['stack'][1]['cache_size']
 
 
-class TestOptimalMedianCachePlacement(unittest.TestCase):
+class TestOptimalMedianCachePlacement(object):
 
-    def setUp(self):
+    def setup_method(self):
         #
         #   s1    s2
         #    |     |
@@ -143,40 +141,40 @@ class TestOptimalMedianCachePlacement(unittest.TestCase):
         cacheplacement.optimal_median_cache_placement(self.topo, cache_budget,
                                                       cache_nodes, 0.5)
         if'cache_size' in self.topo.node["c1"]['stack'][1]:
-            self.assertEqual(0, self.topo.node["c1"]['stack'][1]['cache_size'])
-        self.assertEqual(30, self.topo.node["c2"]['stack'][1]['cache_size'])
+            assert 0 == self.topo.node["c1"]['stack'][1]['cache_size']
+        assert 30 == self.topo.node["c2"]['stack'][1]['cache_size']
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            self.assertEqual(0, self.topo.node["c3"]['stack'][1]['cache_size'])
-        self.assertDictEqual({'r1': 'c2', 'r2': 'c2', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'},
-                             self.topo.graph['cache_assignment'])
+            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
+        assert {'r1': 'c2', 'r2': 'c2', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'} == \
+                             self.topo.graph['cache_assignment']
 
     def test_2(self):
         cache_budget = 30
         cache_nodes = 2
         cacheplacement.optimal_median_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        self.assertEqual(15, self.topo.node["c1"]['stack'][1]['cache_size'])
-        self.assertEqual(15, self.topo.node["c2"]['stack'][1]['cache_size'])
+        assert 15 == self.topo.node["c1"]['stack'][1]['cache_size']
+        assert 15 == self.topo.node["c2"]['stack'][1]['cache_size']
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            self.assertEqual(0, self.topo.node["c3"]['stack'][1]['cache_size'])
-        self.assertDictEqual({'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'},
-                             self.topo.graph['cache_assignment'])
+            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
+        assert {'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'} == \
+                             self.topo.graph['cache_assignment']
 
     def test_3(self):
         cache_budget = 30
         cache_nodes = 3
         cacheplacement.optimal_median_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        self.assertEqual(10, self.topo.node["c1"]['stack'][1]['cache_size'])
-        self.assertEqual(10, self.topo.node["c2"]['stack'][1]['cache_size'])
-        self.assertEqual(10, self.topo.node["c3"]['stack'][1]['cache_size'])
-        self.assertDictEqual({'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c3'},
-                             self.topo.graph['cache_assignment'])
+        assert 10 == self.topo.node["c1"]['stack'][1]['cache_size']
+        assert 10 == self.topo.node["c2"]['stack'][1]['cache_size']
+        assert 10 == self.topo.node["c3"]['stack'][1]['cache_size']
+        assert {'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c3'} == \
+                             self.topo.graph['cache_assignment']
 
 
-class TestClusteredHashroutingCachePlacement(unittest.TestCase):
+class TestClusteredHashroutingCachePlacement(object):
 
-    def setUp(self):
+    def setup_method(self):
         topo = cacheplacement.IcnTopology(fnss.line_topology(7))
         receivers = [0]
         sources = [6]
@@ -198,15 +196,15 @@ class TestClusteredHashroutingCachePlacement(unittest.TestCase):
         cacheplacement.clustered_hashrouting_cache_placement(self.topo,
                             cache_budget, n_clusters, 'cluster_const')
         clusters = self.topo.graph['clusters']
-        self.assertEqual(n_clusters, len(clusters))
-        self.assertEqual(len(self.topo.graph['icr_candidates']), sum(len(c) for c in clusters))
+        assert n_clusters == len(clusters)
+        assert len(self.topo.graph['icr_candidates']) == sum(len(c) for c in clusters)
         for c in clusters:
             if 0 in c:
-                self.assertSetEqual(set([0, 1, 2]), c)
+                assert {0, 1, 2} == c
             elif 7 in c:
-                self.assertSetEqual(set([3, 4, 5, 6]), c)
-        self.assertDictEqual({1: 15, 2: 15, 3: 10, 4: 10, 5: 10},
-                             self.topo.cache_nodes())
+                assert {3, 4, 5, 6} == c
+        assert {1: 15, 2: 15, 3: 10, 4: 10, 5: 10} == \
+                             self.topo.cache_nodes()
 
     def test_node_const(self):
         n_clusters = 2
@@ -214,13 +212,13 @@ class TestClusteredHashroutingCachePlacement(unittest.TestCase):
         cacheplacement.clustered_hashrouting_cache_placement(self.topo,
                             cache_budget, n_clusters, 'node_const')
         clusters = self.topo.graph['clusters']
-        self.assertEqual(n_clusters, len(clusters))
-        self.assertEqual(len(self.topo.graph['icr_candidates']), sum(len(c) for c in clusters))
+        assert n_clusters == len(clusters)
+        assert len(self.topo.graph['icr_candidates']) == sum(len(c) for c in clusters)
         for c in clusters:
             if 0 in c:
-                self.assertSetEqual(set([0, 1, 2]), c)
+                assert {0, 1, 2} == c
             elif 7 in c:
-                self.assertSetEqual(set([3, 4, 5, 6]), c)
+                assert {3, 4, 5, 6} == c
         cache_size = cache_budget / len(self.topo.cache_nodes())
-        self.assertDictEqual({i: cache_size for i in self.topo.cache_nodes()},
-                             self.topo.cache_nodes())
+        assert {i: cache_size for i in self.topo.cache_nodes()} == \
+                             self.topo.cache_nodes()
