@@ -12,7 +12,7 @@ maintainer_email = author_email
 
 # version information
 # Used by __init__, doc and setup
-version = '0.7.0'
+version = '0.8.0'
 
 # License information
 # Used by __init__, doc and setup
@@ -32,5 +32,5 @@ with few lines of code.
 """
 
 # URL
-url = 'http://icarus_sim.github.io/'
+url = 'http://icarus-sim.github.io/'
 download_url = url
