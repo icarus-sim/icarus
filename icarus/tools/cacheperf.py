@@ -852,8 +852,9 @@ def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
     References
     ----------
     .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
-           Operator-managed Content Caching, to appear in IEEE Transactions on
-           Network and Service Management (TNSM)
+           Operator-managed Content Caching, in IEEE Transactions on
+           Network and Service Management (TNSM), Volume 17, Issue 1, March 2020
+           https://doi.org/10.1109/TNSM.2019.2956525
     .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
            University College London, Dec. 2015. Available:
            http://discovery.ucl.ac.uk/1473436/
@@ -936,8 +937,9 @@ def hashrouting_model_mesh(n, m, h, delay_int, delay_ext):
     References
     ----------
     .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
-           Operator-managed Content Caching, to appear in IEEE Transactions on
-           Network and Service Management (TNSM)
+           Operator-managed Content Caching, in IEEE Transactions on
+           Network and Service Management (TNSM), Volume 17, Issue 1, March 2020
+           https://doi.org/10.1109/TNSM.2019.2956525
     .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
            University College London, Dec. 2015. Available:
            http://discovery.ucl.ac.uk/1473436/
@@ -971,8 +973,9 @@ def hashrouting_model_ring(n, h, delay_int, delay_ext):
     References
     ----------
     .. [1] L. Saino, I. Psaras and G. Pavlou, Framework and Algorithms for
-           Operator-managed Content Caching, to appear in IEEE Transactions on
-           Network and Service Management (TNSM)
+           Operator-managed Content Caching, in IEEE Transactions on
+           Network and Service Management (TNSM), Volume 17, Issue 1, March 2020
+           https://doi.org/10.1109/TNSM.2019.2956525
     .. [2] L. Saino, On the Design of Efficient Caching Systems, Ph.D. thesis
            University College London, Dec. 2015. Available:
            http://discovery.ucl.ac.uk/1473436/
