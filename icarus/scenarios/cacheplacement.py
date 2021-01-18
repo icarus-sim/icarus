@@ -52,9 +52,9 @@ def degree_centrality_cache_placement(topology, cache_budget, **kwargs):
     cache_budget : int
         The cumulative cache budget
     """
-    deg = nx.degree(topology)
-    total_deg = sum(deg.values())
-    icr_candidates = topology.graph['icr_candidates']
+    deg = dict(nx.degree(topology))
+    icr_candidates = set(topology.graph['icr_candidates'])
+    total_deg = sum(v for k, v in deg.items() if k in icr_candidates)
     for v in icr_candidates:
         topology.node[v]['stack'][1]['cache_size'] = iround(cache_budget * deg[v] / total_deg)
 
@@ -71,9 +71,9 @@ def betweenness_centrality_cache_placement(topology, cache_budget, **kwargs):
     cache_budget : int
         The cumulative cache budget
     """
-    betw = nx.betweenness_centrality(topology)
-    total_betw = sum(betw.values())
-    icr_candidates = topology.graph['icr_candidates']
+    betw = dict(nx.betweenness_centrality(topology))
+    icr_candidates = set(topology.graph['icr_candidates'])
+    total_betw = sum(v for k, v in betw.items() if k in icr_candidates)
     for v in icr_candidates:
         topology.node[v]['stack'][1]['cache_size'] = iround(cache_budget * betw[v] / total_betw)
 

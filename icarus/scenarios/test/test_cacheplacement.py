@@ -4,7 +4,7 @@ import fnss
 import icarus.scenarios as cacheplacement
 
 
-class TestRadomCachePlacement(object):
+class TestRandomCachePlacement(object):
 
     def setup_method(self):
         self.topo = fnss.line_topology(6)
@@ -41,6 +41,64 @@ class TestRadomCachePlacement(object):
 
     def test_random_cache_placement_some_nodes_c(self):
         self.verify_random_assignment(self.topo, 100, 4)
+
+
+class TestDegreeCentralityCachePlacement(object):
+
+    def setup_method(self):
+        #
+        # 0 -- 1 -- 2 -- 3 -- 4
+        #           |
+        #           5
+        self.topo = fnss.line_topology(5)
+        fnss.add_stack(self.topo, 0, 'receiver')
+        fnss.add_stack(self.topo, 4, 'source')
+        self.topo.add_edge(2, 5)
+        self.topo.graph['icr_candidates'] = {1, 2, 3, 5}
+        for i in self.topo.graph['icr_candidates']:
+            fnss.add_stack(self.topo, i, 'router')
+
+    def test_full_topology(self):
+        cacheplacement.degree_centrality_cache_placement(self.topo, 8)
+        assert self.topo.node[1]['stack'][1]['cache_size'] == 2
+        assert self.topo.node[2]['stack'][1]['cache_size'] == 3
+        assert self.topo.node[3]['stack'][1]['cache_size'] == 2
+        assert self.topo.node[5]['stack'][1]['cache_size'] == 1
+
+    def test_partial_topology(self):
+        self.topo.graph['icr_candidates'].remove(3)
+        cacheplacement.degree_centrality_cache_placement(self.topo, 6)
+        assert self.topo.node[1]['stack'][1]['cache_size'] == 2
+        assert self.topo.node[2]['stack'][1]['cache_size'] == 3
+        assert self.topo.node[5]['stack'][1]['cache_size'] == 1
+
+
+class TestBetweennessCentralityCachePlacement(object):
+
+    def setup_method(self):
+        #
+        # 0 -- 1 -- 2 -- 3 -- 4 -- 5
+        #
+        self.topo = fnss.line_topology(6)
+        fnss.add_stack(self.topo, 0, 'receiver')
+        fnss.add_stack(self.topo, 5, 'source')
+        self.topo.graph['icr_candidates'] = {1, 2, 3, 4}
+        for i in self.topo.graph['icr_candidates']:
+            fnss.add_stack(self.topo, i, 'router')
+
+    def test_full_topology(self):
+        cacheplacement.betweenness_centrality_cache_placement(self.topo, 10)
+        assert self.topo.node[1]['stack'][1]['cache_size'] == 2
+        assert self.topo.node[2]['stack'][1]['cache_size'] == 3
+        assert self.topo.node[3]['stack'][1]['cache_size'] == 3
+        assert self.topo.node[4]['stack'][1]['cache_size'] == 2
+
+    def test_partial_topology(self):
+        self.topo.graph['icr_candidates'].remove(3)
+        cacheplacement.betweenness_centrality_cache_placement(self.topo, 7)
+        assert self.topo.node[1]['stack'][1]['cache_size'] == 2
+        assert self.topo.node[2]['stack'][1]['cache_size'] == 3
+        assert self.topo.node[4]['stack'][1]['cache_size'] == 2
 
 
 class TestOptimalHashroutingCachePlacement(object):
@@ -80,29 +138,29 @@ class TestOptimalHashroutingCachePlacement(object):
         cacheplacement.optimal_hashrouting_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
         if'cache_size' in self.topo.node["c1"]['stack'][1]:
-            assert 0 == self.topo.node["c1"]['stack'][1]['cache_size']
-        assert 30 == self.topo.node["c2"]['stack'][1]['cache_size']
+            assert self.topo.node["c1"]['stack'][1]['cache_size'] == 0
+        assert self.topo.node["c2"]['stack'][1]['cache_size'] == 30
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
+            assert self.topo.node["c3"]['stack'][1]['cache_size'] == 0
 
     def test_optimal_hashrouting_cache_placement_b(self):
         cache_budget = 30
         cache_nodes = 2
         cacheplacement.optimal_hashrouting_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        assert 15 == self.topo.node["c1"]['stack'][1]['cache_size']
-        assert 15 == self.topo.node["c2"]['stack'][1]['cache_size']
+        assert self.topo.node["c1"]['stack'][1]['cache_size'] == 15
+        assert self.topo.node["c2"]['stack'][1]['cache_size'] == 15
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
+            assert self.topo.node["c3"]['stack'][1]['cache_size'] == 0
 
     def test_optimal_hashrouting_cache_placement_c(self):
         cache_budget = 30
         cache_nodes = 3
         cacheplacement.optimal_hashrouting_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        assert 10 == self.topo.node["c1"]['stack'][1]['cache_size']
-        assert 10 == self.topo.node["c2"]['stack'][1]['cache_size']
-        assert 10 == self.topo.node["c3"]['stack'][1]['cache_size']
+        assert self.topo.node["c1"]['stack'][1]['cache_size'] == 10
+        assert self.topo.node["c2"]['stack'][1]['cache_size'] == 10
+        assert self.topo.node["c3"]['stack'][1]['cache_size'] == 10
 
 
 class TestOptimalMedianCachePlacement(object):
@@ -153,10 +211,10 @@ class TestOptimalMedianCachePlacement(object):
         cache_nodes = 2
         cacheplacement.optimal_median_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        assert 15 == self.topo.node["c1"]['stack'][1]['cache_size']
-        assert 15 == self.topo.node["c2"]['stack'][1]['cache_size']
+        assert self.topo.node["c1"]['stack'][1]['cache_size'] == 15
+        assert self.topo.node["c2"]['stack'][1]['cache_size'] == 15
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
-            assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
+            assert self.topo.node["c3"]['stack'][1]['cache_size'] == 0
         assert {'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'} == \
                              self.topo.graph['cache_assignment']
 
@@ -165,9 +223,9 @@ class TestOptimalMedianCachePlacement(object):
         cache_nodes = 3
         cacheplacement.optimal_median_cache_placement(self.topo, cache_budget,
                                                            cache_nodes, 0.5)
-        assert 10 == self.topo.node["c1"]['stack'][1]['cache_size']
-        assert 10 == self.topo.node["c2"]['stack'][1]['cache_size']
-        assert 10 == self.topo.node["c3"]['stack'][1]['cache_size']
+        assert self.topo.node["c1"]['stack'][1]['cache_size'] == 10
+        assert self.topo.node["c2"]['stack'][1]['cache_size'] == 10
+        assert self.topo.node["c3"]['stack'][1]['cache_size'] == 10
         assert {'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c3'} == \
                              self.topo.graph['cache_assignment']
 
@@ -200,11 +258,12 @@ class TestClusteredHashroutingCachePlacement(object):
         assert len(self.topo.graph['icr_candidates']) == sum(len(c) for c in clusters)
         for c in clusters:
             if 0 in c:
-                assert {0, 1, 2} == c
+                assert c == {0, 1, 2}
             elif 7 in c:
-                assert {3, 4, 5, 6} == c
-        assert {1: 15, 2: 15, 3: 10, 4: 10, 5: 10} == \
-                             self.topo.cache_nodes()
+                assert c == {3, 4, 5, 6}
+        assert self.topo.cache_nodes() == \
+            {1: 15, 2: 15, 3: 10, 4: 10, 5: 10}
+
 
     def test_node_const(self):
         n_clusters = 2
@@ -216,9 +275,9 @@ class TestClusteredHashroutingCachePlacement(object):
         assert len(self.topo.graph['icr_candidates']) == sum(len(c) for c in clusters)
         for c in clusters:
             if 0 in c:
-                assert {0, 1, 2} == c
+                assert c ==  {0, 1, 2}
             elif 7 in c:
-                assert {3, 4, 5, 6} == c
+                assert c == {3, 4, 5, 6}
         cache_size = cache_budget / len(self.topo.cache_nodes())
-        assert {i: cache_size for i in self.topo.cache_nodes()} == \
-                             self.topo.cache_nodes()
+        assert  self.topo.cache_nodes() == \
+            {i: cache_size for i in self.topo.cache_nodes()}
