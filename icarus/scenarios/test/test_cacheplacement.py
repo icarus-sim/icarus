@@ -1,5 +1,6 @@
-import networkx as nx
 import fnss
+
+import networkx as nx
 
 import icarus.scenarios as cacheplacement
 
@@ -204,19 +205,19 @@ class TestOptimalMedianCachePlacement(object):
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
             assert 0 == self.topo.node["c3"]['stack'][1]['cache_size']
         assert {'r1': 'c2', 'r2': 'c2', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'} == \
-                             self.topo.graph['cache_assignment']
+                self.topo.graph['cache_assignment']
 
     def test_2(self):
         cache_budget = 30
         cache_nodes = 2
         cacheplacement.optimal_median_cache_placement(self.topo, cache_budget,
-                                                           cache_nodes, 0.5)
+                                                      cache_nodes, 0.5)
         assert self.topo.node["c1"]['stack'][1]['cache_size'] == 15
         assert self.topo.node["c2"]['stack'][1]['cache_size'] == 15
         if'cache_size' in self.topo.node["c3"]['stack'][1]:
             assert self.topo.node["c3"]['stack'][1]['cache_size'] == 0
         assert {'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c2'} == \
-                             self.topo.graph['cache_assignment']
+                self.topo.graph['cache_assignment']
 
     def test_3(self):
         cache_budget = 30
@@ -227,7 +228,7 @@ class TestOptimalMedianCachePlacement(object):
         assert self.topo.node["c2"]['stack'][1]['cache_size'] == 10
         assert self.topo.node["c3"]['stack'][1]['cache_size'] == 10
         assert {'r1': 'c1', 'r2': 'c1', 'r3': 'c2', 'r4': 'c2', 'r5': 'c2', 'r6': 'c3'} == \
-                             self.topo.graph['cache_assignment']
+                self.topo.graph['cache_assignment']
 
 
 class TestClusteredHashroutingCachePlacement(object):
@@ -262,8 +263,7 @@ class TestClusteredHashroutingCachePlacement(object):
             elif 7 in c:
                 assert c == {3, 4, 5, 6}
         assert self.topo.cache_nodes() == \
-            {1: 15, 2: 15, 3: 10, 4: 10, 5: 10}
-
+               {1: 15, 2: 15, 3: 10, 4: 10, 5: 10}
 
     def test_node_const(self):
         n_clusters = 2
@@ -275,9 +275,9 @@ class TestClusteredHashroutingCachePlacement(object):
         assert len(self.topo.graph['icr_candidates']) == sum(len(c) for c in clusters)
         for c in clusters:
             if 0 in c:
-                assert c ==  {0, 1, 2}
+                assert c == {0, 1, 2}
             elif 7 in c:
                 assert c == {3, 4, 5, 6}
         cache_size = cache_budget / len(self.topo.cache_nodes())
-        assert  self.topo.cache_nodes() == \
-            {i: cache_size for i in self.topo.cache_nodes()}
+        assert self.topo.cache_nodes() == \
+               {i: cache_size for i in self.topo.cache_nodes()}

@@ -1,11 +1,11 @@
-import networkx as nx
 import fnss
+
+import networkx as nx
 
 import icarus.scenarios as algorithms
 
 
 class TestClustering(object):
-
 
     def test_algorithms(self):
         t = algorithms.IcnTopology(fnss.line_topology(6))
@@ -47,89 +47,78 @@ class TestClustering(object):
 class TestPMedian(object):
 
     def test_p_median(self):
-        """
-        Test topology:
-
-        A ---- B ---- C ----[HIGH DIST] --- D --- E --- F
-
-        Expected facilities: 1, 4
-        """
+        # Test topology:
+        #
+        # A ---- B ---- C ----[HIGH DIST] --- D --- E --- F
+        #
+        # Expected facilities: 1, 4
         t = fnss.Topology()
         nx.add_path(t, "ABCDEF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("C", "D")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
         allocation, facilities, cost = algorithms.compute_p_median(distances, 2)
-        assert {"A": "B", "B": "B", "C": "B", "D": "E", "E": "E", "F": "E", } == allocation
-        assert set("BE") == facilities
-        assert 4 == cost
+        assert allocation == {"A": "B", "B": "B", "C": "B", "D": "E", "E": "E", "F": "E", }
+        assert facilities == set("BE")
+        assert cost == 4
 
     def test_p_median_unsorted(self):
-        """
-
-        Test topology:
-
-        A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
-
-        Expected facilities: 1, 4
-        """
+        # Test topology:
+        #
+        # A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
+        #
+        # Expected facilities: 1, 4
         t = fnss.Topology()
         nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
         allocation, facilities, cost = algorithms.compute_p_median(distances, 2)
-        assert {"A": "C", "B": "C", "C": "C", "D": "D", "E": "D", "F": "D", } == allocation
-        assert set("CD") == facilities
-        assert 4 == cost
+        assert allocation == {"A": "C", "B": "C", "C": "C", "D": "D", "E": "D", "F": "D", }
+        assert facilities == set("CD")
+        assert cost == 4
 
     def test_p_median_3(self):
-        """
-        Test topology:
-
-        A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
-
-        Expected facilities: 1, 4
-        """
+        # Test topology:
+        #
+        # A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
+        #
+        # Expected facilities: 1, 4
         t = fnss.Topology()
         nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
         allocation, facilities, cost = algorithms.compute_p_median(distances, 3)
-        assert 3 == cost
+        assert cost == 3
 
     def test_p_median_4(self):
-        """
-        Test topology:
-
-        A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
-
-        Expected facilities: 1, 4
-        """
+        #
+        # Test topology:
+        #
+        # A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
+        #
+        # Expected facilities: 1, 4
         t = fnss.Topology()
         nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
         allocation, facilities, cost = algorithms.compute_p_median(distances, 4)
-        assert 2 == cost
-
+        assert cost == 2
 
     def test_p_median_6(self):
-        """
-        Test topology:
-
-        A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
-
-        Expected facilities: 1, 4
-        """
+        # Test topology:
+        #
+        # A ---- C ---- B ----[HIGH DIST] --- E --- D --- F
+        #
+        # Expected facilities: 1, 4
         t = fnss.Topology()
         nx.add_path(t, "ACBEDF")
         fnss.set_weights_constant(t, 1)
         fnss.set_weights_constant(t, 2, [("B", "E")])
         distances = dict(nx.all_pairs_dijkstra_path_length(t, weight='weight'))
         allocation, facilities, cost = algorithms.compute_p_median(distances, 6)
-        assert {i: i for i in "ABCDEF"} == allocation
-        assert set("ABCDEF") == facilities
-        assert 0 == cost
+        assert allocation == {i: i for i in "ABCDEF"}
+        assert facilities == set("ABCDEF")
+        assert cost == 0
