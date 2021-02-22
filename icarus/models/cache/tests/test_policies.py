@@ -8,7 +8,6 @@ import icarus.models as cache
 
 
 class TestLinkedSet(object):
-
     def link_consistency(self, linked_set):
         """
         Checks that links of a linked set are consistent iterating from top
@@ -175,14 +174,14 @@ class TestLinkedSet(object):
         c.insert_above(2, 1)
         assert list(c) == [1, 2, 3]
         assert self.link_consistency(c)
-        c.insert_above(1, 'a')
-        assert list(c) == ['a', 1, 2, 3]
+        c.insert_above(1, "a")
+        assert list(c) == ["a", 1, 2, 3]
         assert self.link_consistency(c)
-        c.insert_above(2, 'b')
-        assert list(c) == ['a', 1, 'b', 2, 3]
+        c.insert_above(2, "b")
+        assert list(c) == ["a", 1, "b", 2, 3]
         assert self.link_consistency(c)
-        c.insert_above(3, 'c')
-        assert list(c) == ['a', 1, 'b', 2, 'c', 3]
+        c.insert_above(3, "c")
+        assert list(c) == ["a", 1, "b", 2, "c", 3]
         assert self.link_consistency(c)
 
     def test_insert_below(self):
@@ -193,14 +192,14 @@ class TestLinkedSet(object):
         c.insert_below(2, 3)
         assert list(c) == [1, 2, 3]
         assert self.link_consistency(c)
-        c.insert_below(1, 'a')
-        assert list(c) == [1, 'a', 2, 3]
+        c.insert_below(1, "a")
+        assert list(c) == [1, "a", 2, 3]
         assert self.link_consistency(c)
-        c.insert_below(2, 'b')
-        assert list(c) == [1, 'a', 2, 'b', 3]
+        c.insert_below(2, "b")
+        assert list(c) == [1, "a", 2, "b", 3]
         assert self.link_consistency(c)
-        c.insert_below(3, 'c')
-        assert list(c) == [1, 'a', 2, 'b', 3, 'c']
+        c.insert_below(3, "c")
+        assert list(c) == [1, "a", 2, "b", 3, "c"]
         assert self.link_consistency(c)
 
     def test_clear(self):
@@ -221,35 +220,33 @@ class TestLinkedSet(object):
 
 
 class TestCache(object):
-
     def test_do(self):
         c = cache.FifoCache(2)
         assert len(c) == 0
-        c.do('PUT', 1)
+        c.do("PUT", 1)
         assert len(c) == 1
-        c.do('UPDATE', 1)
+        c.do("UPDATE", 1)
         assert len(c) == 1
-        assert c.do('GET', 1)
-        c.do('PUT', 2)
-        assert c.do('GET', 2)
+        assert c.do("GET", 1)
+        c.do("PUT", 2)
+        assert c.do("GET", 2)
         assert len(c) == 2
         assert c.dump() == [2, 1]
-        c.do('PUT', 3)
+        c.do("PUT", 3)
         assert len(c) == 2
         assert c.dump() == [3, 2]
-        assert c.do('GET', 2)
-        assert c.do('GET', 3)
-        assert not c.do('GET', 1)
-        c.do('DELETE', 3)
-        assert not c.do('GET', 3)
+        assert c.do("GET", 2)
+        assert c.do("GET", 3)
+        assert not c.do("GET", 1)
+        c.do("DELETE", 3)
+        assert not c.do("GET", 3)
         assert c.dump() == [2]
-        c.do('DELETE', 2)
-        assert not c.do('GET', 2)
+        c.do("DELETE", 2)
+        assert not c.do("GET", 2)
         assert c.dump() == []
 
 
 class TestMinCache(object):
-
     def test_get_put(self):
         trace = [1, 2, 3, 4, 4, 2, 1]
         c = cache.BeladyMinCache(2, trace)
@@ -284,7 +281,6 @@ class TestMinCache(object):
 
 
 class TestLruCache(object):
-
     def test_lru(self):
         c = cache.LruCache(4)
         c.put(0)
@@ -340,7 +336,6 @@ class TestLruCache(object):
 
 
 class TestSlruCache(object):
-
     def test_alloc(self):
         c = cache.SegmentedLruCache(100, 3, [0.4, 0.21, 0.39])
         assert list(c._segment_maxlen) == [40, 21, 39]
@@ -473,7 +468,6 @@ class TestSlruCache(object):
 
 
 class TestFifoCache(object):
-
     def test_fifo(self):
         c = cache.FifoCache(4)
         assert len(c) == 0
@@ -516,7 +510,6 @@ class TestFifoCache(object):
 
 
 class TestClimbCache(object):
-
     def test_climb(self):
         c = cache.ClimbCache(4)
         c.put(1)
@@ -573,7 +566,6 @@ class TestClimbCache(object):
 
 
 class TestRandCache(object):
-
     def test_rand(self):
         c = cache.RandEvictionCache(4)
         assert len(c) == 0
@@ -618,7 +610,6 @@ class TestRandCache(object):
 
 
 class TestInCacheLfuCache(object):
-
     def test_lfu(self):
         c = cache.InCacheLfuCache(4)
         assert len(c) == 0
@@ -649,7 +640,6 @@ class TestInCacheLfuCache(object):
 
 
 class TestPerfectLfuCache(object):
-
     def test_lfu(self):
         c = cache.PerfectLfuCache(3)
         assert len(c) == 0
@@ -702,7 +692,6 @@ class TestPerfectLfuCache(object):
 
 
 class TestInsertAfterKHits(object):
-
     def test_put_get_no_memory(self):
         c = cache.LruCache(2)
         c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
@@ -800,10 +789,10 @@ class TestInsertAfterKHits(object):
 
     def test_naming(self):
         c = cache.insert_after_k_hits_cache(cache.FifoCache(3), k=3)
-        assert c.get.__name__ == 'get'
-        assert c.put.__name__ == 'put'
-        assert c.dump.__name__ == 'dump'
-        assert c.clear.__name__ == 'clear'
+        assert c.get.__name__ == "get"
+        assert c.put.__name__ == "put"
+        assert c.dump.__name__ == "dump"
+        assert c.clear.__name__ == "clear"
         assert len(c.get.__doc__) > 0
         assert len(c.put.__doc__) > 0
         assert len(c.dump.__doc__) > 0
@@ -811,7 +800,6 @@ class TestInsertAfterKHits(object):
 
 
 class TestRandInsert(object):
-
     def test_rand_insert(self):
         n = 10000
         r = 10
@@ -864,10 +852,10 @@ class TestRandInsert(object):
 
     def test_naming(self):
         c = cache.rand_insert_cache(cache.FifoCache(3), 0.2)
-        assert c.get.__name__ == 'get'
-        assert c.put.__name__ == 'put'
-        assert c.dump.__name__ == 'dump'
-        assert c.clear.__name__ == 'clear'
+        assert c.get.__name__ == "get"
+        assert c.put.__name__ == "put"
+        assert c.dump.__name__ == "dump"
+        assert c.clear.__name__ == "clear"
         assert len(c.get.__doc__) > 0
         assert len(c.put.__doc__) > 0
         assert len(c.dump.__doc__) > 0
@@ -875,7 +863,6 @@ class TestRandInsert(object):
 
 
 class TestKeyValCache(object):
-
     def test_key_val_cache(self):
         c = cache.keyval_cache(cache.FifoCache(3))
         c.put(1, 11)
@@ -896,10 +883,10 @@ class TestKeyValCache(object):
 
     def test_naming(self):
         c = cache.keyval_cache(cache.FifoCache(3))
-        assert c.get.__name__ == 'get'
-        assert c.put.__name__ == 'put'
-        assert c.dump.__name__ == 'dump'
-        assert c.clear.__name__ == 'clear'
+        assert c.get.__name__ == "get"
+        assert c.put.__name__ == "put"
+        assert c.dump.__name__ == "dump"
+        assert c.clear.__name__ == "clear"
         assert len(c.get.__doc__) > 0
         assert len(c.put.__doc__) > 0
         assert len(c.dump.__doc__) > 0
@@ -921,7 +908,6 @@ class TestKeyValCache(object):
 
 
 class TestTtlCache(object):
-
     def test_put_dump(self):
         curr_time = 1
         f_time = lambda: curr_time
@@ -974,9 +960,9 @@ class TestTtlCache(object):
 
     def test_incorrect_params(self):
         with pytest.raises(TypeError):
-            cache.ttl_cache('cache', lambda: 1)
+            cache.ttl_cache("cache", lambda: 1)
         with pytest.raises(TypeError):
-            cache.ttl_cache(cache.FifoCache(4), 'function')
+            cache.ttl_cache(cache.FifoCache(4), "function")
         c = cache.ttl_cache(cache.FifoCache(10), lambda: 5)
         with pytest.raises(ValueError):
             c.put(1, ttl=2, expires=8)
@@ -1036,11 +1022,11 @@ class TestTtlCache(object):
 
     def test_naming(self):
         c = cache.ttl_cache(cache.FifoCache(4), lambda: 0)
-        assert c.get.__name__ == 'get'
-        assert c.put.__name__ == 'put'
-        assert c.dump.__name__ == 'dump'
-        assert c.clear.__name__ == 'clear'
-        assert c.has.__name__ == 'has'
+        assert c.get.__name__ == "get"
+        assert c.put.__name__ == "put"
+        assert c.dump.__name__ == "dump"
+        assert c.clear.__name__ == "clear"
+        assert c.has.__name__ == "has"
 
     def test_deepcopy(self):
         c = cache.LruCache(10)

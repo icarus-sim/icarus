@@ -10,18 +10,18 @@ from icarus.util import inheritdoc, path_links
 from .base import Strategy
 
 __all__ = [
-       'Partition',
-       'Edge',
-       'LeaveCopyEverywhere',
-       'LeaveCopyDown',
-       'ProbCache',
-       'CacheLessForMore',
-       'RandomBernoulli',
-       'RandomChoice',
-           ]
+    "Partition",
+    "Edge",
+    "LeaveCopyEverywhere",
+    "LeaveCopyDown",
+    "ProbCache",
+    "CacheLessForMore",
+    "RandomBernoulli",
+    "RandomChoice",
+]
 
 
-@register_strategy('PARTITION')
+@register_strategy("PARTITION")
 class Partition(Strategy):
     """Partition caching strategy.
 
@@ -43,11 +43,13 @@ class Partition(Strategy):
     @inheritdoc(Strategy)
     def __init__(self, view, controller):
         super(Partition, self).__init__(view, controller)
-        if 'cache_assignment' not in self.view.topology().graph:
-            raise ValueError('The topology does not have cache assignment '
-                             'information. Have you used the optimal median '
-                             'cache assignment?')
-        self.cache_assignment = self.view.topology().graph['cache_assignment']
+        if "cache_assignment" not in self.view.topology().graph:
+            raise ValueError(
+                "The topology does not have cache assignment "
+                "information. Have you used the optimal median "
+                "cache assignment?"
+            )
+        self.cache_assignment = self.view.topology().graph["cache_assignment"]
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -64,7 +66,7 @@ class Partition(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('EDGE')
+@register_strategy("EDGE")
 class Edge(Strategy):
     """Edge caching strategy.
 
@@ -115,7 +117,7 @@ class Edge(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('LCE')
+@register_strategy("LCE")
 class LeaveCopyEverywhere(Strategy):
     """Leave Copy Everywhere (LCE) strategy.
 
@@ -153,7 +155,7 @@ class LeaveCopyEverywhere(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('LCD')
+@register_strategy("LCD")
 class LeaveCopyDown(Strategy):
     """Leave Copy Down (LCD) strategy.
 
@@ -202,7 +204,7 @@ class LeaveCopyDown(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('PROB_CACHE')
+@register_strategy("PROB_CACHE")
 class ProbCache(Strategy):
     """ProbCache strategy [3]_
 
@@ -258,8 +260,9 @@ class ProbCache(Strategy):
         for hop in range(1, len(path)):
             u = path[hop - 1]
             v = path[hop]
-            N = sum([self.cache_size[n] for n in path[hop - 1:]
-                     if n in self.cache_size])
+            N = sum(
+                [self.cache_size[n] for n in path[hop - 1 :] if n in self.cache_size]
+            )
             if v in self.cache_size:
                 x += 1
             self.controller.forward_content_hop(u, v)
@@ -272,7 +275,7 @@ class ProbCache(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('CL4M')
+@register_strategy("CL4M")
 class CacheLessForMore(Strategy):
     """Cache less for more strategy [4]_.
 
@@ -294,8 +297,10 @@ class CacheLessForMore(Strategy):
         super(CacheLessForMore, self).__init__(view, controller)
         topology = view.topology()
         if use_ego_betw:
-            self.betw = dict((v, nx.betweenness_centrality(nx.ego_graph(topology, v))[v])
-                             for v in topology.nodes())
+            self.betw = dict(
+                (v, nx.betweenness_centrality(nx.ego_graph(topology, v))[v])
+                for v in topology.nodes()
+            )
         else:
             self.betw = nx.betweenness_centrality(topology)
 
@@ -336,7 +341,7 @@ class CacheLessForMore(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('RAND_BERNOULLI')
+@register_strategy("RAND_BERNOULLI")
 class RandomBernoulli(Strategy):
     """Bernoulli random cache insertion.
 
@@ -376,7 +381,7 @@ class RandomBernoulli(Strategy):
         self.controller.end_session()
 
 
-@register_strategy('RAND_CHOICE')
+@register_strategy("RAND_CHOICE")
 class RandomChoice(Strategy):
     """Random choice strategy
 

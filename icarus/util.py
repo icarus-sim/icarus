@@ -11,21 +11,21 @@ import numpy as np
 import networkx as nx
 
 __all__ = [
-        'Settings',
-        'AnyValue',
-        'SequenceNumber',
-        'config_logging',
-        'inheritdoc',
-        'timestr',
-        'iround',
-        'step_cdf',
-        'Tree',
-        'can_import',
-        'overlay_betweenness_centrality',
-        'path_links',
-        'multicast_tree',
-        'apportionment'
-           ]
+    "Settings",
+    "AnyValue",
+    "SequenceNumber",
+    "config_logging",
+    "inheritdoc",
+    "timestr",
+    "iround",
+    "step_cdf",
+    "Tree",
+    "can_import",
+    "overlay_betweenness_centrality",
+    "path_links",
+    "multicast_tree",
+    "apportionment",
+]
 
 
 class Tree(collections.defaultdict):
@@ -217,12 +217,11 @@ class Settings(object):
     """Object storing all settings"""
 
     def __init__(self):
-        """Constructor
-        """
+        """Constructor"""
         # This kind of assignment using __setattr__ is to prevent infinite
         # recursion
-        object.__setattr__(self, '__conf', dict())
-        object.__setattr__(self, '__frozen', False)
+        object.__setattr__(self, "__conf", dict())
+        object.__setattr__(self, "__frozen", False)
 
     def __len__(self):
         """Return the number of settings
@@ -250,7 +249,7 @@ class Settings(object):
         if name in self.__conf:
             return self.__conf[name]
         else:
-            raise ValueError('Setting %s not found' % str(name))
+            raise ValueError("Setting %s not found" % str(name))
 
     def __getstate__(self):
         """Return a representation of the object for pickling purposes.
@@ -277,14 +276,14 @@ class Settings(object):
         value : any hashable type
             The value of the setting
         """
-        if name == '_Settings__conf':
-            return object.__getattribute__(self, '__conf')
-        if name == '_Settings__frozen':
-            return object.__getattribute__(self, '__frozen')
+        if name == "_Settings__conf":
+            return object.__getattribute__(self, "__conf")
+        if name == "_Settings__frozen":
+            return object.__getattribute__(self, "__frozen")
         if name in self.__conf:
             return self.__conf[name]
         else:
-            raise ValueError('Setting %s not found' % str(name))
+            raise ValueError("Setting %s not found" % str(name))
 
     def __setitem__(self, name, value):
         """Sets a given value for a settings with given name
@@ -308,8 +307,8 @@ class Settings(object):
         value : any hashable type
             The value of the setting
         """
-        if name == '_Settings__conf':
-            object.__setattr__(self, '__conf', value)
+        if name == "_Settings__conf":
+            object.__setattr__(self, "__conf", value)
         return self.set(name, value)
 
     def __delitem__(self, name):
@@ -321,7 +320,7 @@ class Settings(object):
             Name of the setting
         """
         if self.__frozen:
-            raise ValueError('Settings are frozen and cannot be modified')
+            raise ValueError("Settings are frozen and cannot be modified")
         del self.__conf[name]
 
     def __contains__(self, name):
@@ -355,7 +354,7 @@ class Settings(object):
             If *True*, freezes object so that settings cannot be changed
         """
         if self.__frozen:
-            raise ValueError('Settings are frozen and cannot be modified')
+            raise ValueError("Settings are frozen and cannot be modified")
         exec(open(path).read(), self.__conf)
         for k in list(self.__conf):
             if k != k.upper():
@@ -383,7 +382,7 @@ class Settings(object):
         if name in self.__conf:
             return self.__conf[name]
         else:
-            raise ValueError('Setting %s not found' % str(name))
+            raise ValueError("Setting %s not found" % str(name))
 
     def set(self, name, value):
         """Sets a given value for a settings with given name
@@ -396,7 +395,7 @@ class Settings(object):
             The value of the setting
         """
         if self.frozen:
-            raise ValueError('Settings are frozen and cannot be modified')
+            raise ValueError("Settings are frozen and cannot be modified")
         self.__conf[name] = value
 
 
@@ -487,7 +486,7 @@ class SequenceNumber(object):
         return self.__seq
 
 
-def config_logging(log_level='INFO'):
+def config_logging(log_level="INFO"):
     """Configure logging level
 
     Parameters
@@ -497,7 +496,7 @@ def config_logging(log_level='INFO'):
     """
     FORMAT = "[%(asctime)s|%(levelname)s|%(name)s] %(message)s"
     DATE_FMT = "%H:%M:%S %Y-%m-%d"
-    log_level = eval('logging.%s' % log_level.upper())
+    log_level = eval("logging.%s" % log_level.upper())
     logging.basicConfig(format=FORMAT, datefmt=DATE_FMT, level=log_level)
 
 
@@ -522,12 +521,14 @@ def inheritdoc(cls):
     This implementation is simple, easy to understand and works well with
     Icarus code.
     """
+
     def _decorator(function):
         # This assignment is needed to maintain a reference to the superclass
         sup = cls
         name = function.__name__
-        function.__doc__ = eval('sup.%s.__doc__' % name)
+        function.__doc__ = eval("sup.%s.__doc__" % name)
         return function
+
     return _decorator
 
 
@@ -554,7 +555,7 @@ def timestr(sec, with_seconds=True):
     hours = t.tm_hour
     mins = t.tm_min
     secs = t.tm_sec
-    units = collections.deque(('d', 'h', 'm', 's'))
+    units = collections.deque(("d", "h", "m", "s"))
     vals = collections.deque((days, hours, mins, secs))
     if not with_seconds:
         units.pop()
@@ -586,7 +587,7 @@ def iround(x):
     xr : int
         The rounded number
     """
-    y = round(x) - .5
+    y = round(x) - 0.5
     return int(y) + (y > 0)
 
 
@@ -610,7 +611,7 @@ def step_cdf(x, y):
         The y values of the CDF
     """
     if len(x) != len(y):
-        raise ValueError('x and y must have the same size')
+        raise ValueError("x and y must have the same size")
     sx = np.empty(2 * (len(x)))
     sy = np.empty(2 * (len(y)))
     for i in range(len(x)):
@@ -622,8 +623,9 @@ def step_cdf(x, y):
     return sx, sy
 
 
-def overlay_betweenness_centrality(topology, origins=None, destinations=None,
-                                  normalized=True, endpoints=False):
+def overlay_betweenness_centrality(
+    topology, origins=None, destinations=None, normalized=True, endpoints=False
+):
     """Calculate the betweenness centrality of a graph but only regarding the
     paths from a set of origins nodes to a set of destinations node.
 
@@ -648,9 +650,13 @@ def overlay_betweenness_centrality(topology, origins=None, destinations=None,
         Dictionary of betweenness centralities keyed by node
     """
     if origins is None:
-        origins = [v for v, (stack, _) in topology.stacks().items() if stack == 'receiver']
+        origins = [
+            v for v, (stack, _) in topology.stacks().items() if stack == "receiver"
+        ]
     if destinations is None:
-        destinations = [v for v, (stack, _) in topology.stacks().items() if stack == 'source']
+        destinations = [
+            v for v, (stack, _) in topology.stacks().items() if stack == "source"
+        ]
     betweenness = collections.defaultdict(int)
     path = {v: nx.single_source_shortest_path(topology, v) for v in origins}
     for u in path:

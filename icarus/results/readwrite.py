@@ -3,6 +3,7 @@
 import collections
 import copy
 import json
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -11,11 +12,8 @@ from icarus.util import Tree
 from icarus.registry import register_results_reader, register_results_writer
 
 
-__all__ = [
-    'ResultSet',
-    'write_results_pickle',
-    'read_results_pickle'
-           ]
+__all__ = ["ResultSet", "write_results_pickle", "read_results_pickle"]
+
 
 class ResultSet(object):
     """This class can be used to store results from different experiments,
@@ -93,8 +91,10 @@ class ResultSet(object):
             passed as argument
         """
         if self.attr != resultset.attr:
-            raise ValueError('The resultsets cannot be merged because '
-                             'they have different global attributes')
+            raise ValueError(
+                "The resultsets cannot be merged because "
+                "they have different global attributes"
+            )
         rs = copy.deepcopy(self)
         for i in iter(resultset):
             rs.add(*i)
@@ -167,8 +167,8 @@ class ResultSet(object):
             for k, v in experiment.items():
                 if isinstance(v, dict):
                     s = "   * {} ->".format(k)
-                    if 'name' in v:
-                        s += " name: {},".format(v.pop('name'))
+                    if "name" in v:
+                        s += " name: {},".format(v.pop("name"))
                     for group, value in v.items():
                         s += " {}: {},".format(group, value)
                     output += s.rstrip(",") + "\n"
@@ -211,7 +211,7 @@ class ResultSet(object):
         return filtered_resultset
 
 
-@register_results_writer('PICKLE')
+@register_results_writer("PICKLE")
 def write_results_pickle(results, path):
     """Write a resultset to a pickle file
 
@@ -222,11 +222,11 @@ def write_results_pickle(results, path):
     path : str
         The path of the file to which write
     """
-    with open(path, 'wb') as pickle_file:
+    with open(path, "wb") as pickle_file:
         pickle.dump(results, pickle_file)
 
 
-@register_results_reader('PICKLE')
+@register_results_reader("PICKLE")
 def read_results_pickle(path):
     """Reads a resultset from a pickle file.
 
@@ -240,5 +240,5 @@ def read_results_pickle(path):
     results : ResultSet
         The read result set
     """
-    with open(path, 'rb') as pickle_file:
+    with open(path, "rb") as pickle_file:
         return pickle.load(pickle_file)

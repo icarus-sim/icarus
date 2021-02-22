@@ -26,14 +26,14 @@ from icarus.tools import TruncatedZipfDist
 from icarus.registry import register_workload
 
 __all__ = [
-        'StationaryWorkload',
-        'GlobetraffWorkload',
-        'TraceDrivenWorkload',
-        'YCSBWorkload'
-           ]
+    "StationaryWorkload",
+    "GlobetraffWorkload",
+    "TraceDrivenWorkload",
+    "YCSBWorkload",
+]
 
 
-@register_workload('STATIONARY')
+@register_workload("STATIONARY")
 class StationaryWorkload(object):
     """This function generates events on the fly, i.e. instead of creating an
     event schedule to be kept in memory, returns an iterator that generates
@@ -82,14 +82,26 @@ class StationaryWorkload(object):
         the timestamp at which the event occurs and the second element is a
         dictionary of event attributes.
     """
-    def __init__(self, topology, n_contents, alpha, beta=0, rate=1.0,
-                    n_warmup=10 ** 5, n_measured=4 * 10 ** 5, seed=None, **kwargs):
+
+    def __init__(
+        self,
+        topology,
+        n_contents,
+        alpha,
+        beta=0,
+        rate=1.0,
+        n_warmup=10 ** 5,
+        n_measured=4 * 10 ** 5,
+        seed=None,
+        **kwargs
+    ):
         if alpha < 0:
-            raise ValueError('alpha must be positive')
+            raise ValueError("alpha must be positive")
         if beta < 0:
-            raise ValueError('beta must be positive')
-        self.receivers = [v for v in topology.nodes()
-                     if topology.node[v]['stack'][0] == 'receiver']
+            raise ValueError("beta must be positive")
+        self.receivers = [
+            v for v in topology.nodes() if topology.node[v]["stack"][0] == "receiver"
+        ]
         self.zipf = TruncatedZipfDist(alpha, n_contents)
         self.n_contents = n_contents
         self.contents = range(1, n_contents + 1)
@@ -101,27 +113,31 @@ class StationaryWorkload(object):
         self.beta = beta
         if beta != 0:
             degree = nx.degree(self.topology)
-            self.receivers = sorted(self.receivers, key=lambda x: degree[iter(topology.adj[x]).next()], reverse=True)
+            self.receivers = sorted(
+                self.receivers,
+                key=lambda x: degree[iter(topology.adj[x]).next()],
+                reverse=True,
+            )
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 
     def __iter__(self):
         req_counter = 0
         t_event = 0.0
         while req_counter < self.n_warmup + self.n_measured:
-            t_event += (random.expovariate(self.rate))
+            t_event += random.expovariate(self.rate)
             if self.beta == 0:
                 receiver = random.choice(self.receivers)
             else:
                 receiver = self.receivers[self.receiver_dist.rv() - 1]
             content = int(self.zipf.rv())
-            log = (req_counter >= self.n_warmup)
-            event = {'receiver': receiver, 'content': content, 'log': log}
+            log = req_counter >= self.n_warmup
+            event = {"receiver": receiver, "content": content, "log": log}
             yield (t_event, event)
             req_counter += 1
         return
 
 
-@register_workload('GLOBETRAFF')
+@register_workload("GLOBETRAFF")
 class GlobetraffWorkload(object):
     """Parse requests from GlobeTraff workload generator
 
@@ -159,12 +175,13 @@ class GlobetraffWorkload(object):
     def __init__(self, topology, reqs_file, contents_file, beta=0, **kwargs):
         """Constructor"""
         if beta < 0:
-            raise ValueError('beta must be positive')
-        self.receivers = [v for v in topology.nodes()
-                     if topology.node[v]['stack'][0] == 'receiver']
+            raise ValueError("beta must be positive")
+        self.receivers = [
+            v for v in topology.nodes() if topology.node[v]["stack"][0] == "receiver"
+        ]
         self.n_contents = 0
-        with open(contents_file, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+        with open(contents_file, "r") as f:
+            reader = csv.reader(f, delimiter="\t")
             for content, popularity, size, app_type in reader:
                 self.n_contents = max(self.n_contents, content)
         self.n_contents += 1
@@ -173,25 +190,27 @@ class GlobetraffWorkload(object):
         self.beta = beta
         if beta != 0:
             degree = nx.degree(self.topology)
-            self.receivers = sorted(self.receivers, key=lambda x:
-                                    degree[iter(topology.adj[x]).next()],
-                                    reverse=True)
+            self.receivers = sorted(
+                self.receivers,
+                key=lambda x: degree[iter(topology.adj[x]).next()],
+                reverse=True,
+            )
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 
     def __iter__(self):
-        with open(self.request_file, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+        with open(self.request_file, "r") as f:
+            reader = csv.reader(f, delimiter="\t")
             for timestamp, content, size in reader:
                 if self.beta == 0:
                     receiver = random.choice(self.receivers)
                 else:
                     receiver = self.receivers[self.receiver_dist.rv() - 1]
-                event = {'receiver': receiver, 'content': content, 'size': size}
+                event = {"receiver": receiver, "content": content, "size": size}
                 yield (timestamp, event)
         return
 
 
-@register_workload('TRACE_DRIVEN')
+@register_workload("TRACE_DRIVEN")
 class TraceDrivenWorkload(object):
     """Parse requests from a generic request trace.
 
@@ -242,11 +261,21 @@ class TraceDrivenWorkload(object):
         dictionary of event attributes.
     """
 
-    def __init__(self, topology, reqs_file, contents_file, n_contents,
-                 n_warmup, n_measured, rate=1.0, beta=0, **kwargs):
+    def __init__(
+        self,
+        topology,
+        reqs_file,
+        contents_file,
+        n_contents,
+        n_warmup,
+        n_measured,
+        rate=1.0,
+        beta=0,
+        **kwargs
+    ):
         """Constructor"""
         if beta < 0:
-            raise ValueError('beta must be positive')
+            raise ValueError("beta must be positive")
         # Set high buffering to avoid one-line reads
         self.buffering = 64 * 1024 * 1024
         self.n_contents = n_contents
@@ -254,40 +283,43 @@ class TraceDrivenWorkload(object):
         self.n_measured = n_measured
         self.reqs_file = reqs_file
         self.rate = rate
-        self.receivers = [v for v in topology.nodes()
-                          if topology.node[v]['stack'][0] == 'receiver']
+        self.receivers = [
+            v for v in topology.nodes() if topology.node[v]["stack"][0] == "receiver"
+        ]
         self.contents = []
-        with open(contents_file, 'r', buffering=self.buffering) as f:
+        with open(contents_file, "r", buffering=self.buffering) as f:
             for content in f:
                 self.contents.append(content)
         self.beta = beta
         if beta != 0:
             degree = nx.degree(topology)
-            self.receivers = sorted(self.receivers, key=lambda x:
-                                    degree[iter(topology.adj[x]).next()],
-                                    reverse=True)
+            self.receivers = sorted(
+                self.receivers,
+                key=lambda x: degree[iter(topology.adj[x]).next()],
+                reverse=True,
+            )
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 
     def __iter__(self):
         req_counter = 0
         t_event = 0.0
-        with open(self.reqs_file, 'r', buffering=self.buffering) as f:
+        with open(self.reqs_file, "r", buffering=self.buffering) as f:
             for content in f:
-                t_event += (random.expovariate(self.rate))
+                t_event += random.expovariate(self.rate)
                 if self.beta == 0:
                     receiver = random.choice(self.receivers)
                 else:
                     receiver = self.receivers[self.receiver_dist.rv() - 1]
-                log = (req_counter >= self.n_warmup)
-                event = {'receiver': receiver, 'content': content, 'log': log}
+                log = req_counter >= self.n_warmup
+                event = {"receiver": receiver, "content": content, "log": log}
                 yield (t_event, event)
                 req_counter += 1
-                if(req_counter >= self.n_warmup + self.n_measured):
+                if req_counter >= self.n_warmup + self.n_measured:
                     return
             raise ValueError("Trace did not contain enough requests")
 
 
-@register_workload('YCSB')
+@register_workload("YCSB")
 class YCSBWorkload(object):
     """Yahoo! Cloud Serving Benchmark (YCSB)
 
@@ -310,7 +342,16 @@ class YCSBWorkload(object):
     most relevant for caching systems.
     """
 
-    def __init__(self, workload, n_contents, n_warmup, n_measured, alpha=0.99, seed=None, **kwargs):
+    def __init__(
+        self,
+        workload,
+        n_contents,
+        n_warmup,
+        n_measured,
+        alpha=0.99,
+        seed=None,
+        **kwargs
+    ):
         """Constructor
 
         Parameters
@@ -347,13 +388,13 @@ class YCSBWorkload(object):
         while req_counter < self.n_warmup + self.n_measured:
             rand = random.random()
             op = {
-                  "A": "READ" if rand < 0.5 else "UPDATE",
-                  "B": "READ" if rand < 0.95 else "UPDATE",
-                  "C": "READ"
-                  }[self.workload]
+                "A": "READ" if rand < 0.5 else "UPDATE",
+                "B": "READ" if rand < 0.95 else "UPDATE",
+                "C": "READ",
+            }[self.workload]
             item = int(self.zipf.rv())
-            log = (req_counter >= self.n_warmup)
-            event = {'op': op, 'item': item, 'log': log}
+            log = req_counter >= self.n_warmup
+            event = {"op": op, "item": item, "log": log}
             yield event
             req_counter += 1
         return

@@ -3,11 +3,15 @@ import fnss
 
 from icarus.scenarios import IcnTopology
 import icarus.models as strategy
-from icarus.execution import NetworkModel, NetworkView, NetworkController, DummyCollector
+from icarus.execution import (
+    NetworkModel,
+    NetworkView,
+    NetworkController,
+    DummyCollector,
+)
 
 
 class TestHashroutingEdge(object):
-
     @classmethod
     def topology(cls):
         #
@@ -19,22 +23,22 @@ class TestHashroutingEdge(object):
         nx.add_path(topology, ["r", 1, 2, 3, "s"])
         nx.add_path(topology, [1, 4, 5, 3])
         fnss.add_stack(topology, "r", "receiver")
-        fnss.add_stack(topology, "s", "source", {'contents': list(range(1, 61))})
+        fnss.add_stack(topology, "s", "source", {"contents": list(range(1, 61))})
         for v in (1, 2, 3, 4, 5):
             fnss.add_stack(topology, v, "router", {"cache_size": 4})
-        topology.graph['icr_candidates'] = {1, 2, 3, 4, 5}
+        topology.graph["icr_candidates"] = {1, 2, 3, 4, 5}
         return topology
 
     def setup_method(self):
         topology = self.topology()
-        model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
+        model = NetworkModel(topology, cache_policy={"name": "FIFO"})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def test_hashrouting_symmetric_edge(self):
-        hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 0.25)
+        hr = strategy.HashroutingEdge(self.view, self.controller, "SYMM", 0.25)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
@@ -47,11 +51,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -63,11 +67,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 1 == summary['serving_node']
+        assert 1 == summary["serving_node"]
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
@@ -80,11 +84,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Verify where 4 is still stored
         assert not self.view.local_cache_lookup(1, 4)
         assert not self.view.local_cache_lookup(2, 4)
@@ -100,14 +104,14 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 4 == summary['serving_node']
+        assert 4 == summary["serving_node"]
 
     def test_hashrouting_symmetric_edge_zero_local(self):
-        hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 0)
+        hr = strategy.HashroutingEdge(self.view, self.controller, "SYMM", 0)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
@@ -120,11 +124,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -136,11 +140,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 4 == summary['serving_node']
+        assert 4 == summary["serving_node"]
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
@@ -153,11 +157,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Verify where 4 is still stored
         assert not self.view.local_cache_lookup(1, 4)
         assert not self.view.local_cache_lookup(2, 4)
@@ -173,14 +177,14 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 4 == summary['serving_node']
+        assert 4 == summary["serving_node"]
 
     def test_hashrouting_symmetric_edge_zero_coordinated(self):
-        hr = strategy.HashroutingEdge(self.view, self.controller, 'SYMM', 1)
+        hr = strategy.HashroutingEdge(self.view, self.controller, "SYMM", 1)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
@@ -193,11 +197,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -209,11 +213,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 1 == summary['serving_node']
+        assert 1 == summary["serving_node"]
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
@@ -226,11 +230,11 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Verify where 4 is still stored
         assert self.view.local_cache_lookup(1, 4)
         assert not self.view.local_cache_lookup(2, 4)
@@ -246,15 +250,14 @@ class TestHashroutingEdge(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 1 == summary['serving_node']
+        assert 1 == summary["serving_node"]
 
 
 class TestHashroutingOnPath(object):
-
     @classmethod
     def topology(cls):
         #
@@ -266,22 +269,22 @@ class TestHashroutingOnPath(object):
         nx.add_path(topology, ["r", 1, 2, 3, "s"])
         nx.add_path(topology, [1, 4, 5, 3])
         fnss.add_stack(topology, "r", "receiver")
-        fnss.add_stack(topology, "s", "source", {'contents': list(range(1, 61))})
+        fnss.add_stack(topology, "s", "source", {"contents": list(range(1, 61))})
         for v in (1, 2, 3, 4, 5):
             fnss.add_stack(topology, v, "router", {"cache_size": 4})
-        topology.graph['icr_candidates'] = {1, 2, 3, 4, 5}
+        topology.graph["icr_candidates"] = {1, 2, 3, 4, 5}
         return topology
 
     def setup_method(self):
         topology = self.topology()
-        model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
+        model = NetworkModel(topology, cache_policy={"name": "FIFO"})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def test_hashrouting_symmetric(self):
-        hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0.25)
+        hr = strategy.HashroutingOnPath(self.view, self.controller, "SYMM", 0.25)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
@@ -294,11 +297,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -310,11 +313,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 1 == summary['serving_node']
+        assert 1 == summary["serving_node"]
         # Now request content 8 which should replace 4 in the local cache of 1
         # but not 3, because 8 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
@@ -327,11 +330,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Verify where 4 is still stored
         assert not self.view.local_cache_lookup(1, 4)
         assert not self.view.local_cache_lookup(2, 4)
@@ -347,14 +350,14 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 4 == summary['serving_node']
+        assert 4 == summary["serving_node"]
 
     def test_hashrouting_symmetric_zero_local(self):
-        hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 0)
+        hr = strategy.HashroutingOnPath(self.view, self.controller, "SYMM", 0)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
@@ -367,11 +370,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -383,11 +386,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 4 == summary['serving_node']
+        assert 4 == summary["serving_node"]
         # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
@@ -400,11 +403,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Verify where 4 is still stored
         assert not self.view.local_cache_lookup(1, 4)
         assert not self.view.local_cache_lookup(2, 4)
@@ -420,14 +423,14 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4)]
         exp_cont_hops = [(4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 4 == summary['serving_node']
+        assert 4 == summary["serving_node"]
 
     def test_hashrouting_symmetric_zero_coordinated(self):
-        hr = strategy.HashroutingOnPath(self.view, self.controller, 'SYMM', 1)
+        hr = strategy.HashroutingOnPath(self.view, self.controller, "SYMM", 1)
         hr.authoritative_cache = lambda x: ((x - 1) % 5) + 1
         # At time 1, request content 4
         hr.process_event(1, "r", 4, True)
@@ -440,11 +443,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 4), (4, 5), (5, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 5), (5, 4), (4, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Let's request it again to make sure we have hit from edge cache
         hr.process_event(1, "r", 4, True)
         loc = self.view.content_locations(4)
@@ -456,11 +459,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 1 == summary['serving_node']
+        assert 1 == summary["serving_node"]
         # Now request content 6 which should replace 4 in the local cache of 1
         # but not 3, because 6 would take space in 3's coordinated ratio
         hr.process_event(1, "r", 8, True)
@@ -476,11 +479,11 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1), (1, 2), (2, 3), (3, "s")]
         exp_cont_hops = [("s", 3), (3, 2), (2, 1), (1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "s" == summary['serving_node']
+        assert "s" == summary["serving_node"]
         # Verify where 4 is still stored
         assert self.view.local_cache_lookup(1, 4)
         assert not self.view.local_cache_lookup(2, 4)
@@ -496,19 +499,17 @@ class TestHashroutingOnPath(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("r", 1)]
         exp_cont_hops = [(1, "r")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert 1 == summary['serving_node']
+        assert 1 == summary["serving_node"]
 
 
 class TestHashroutingClustered(object):
-
     @classmethod
     def clustered_topology(cls):
-        """Return topology for testing off-path caching strategies
-        """
+        """Return topology for testing off-path caching strategies"""
         # Topology sketch
         #
         #             3                         6
@@ -517,37 +518,37 @@ class TestHashroutingClustered(object):
         # RCV ---- 1 ---- 2 -[HIGH_DELAY]--- 4 ---- 5 ---- SRC
         #
         topology = IcnTopology()
-        nx.add_path(topology, ['RCV', 1, 2, 4, 5, 'SRC'])
+        nx.add_path(topology, ["RCV", 1, 2, 4, 5, "SRC"])
         nx.add_path(topology, [2, 3, 1])
         nx.add_path(topology, [5, 6, 4])
-        fnss.set_delays_constant(topology, 1, 'ms')
-        fnss.set_delays_constant(topology, 15, 'ms', [(2, 4)])
+        fnss.set_delays_constant(topology, 1, "ms")
+        fnss.set_delays_constant(topology, 15, "ms", [(2, 4)])
         caches = (1, 2, 3, 4, 5, 6)
         contents = [1, 2, 3]
         clusters = [{1, 2, 3}, {4, 5, 6}]
-        topology.graph['icr_candidates'] = set(caches)
-        topology.graph['clusters'] = clusters
-        fnss.add_stack(topology, "RCV", 'receiver', {})
+        topology.graph["icr_candidates"] = set(caches)
+        topology.graph["clusters"] = clusters
+        fnss.add_stack(topology, "RCV", "receiver", {})
         topology.node["RCV"]["cluster"] = 0
-        fnss.add_stack(topology, "SRC", 'source', {'contents': contents})
+        fnss.add_stack(topology, "SRC", "source", {"contents": contents})
         topology.node["SRC"]["cluster"] = 1
         for v in caches:
-            fnss.add_stack(topology, v, 'router', {'cache_size': 1})
+            fnss.add_stack(topology, v, "router", {"cache_size": 1})
             topology.node[v]["cluster"] = (v - 1) // 3
         return topology
 
     def setup_method(self):
         topology = self.clustered_topology()
-        self.model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
+        self.model = NetworkModel(topology, cache_policy={"name": "FIFO"})
         self.view = NetworkView(self.model)
         self.controller = NetworkController(self.model)
         self.collector = DummyCollector(self.view)
         self.controller.attach_collector(self.collector)
 
     def test_hashrouting_symmetric_lce(self):
-        hr = strategy.HashroutingClustered(self.view, self.controller,
-                                           intra_routing='SYMM',
-                                           inter_routing='LCE')
+        hr = strategy.HashroutingClustered(
+            self.view, self.controller, intra_routing="SYMM", inter_routing="LCE"
+        )
         hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
@@ -559,11 +560,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6), (6, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 6), (6, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -574,11 +575,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 3
+        assert summary["serving_node"] == 3
         # Delete entry on first cluster, expect hit on second cluster
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
@@ -590,16 +591,16 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6)]
         exp_cont_hops = [(6, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 6
+        assert summary["serving_node"] == 6
 
     def test_hashrouting_asymmetric_lce(self):
-        hr = strategy.HashroutingClustered(self.view, self.controller,
-                                           intra_routing='ASYMM',
-                                           inter_routing='LCE')
+        hr = strategy.HashroutingClustered(
+            self.view, self.controller, intra_routing="ASYMM", inter_routing="LCE"
+        )
         hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
@@ -611,11 +612,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6), (6, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect miss again, but this time caches will be populated
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
@@ -624,13 +625,13 @@ class TestHashroutingClustered(object):
         assert 2 in loc
         assert 5 in loc
         summary = self.collector.session_summary()
-        exp_req_hops = [("RCV", 1), (1, 2), (2, 4), (4, 5), (5, 'SRC')]
+        exp_req_hops = [("RCV", 1), (1, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect hit
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
@@ -641,16 +642,16 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 2)]
         exp_cont_hops = [(2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 2
+        assert summary["serving_node"] == 2
 
     def test_hashrouting_multicast_lce(self):
-        hr = strategy.HashroutingClustered(self.view, self.controller,
-                                           intra_routing='MULTICAST',
-                                           inter_routing='LCE')
+        hr = strategy.HashroutingClustered(
+            self.view, self.controller, intra_routing="MULTICAST", inter_routing="LCE"
+        )
         hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
@@ -662,11 +663,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6), (6, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 6), (5, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -677,11 +678,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 3
+        assert summary["serving_node"] == 3
         # Delete entry on first cluster, expect hit on second cluster
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
@@ -693,16 +694,16 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 6)]
         exp_cont_hops = [(6, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 6
+        assert summary["serving_node"] == 6
 
     def test_hashrouting_symmetric_edge(self):
-        hr = strategy.HashroutingClustered(self.view, self.controller,
-                                           intra_routing='SYMM',
-                                           inter_routing='EDGE')
+        hr = strategy.HashroutingClustered(
+            self.view, self.controller, intra_routing="SYMM", inter_routing="EDGE"
+        )
         hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
@@ -714,11 +715,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -729,11 +730,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 3
+        assert summary["serving_node"] == 3
         # Delete entry on first cluster, expect miss
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
@@ -745,16 +746,16 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "SRC" == summary['serving_node']
+        assert "SRC" == summary["serving_node"]
 
     def test_hashrouting_asymmetric_edge(self):
-        hr = strategy.HashroutingClustered(self.view, self.controller,
-                                           intra_routing='ASYMM',
-                                           inter_routing='EDGE')
+        hr = strategy.HashroutingClustered(
+            self.view, self.controller, intra_routing="ASYMM", inter_routing="EDGE"
+        )
         hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # Expect miss
         hr.process_event(1, "RCV", 3, True)
@@ -766,11 +767,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect miss again, but this time caches will be populated
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
@@ -779,13 +780,13 @@ class TestHashroutingClustered(object):
         assert 2 in loc
         assert 5 in loc
         summary = self.collector.session_summary()
-        exp_req_hops = [("RCV", 1), (1, 2), (2, 4), (4, 5), (5, 'SRC')]
+        exp_req_hops = [("RCV", 1), (1, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect hit
         hr.process_event(1, "RCV", 2, True)
         loc = self.view.content_locations(2)
@@ -796,16 +797,16 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 2)]
         exp_cont_hops = [(2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 2
+        assert summary["serving_node"] == 2
 
     def test_hashrouting_multicast_edge(self):
-        hr = strategy.HashroutingClustered(self.view, self.controller,
-                                           intra_routing='MULTICAST',
-                                           inter_routing='EDGE')
+        hr = strategy.HashroutingClustered(
+            self.view, self.controller, intra_routing="MULTICAST", inter_routing="EDGE"
+        )
         hr.authoritative_cache = lambda x, cluster: cluster * 3 + x
         # At time 1, receiver 0 requests content 2
         hr.process_event(1, "RCV", 3, True)
@@ -817,11 +818,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == "SRC"
+        assert summary["serving_node"] == "SRC"
         # Expect hit from first cluster
         hr.process_event(1, "RCV", 3, True)
         loc = self.view.content_locations(3)
@@ -832,11 +833,11 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3)]
         exp_cont_hops = [(3, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert summary['serving_node'] == 3
+        assert summary["serving_node"] == 3
         # Delete entry on first cluster, expect miss
         self.model.cache[3].remove(3)
         hr.process_event(1, "RCV", 3, True)
@@ -848,15 +849,14 @@ class TestHashroutingClustered(object):
         summary = self.collector.session_summary()
         exp_req_hops = [("RCV", 1), (1, 3), (3, 2), (2, 4), (4, 5), (5, "SRC")]
         exp_cont_hops = [("SRC", 5), (5, 4), (4, 2), (2, 3), (2, 1), (1, "RCV")]
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert set(exp_req_hops) == set(req_hops)
         assert set(exp_cont_hops) == set(cont_hops)
-        assert "SRC" == summary['serving_node']
+        assert "SRC" == summary["serving_node"]
 
 
 class TestHashrouting(object):
-
     @classmethod
     def topology(cls):
         """Return topology for testing off-path caching strategies"""
@@ -877,16 +877,16 @@ class TestHashrouting(object):
         receivers = (0, 6, 7)
         caches = (1, 2, 3, 5)
         contents = caches
-        fnss.add_stack(topology, source, 'source', {'contents': contents})
+        fnss.add_stack(topology, source, "source", {"contents": contents})
         for v in caches:
-            fnss.add_stack(topology, v, 'router', {'cache_size': 1})
+            fnss.add_stack(topology, v, "router", {"cache_size": 1})
         for v in receivers:
-            fnss.add_stack(topology, v, 'receiver', {})
+            fnss.add_stack(topology, v, "receiver", {})
         return topology
 
     def setup_method(self):
         topology = self.topology()
-        model = NetworkModel(topology, cache_policy={'name': 'FIFO'})
+        model = NetworkModel(topology, cache_policy={"name": "FIFO"})
         self.view = NetworkView(model)
         self.controller = NetworkController(model)
         self.collector = DummyCollector(self.view)
@@ -904,8 +904,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (2, 1), (1, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # At time 2 repeat request, expect cache hit
@@ -917,8 +917,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect hit
@@ -930,8 +930,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2)}
         exp_cont_hops = {(2, 6)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
 
@@ -946,8 +946,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect miss but cache insertion
@@ -959,8 +959,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (2, 6)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 0 again, expect hit
@@ -972,8 +972,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
 
@@ -989,8 +989,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # At time 2 repeat request, expect cache hit
@@ -1002,8 +1002,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect hit
@@ -1015,8 +1015,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2)}
         exp_cont_hops = {(2, 6)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
 
@@ -1031,8 +1031,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # At time 2, receiver 0 requests content 3, expect multicast
@@ -1044,8 +1044,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0), (4, 3)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # At time 3, receiver 0 requests content 5, expect symm = mcast = asymm
@@ -1057,8 +1057,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 5), (5, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
 
@@ -1073,8 +1073,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect miss but cache insertion
@@ -1086,8 +1086,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (2, 6)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 0 again, expect hit
@@ -1099,8 +1099,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
 
@@ -1116,8 +1116,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 3), (3, 2), (4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # At time 2 repeat request, expect cache hit
@@ -1129,8 +1129,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2)}
         exp_cont_hops = {(2, 1), (1, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # Now request from node 6, expect hit
@@ -1142,8 +1142,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(6, 2)}
         exp_cont_hops = {(2, 6)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
 
@@ -1159,8 +1159,8 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 1), (1, 2), (2, 3), (3, 4)}
         exp_cont_hops = {(4, 5), (5, 0), (4, 3)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)
         # At time 2, receiver 0 requests content 5, expect symm = mcast = asymm
@@ -1172,7 +1172,7 @@ class TestHashrouting(object):
         summary = self.collector.session_summary()
         exp_req_hops = {(0, 5), (5, 4)}
         exp_cont_hops = {(4, 5), (5, 0)}
-        req_hops = summary['request_hops']
-        cont_hops = summary['content_hops']
+        req_hops = summary["request_hops"]
+        cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
         assert exp_cont_hops == set(cont_hops)

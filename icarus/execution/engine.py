@@ -5,11 +5,16 @@ experiments needs to be run, instantiates all the required classes and executes
 the experiment by iterating through the event provided by an event generator
 and providing them to a strategy instance.
 """
-from icarus.execution import NetworkModel, NetworkView, NetworkController, CollectorProxy
+from icarus.execution import (
+    NetworkModel,
+    NetworkView,
+    NetworkController,
+    CollectorProxy,
+)
 from icarus.registry import DATA_COLLECTOR, STRATEGY
 
 
-__all__ = ['exec_experiment']
+__all__ = ["exec_experiment"]
 
 
 def exec_experiment(topology, workload, netconf, strategy, cache_policy, collectors):
@@ -47,13 +52,14 @@ def exec_experiment(topology, workload, netconf, strategy, cache_policy, collect
     view = NetworkView(model)
     controller = NetworkController(model)
 
-    collectors_inst = [DATA_COLLECTOR[name](view, **params)
-                       for name, params in collectors.items()]
+    collectors_inst = [
+        DATA_COLLECTOR[name](view, **params) for name, params in collectors.items()
+    ]
     collector = CollectorProxy(view, collectors_inst)
     controller.attach_collector(collector)
 
-    strategy_name = strategy['name']
-    strategy_args = {k: v for k, v in strategy.items() if k != 'name'}
+    strategy_name = strategy["name"]
+    strategy_args = {k: v for k, v in strategy.items() if k != "name"}
     strategy_inst = STRATEGY[strategy_name](view, controller, **strategy_args)
 
     for time, event in workload:

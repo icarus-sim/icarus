@@ -17,22 +17,22 @@ import numpy as np
 
 
 __all__ = [
-        'LinkedSet',
-        'Cache',
-        'NullCache',
-        'BeladyMinCache',
-        'LruCache',
-        'SegmentedLruCache',
-        'InCacheLfuCache',
-        'PerfectLfuCache',
-        'FifoCache',
-        'ClimbCache',
-        'RandEvictionCache',
-        'insert_after_k_hits_cache',
-        'rand_insert_cache',
-        'keyval_cache',
-        'ttl_cache',
-           ]
+    "LinkedSet",
+    "Cache",
+    "NullCache",
+    "BeladyMinCache",
+    "LruCache",
+    "SegmentedLruCache",
+    "InCacheLfuCache",
+    "PerfectLfuCache",
+    "FifoCache",
+    "ClimbCache",
+    "RandEvictionCache",
+    "insert_after_k_hits_cache",
+    "rand_insert_cache",
+    "keyval_cache",
+    "ttl_cache",
+]
 
 
 class LinkedSet(object):
@@ -46,6 +46,7 @@ class LinkedSet(object):
     remove from any position, move to top, move to bottom, insert after or
     before a given item.
     """
+
     class _Node(object):
         """Class implementing a node of the linked list"""
 
@@ -79,8 +80,7 @@ class LinkedSet(object):
         self._map = {}
         if iterable:
             if len(set(iterable)) < len(iterable):
-                raise ValueError('The iterable parameter contains repeated '
-                                 'elements')
+                raise ValueError("The iterable parameter contains repeated " "elements")
             for i in iterable:
                 self.append_bottom(i)
 
@@ -128,7 +128,12 @@ class LinkedSet(object):
         str : str
             A string representation of the set
         """
-        return self.__class__.__name__ + "([" + "".join("%s, " % str(i) for i in self)[:-2] + "])"
+        return (
+            self.__class__.__name__
+            + "(["
+            + "".join("%s, " % str(i) for i in self)[:-2]
+            + "])"
+        )
 
     def __contains__(self, k):
         """Return whether the set contains a given item
@@ -214,7 +219,7 @@ class LinkedSet(object):
             The item to append
         """
         if k in self._map:
-            raise KeyError('The item %s is already in the set' % str(k))
+            raise KeyError("The item %s is already in the set" % str(k))
         n = self._Node(val=k, up=None, down=self._top)
         if self._top == self._bottom is None:
             self._bottom = n
@@ -232,7 +237,7 @@ class LinkedSet(object):
             The item to append
         """
         if k in self._map:
-            raise KeyError('The item %s is already in the set' % str(k))
+            raise KeyError("The item %s is already in the set" % str(k))
         n = self._Node(val=k, up=self._bottom, down=None)
         if self._top == self._bottom is None:
             self._top = n
@@ -250,7 +255,7 @@ class LinkedSet(object):
             The item to move up
         """
         if k not in self._map:
-            raise KeyError('Item %s not in the set' % str(k))
+            raise KeyError("Item %s not in the set" % str(k))
         n = self._map[k]
         if n.up is None:  # already on top or there is only one element
             return
@@ -278,7 +283,7 @@ class LinkedSet(object):
             The item to move down
         """
         if k not in self._map:
-            raise KeyError('Item %s not in the set' % str(k))
+            raise KeyError("Item %s not in the set" % str(k))
         n = self._map[k]
         if n.down is None:  # already at the bottom or there is only one element
             return
@@ -306,7 +311,7 @@ class LinkedSet(object):
             The item to move to the top
         """
         if k not in self._map:
-            raise KeyError('Item %s not in the set' % str(k))
+            raise KeyError("Item %s not in the set" % str(k))
         n = self._map[k]
         if n.up is None:  # already on top or there is only one element
             return
@@ -330,7 +335,7 @@ class LinkedSet(object):
             The item to move to the bottom
         """
         if k not in self._map:
-            raise KeyError('Item %s not in the set' % str(k))
+            raise KeyError("Item %s not in the set" % str(k))
         n = self._map[k]
         if n.down is None:  # already at bottom or there is only one element
             return
@@ -356,9 +361,9 @@ class LinkedSet(object):
             The item to insert
         """
         if k in self._map:
-            raise KeyError('Item %s already in the set' % str(k))
+            raise KeyError("Item %s already in the set" % str(k))
         if i not in self._map:
-            raise KeyError('Item %s not in the set' % str(i))
+            raise KeyError("Item %s not in the set" % str(i))
         n = self._map[i]
         if n.up is None:  # Insert on top
             return self.append_top(k)
@@ -379,9 +384,9 @@ class LinkedSet(object):
             The item to insert
         """
         if k in self._map:
-            raise KeyError('Item %s already in the set' % str(k))
+            raise KeyError("Item %s already in the set" % str(k))
         if i not in self._map:
-            raise KeyError('Item %s not in the set' % str(i))
+            raise KeyError("Item %s not in the set" % str(i))
         n = self._map[i]
         if n.down is None:  # Insert on top
             return self.append_bottom(k)
@@ -408,7 +413,7 @@ class LinkedSet(object):
             The index of the item
         """
         if k not in self._map:
-            raise KeyError('The item %s is not in the set' % str(k))
+            raise KeyError("The item %s is not in the set" % str(k))
         index = 0
         curr = self._top
         while curr:
@@ -417,10 +422,12 @@ class LinkedSet(object):
             curr = curr.down
             index += 1
         else:
-            raise KeyError('It seems that the item %s is not in the set, '
-                           'but you should never see this message. '
-                           'There is something wrong with the code. '
-                           'Debug it or report it to the developers' % str(k))
+            raise KeyError(
+                "It seems that the item %s is not in the set, "
+                "but you should never see this message. "
+                "There is something wrong with the code. "
+                "Debug it or report it to the developers" % str(k)
+            )
 
     def remove(self, k):
         """Remove an item from the set
@@ -431,7 +438,7 @@ class LinkedSet(object):
             The item to remove
         """
         if k not in self._map:
-            raise KeyError('Item %s not in the set' % str(k))
+            raise KeyError("Item %s not in the set" % str(k))
         n = self._map[k]
         if self._bottom == n:  # I am trying to remove the last node
             self._bottom = n.up
@@ -462,7 +469,7 @@ class Cache(object):
         maxlen : int
             The maximum number of items the cache can store
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @abc.abstractmethod
     def __len__(self):
@@ -473,7 +480,7 @@ class Cache(object):
         len : int
             The number of items currently in the cache
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @property
     @abc.abstractmethod
@@ -485,7 +492,7 @@ class Cache(object):
         maxlen : int
             The maximum number of items the cache can store
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @abc.abstractmethod
     def dump(self):
@@ -497,7 +504,7 @@ class Cache(object):
         cache_dump : list
             The list of all items currently stored in the cache
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def do(self, op, k, *args, **kwargs):
         """Utility method that performs a specified operation on a given item.
@@ -523,11 +530,11 @@ class Cache(object):
             otherwise.
         """
         res = {
-            'GET':    self.get,
-            'PUT':    self.put,
-            'UPDATE': self.put,
-            'DELETE': self.remove
-                }[op](k, *args, **kwargs)
+            "GET": self.get,
+            "PUT": self.put,
+            "UPDATE": self.put,
+            "DELETE": self.remove,
+        }[op](k, *args, **kwargs)
         return res if res is not None else False
 
     @abc.abstractmethod
@@ -546,7 +553,7 @@ class Cache(object):
             Boolean value being *True* if the requested item is in the cache
             or *False* otherwise
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @abc.abstractmethod
     def get(self, k, *args, **kwargs):
@@ -567,7 +574,7 @@ class Cache(object):
             Boolean value being *True* if the requested item is in the cache
             or *False* otherwise
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @abc.abstractmethod
     def put(self, k, *args, **kwargs):
@@ -586,7 +593,7 @@ class Cache(object):
         evicted : any hashable type
             The evicted object or *None* if no contents were evicted.
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @abc.abstractmethod
     def remove(self, k, *args, **kwargs):
@@ -602,16 +609,15 @@ class Cache(object):
         removed : bool
             *True* if the content was in the cache, *False* if it was not.
         """
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     @abc.abstractmethod
     def clear(self):
-        """Empty the cache
-        """
-        raise NotImplementedError('This method is not implemented')
+        """Empty the cache"""
+        raise NotImplementedError("This method is not implemented")
 
 
-@register_cache_policy('NULL')
+@register_cache_policy("NULL")
 class NullCache(Cache):
     """Implementation of a null cache.
 
@@ -738,7 +744,7 @@ class NullCache(Cache):
         pass
 
 
-@register_cache_policy('MIN')
+@register_cache_policy("MIN")
 class BeladyMinCache(Cache):
     """Belady's MIN cache replacement policy
 
@@ -764,7 +770,7 @@ class BeladyMinCache(Cache):
         """
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
         self._next = defaultdict(deque)
         for i, k in enumerate(trace):
             self._next[k].append(i)
@@ -818,7 +824,7 @@ class BeladyMinCache(Cache):
         self._cache.clear()
 
 
-@register_cache_policy('LRU')
+@register_cache_policy("LRU")
 class LruCache(Cache):
     """Least Recently Used (LRU) cache eviction policy.
 
@@ -838,7 +844,7 @@ class LruCache(Cache):
         self._cache = LinkedSet()
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
 
     @inheritdoc(Cache)
     def __len__(self):
@@ -872,7 +878,7 @@ class LruCache(Cache):
             The current position of the item in the cache
         """
         if k not in self._cache:
-            raise ValueError('The item %s is not in the cache' % str(k))
+            raise ValueError("The item %s is not in the cache" % str(k))
         return self._cache.index(k)
 
     @inheritdoc(Cache)
@@ -924,7 +930,7 @@ class LruCache(Cache):
         self._cache.clear()
 
 
-@register_cache_policy('SLRU')
+@register_cache_policy("SLRU")
 class SegmentedLruCache(Cache):
     """Segmented Least Recently Used (LRU) cache eviction policy.
 
@@ -956,14 +962,16 @@ class SegmentedLruCache(Cache):
         """
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
         if not isinstance(segments, int) or segments <= 0 or segments > maxlen:
-            raise ValueError('segments must be an integer and 0 < segments <= maxlen')
+            raise ValueError("segments must be an integer and 0 < segments <= maxlen")
         if alloc:
             if len(alloc) != segments:
-                raise ValueError('alloc must be an iterable with as many entries as segments')
+                raise ValueError(
+                    "alloc must be an iterable with as many entries as segments"
+                )
             if np.abs(np.sum(alloc) - 1) > 0.001:
-                raise ValueError('All alloc entries must sum up to 1')
+                raise ValueError("All alloc entries must sum up to 1")
         else:
             alloc = [1 / segments for _ in range(segments)]
         self._segment_maxlen = apportionment(maxlen, alloc)
@@ -1071,7 +1079,7 @@ class SegmentedLruCache(Cache):
             The current position of the item in the cache
         """
         if k not in self._cache:
-            raise ValueError('The item %s is not in the cache' % str(k))
+            raise ValueError("The item %s is not in the cache" % str(k))
         seg = self._cache[k]
         position = self._segment[seg].index(k)
         return sum(len(self._segment[i]) for i in range(seg)) + position
@@ -1088,7 +1096,7 @@ class SegmentedLruCache(Cache):
             s.clear()
 
 
-@register_cache_policy('IN_CACHE_LFU')
+@register_cache_policy("IN_CACHE_LFU")
 class InCacheLfuCache(Cache):
     """In-cache Least Frequently Used (LFU) cache implementation
 
@@ -1116,7 +1124,7 @@ class InCacheLfuCache(Cache):
         self.t = 0
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
 
     @inheritdoc(Cache)
     def __len__(self):
@@ -1168,7 +1176,7 @@ class InCacheLfuCache(Cache):
         self._cache.clear()
 
 
-@register_cache_policy('PERFECT_LFU')
+@register_cache_policy("PERFECT_LFU")
 class PerfectLfuCache(Cache):
     """Perfect Least Frequently Used (LFU) cache implementation
 
@@ -1197,7 +1205,7 @@ class PerfectLfuCache(Cache):
         self.t = 0
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
 
     @inheritdoc(Cache)
     def __len__(self):
@@ -1260,7 +1268,7 @@ class PerfectLfuCache(Cache):
         self._counter.clear()
 
 
-@register_cache_policy('FIFO')
+@register_cache_policy("FIFO")
 class FifoCache(Cache):
     """First In First Out (FIFO) cache implementation.
 
@@ -1278,7 +1286,7 @@ class FifoCache(Cache):
         self._maxlen = int(maxlen)
         self._d = deque()
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
 
     @inheritdoc(Cache)
     def __len__(self):
@@ -1320,7 +1328,7 @@ class FifoCache(Cache):
             if c == k:
                 return i
             i += 1
-        raise ValueError('The item %s is not in the cache' % str(k))
+        raise ValueError("The item %s is not in the cache" % str(k))
 
     @inheritdoc(Cache)
     def get(self, k, *args, **kwargs):
@@ -1352,7 +1360,7 @@ class FifoCache(Cache):
         self._d.clear()
 
 
-@register_cache_policy('CLIMB')
+@register_cache_policy("CLIMB")
 class ClimbCache(Cache):
     """CLIMB cache implementation
 
@@ -1367,7 +1375,7 @@ class ClimbCache(Cache):
         self._cache = LinkedSet()
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
 
     @inheritdoc(Cache)
     def __len__(self):
@@ -1400,7 +1408,7 @@ class ClimbCache(Cache):
             The current position of the item in the cache
         """
         if k not in self._cache:
-            raise ValueError('The item %s is not in the cache' % str(k))
+            raise ValueError("The item %s is not in the cache" % str(k))
         return self._cache.index(k)
 
     @inheritdoc(Cache)
@@ -1461,7 +1469,7 @@ class ClimbCache(Cache):
         self._cache.clear()
 
 
-@register_cache_policy('RAND')
+@register_cache_policy("RAND")
 class RandEvictionCache(Cache):
     """Random eviction cache implementation.
 
@@ -1479,7 +1487,7 @@ class RandEvictionCache(Cache):
     def __init__(self, maxlen, *args, **kwargs):
         self._maxlen = int(maxlen)
         if self._maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
         self._cache = set()
         self._a = [None for _ in range(self._maxlen)]
 
@@ -1631,9 +1639,9 @@ def rand_insert_cache(cache, p, seed=None):
         The modified cache instance
     """
     if not isinstance(cache, Cache):
-        raise TypeError('cache must be an instance of Cache or its subclasses')
+        raise TypeError("cache must be an instance of Cache or its subclasses")
     if p < 0 or p > 1:
-        raise ValueError('p must be a value between 0 and 1')
+        raise ValueError("p must be a value between 0 and 1")
     cache = copy.deepcopy(cache)
     random.seed(seed)
     c_put = cache.put
@@ -1672,9 +1680,9 @@ def keyval_cache(cache):
         The modified cache instance
     """
     if not isinstance(cache, Cache):
-        raise TypeError('cache must be an instance of Cache or its subclasses')
+        raise TypeError("cache must be an instance of Cache or its subclasses")
     if len(cache) > 0:
-        raise ValueError('the cache must be empty')
+        raise ValueError("the cache must be empty")
     cache = copy.deepcopy(cache)
     cache._val = {}
     k_put = cache.put
@@ -1827,11 +1835,11 @@ def ttl_cache(cache, f_time):
     advisable to execute a *purge* first.
     """
     if not isinstance(cache, Cache):
-        raise TypeError('cache must be an instance of Cache or its subclasses')
+        raise TypeError("cache must be an instance of Cache or its subclasses")
     if len(cache) > 0:
-        raise ValueError('the cache must be empty')
-    if not hasattr(f_time, '__call__'):
-        raise TypeError('f_time must be callable')
+        raise ValueError("the cache must be empty")
+    if not hasattr(f_time, "__call__"):
+        raise TypeError("f_time must be callable")
     cache = copy.deepcopy(cache)
 
     cache.f_time = f_time
@@ -1854,8 +1862,10 @@ def ttl_cache(cache, f_time):
         expiry : float
             Cutoff expiration time
         """
-        while cache._exp_list.bottom is not None and \
-                cache.expiry[cache._exp_list.bottom] < expiry:
+        while (
+            cache._exp_list.bottom is not None
+            and cache.expiry[cache._exp_list.bottom] < expiry
+        ):
             expired = cache._exp_list.pop_bottom()
             cache.expiry.pop(expired)
             c_remove(expired)
@@ -1897,8 +1907,10 @@ def ttl_cache(cache, f_time):
         now = cache.f_time()
         if ttl is not None:
             if expires is not None:
-                raise ValueError('Both expires and ttl parameters provided. '
-                                 'Only one can be provided.')
+                raise ValueError(
+                    "Both expires and ttl parameters provided. "
+                    "Only one can be provided."
+                )
             if ttl <= 0:
                 # if TTL is not positive, then do not cache the content at all
                 return None

@@ -17,30 +17,30 @@ from icarus.tools import TruncatedZipfDist, DiscreteDist
 
 
 __all__ = [
-       'fagin_characteristic_time',
-       'fagin_per_content_cache_hit_ratio',
-       'fagin_cache_hit_ratio',
-       'che_characteristic_time',
-       'che_per_content_cache_hit_ratio',
-       'che_cache_hit_ratio',
-       'che_characteristic_time_simplified',
-       'che_per_content_cache_hit_ratio_simplified',
-       'che_cache_hit_ratio_simplified',
-       'che_characteristic_time_generalized',
-       'che_per_content_cache_hit_ratio_generalized',
-       'che_cache_hit_ratio_generalized',
-       'laoutaris_characteristic_time',
-       'laoutaris_per_content_cache_hit_ratio',
-       'laoutaris_cache_hit_ratio',
-       'optimal_cache_hit_ratio',
-       'numeric_per_content_cache_hit_ratio',
-       'numeric_cache_hit_ratio',
-       'numeric_cache_hit_ratio_2_layers',
-       'trace_driven_cache_hit_ratio',
-       'hashrouting_model',
-       'hashrouting_model_ring',
-       'hashrouting_model_mesh',
-          ]
+    "fagin_characteristic_time",
+    "fagin_per_content_cache_hit_ratio",
+    "fagin_cache_hit_ratio",
+    "che_characteristic_time",
+    "che_per_content_cache_hit_ratio",
+    "che_cache_hit_ratio",
+    "che_characteristic_time_simplified",
+    "che_per_content_cache_hit_ratio_simplified",
+    "che_cache_hit_ratio_simplified",
+    "che_characteristic_time_generalized",
+    "che_per_content_cache_hit_ratio_generalized",
+    "che_cache_hit_ratio_generalized",
+    "laoutaris_characteristic_time",
+    "laoutaris_per_content_cache_hit_ratio",
+    "laoutaris_cache_hit_ratio",
+    "optimal_cache_hit_ratio",
+    "numeric_per_content_cache_hit_ratio",
+    "numeric_cache_hit_ratio",
+    "numeric_cache_hit_ratio_2_layers",
+    "trace_driven_cache_hit_ratio",
+    "hashrouting_model",
+    "hashrouting_model_ring",
+    "hashrouting_model_mesh",
+]
 
 
 def fagin_characteristic_time(pdf, cache_size):
@@ -60,8 +60,10 @@ def fagin_characteristic_time(pdf, cache_size):
         The characteristic time.
     """
     pdf = np.asarray(pdf)
+
     def func_r(r):
-        return np.sum((1 - pdf)**r) - len(pdf) + cache_size
+        return np.sum((1 - pdf) ** r) - len(pdf) + cache_size
+
     return fsolve(func_r, x0=cache_size)[0]
 
 
@@ -90,7 +92,7 @@ def fagin_per_content_cache_hit_ratio(pdf, cache_size, target=None):
     """
     items = range(len(pdf)) if target is None else [target]
     r = fagin_characteristic_time(pdf, cache_size)
-    hit_ratio = [1 - (1 - pdf[i])**r for i in items]
+    hit_ratio = [1 - (1 - pdf[i]) ** r for i in items]
     return hit_ratio if target is None else hit_ratio[0]
 
 
@@ -137,9 +139,15 @@ def che_characteristic_time(pdf, cache_size, target=None):
         all items in the population. If a target is specified, then it returns
         the characteristic time of only the specified item.
     """
+
     def func_r(r, i):
-        return sum(math.exp(-pdf[j] * r) for j in range(len(pdf)) if j != i) \
-               - len(pdf) + 1 + cache_size
+        return (
+            sum(math.exp(-pdf[j] * r) for j in range(len(pdf)) if j != i)
+            - len(pdf)
+            + 1
+            + cache_size
+        )
+
     items = range(len(pdf)) if target is None else [target - 1]
     r = [fsolve(func_r, x0=cache_size, args=(i)) for i in items]
     return r if target is None else r[0]
@@ -213,8 +221,10 @@ def che_characteristic_time_simplified(pdf, cache_size):
         The characteristic time.
     """
     pdf = np.asarray(pdf)
+
     def func_r(r):
         return np.sum(np.exp(-pdf * r)) - len(pdf) + cache_size
+
     return fsolve(func_r, x0=cache_size)[0]
 
 
@@ -279,17 +289,21 @@ def che_p_in_func(pdf, policy, **policy_args):
     policy : str
         The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
     """
-    if policy == 'LRU':
+    if policy == "LRU":
         p_in = lambda p, t: 1 - np.exp(-p * t)
-    elif policy == 'q-LRU':
-        if 'q' not in policy_args:
-            raise ValueError('q parameter not specified')
-        q = policy_args['q']
-        p_in = lambda p, t: q * (1 - np.exp(-p * t)) / (np.exp(-p * t) + q * (1 - np.exp(-p * t)))
-    elif policy in ('FIFO', 'RANDOM'):
+    elif policy == "q-LRU":
+        if "q" not in policy_args:
+            raise ValueError("q parameter not specified")
+        q = policy_args["q"]
+        p_in = (
+            lambda p, t: q
+            * (1 - np.exp(-p * t))
+            / (np.exp(-p * t) + q * (1 - np.exp(-p * t)))
+        )
+    elif policy in ("FIFO", "RANDOM"):
         p_in = lambda p, t: p * t / (1 + p * t)
     else:
-        raise ValueError('policy {} not recognized'.format(policy))
+        raise ValueError("policy {} not recognized".format(policy))
     return p_in
 
 
@@ -327,8 +341,7 @@ def che_characteristic_time_generalized(pdf, cache_size, policy, **policy_args):
     return fsolve(func_t, x0=cache_size)[0]
 
 
-def che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy,
-                                                **policy_args):
+def che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy, **policy_args):
     """Estimate the cache hit ratio of an item or of all items in a cache
     subject to IRM demand according to the extension of Che's approximation
     proposed by Martina et al.
@@ -360,7 +373,7 @@ def che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy,
     return p_in(pdf, t)
 
 
-def che_cache_hit_ratio_generalized(pdf, cache_size, policy='LRU', **policy_args):
+def che_cache_hit_ratio_generalized(pdf, cache_size, policy="LRU", **policy_args):
     """Estimate the overall cache hit ratio of a cache subject to IRM demand
     according to the extension of Che's approximation proposed by Martina et al.
 
@@ -384,7 +397,9 @@ def che_cache_hit_ratio_generalized(pdf, cache_size, policy='LRU', **policy_args
     performance analysis of caching systems," in Proceedings of the 2014
     IEEE Conference on Computer Communications (INFOCOM'14), April 2014
     """
-    ch = che_per_content_cache_hit_ratio_generalized(pdf, cache_size, policy, **policy_args)
+    ch = che_per_content_cache_hit_ratio_generalized(
+        pdf, cache_size, policy, **policy_args
+    )
     return sum(pdf[i] * ch[i] for i in range(len(pdf)))
 
 
@@ -412,6 +427,7 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
     ----------
     http://arxiv.org/pdf/0705.1970.pdf
     """
+
     def H(N, alpha):
         return sum(1.0 / l ** alpha for l in range(1, N + 1))
 
@@ -429,7 +445,7 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
             The cubic root
         """
         exp = 1.0 / 3
-        return x ** exp if x >= 0 else -(-x) ** exp
+        return x ** exp if x >= 0 else -((-x) ** exp)
 
     def solve_3rd_order_equation(a, b, c, d):
         """Calculate the real solutions of the 3rd order equations
@@ -465,8 +481,11 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
         # Calculate discriminator and find roots
         discr = y_N ** 2 - h_2
         if discr > 0:
-            r_x = (x_N + cubrt(0.5 / a * (-y_N + math.sqrt(discr))) +
-                   cubrt(0.5 / a * (-y_N - math.sqrt(discr))),)
+            r_x = (
+                x_N
+                + cubrt(0.5 / a * (-y_N + math.sqrt(discr)))
+                + cubrt(0.5 / a * (-y_N - math.sqrt(discr))),
+            )
         elif discr == 0:
             delta = math.sqrt(delta_2)
             r1 = r2 = x_N + delta
@@ -481,6 +500,7 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
             r3 = x_N + 2 * delta * np.cos(2 * np.pi / 3 + Theta)
             r_x = (r1, r2, r3)
         return r_x
+
     # Get parameters
     C = cache_size
     N = population
@@ -492,19 +512,25 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
     Lambda = 1.0 / H_N_a
     # Find values of r
     if order == 2:
-        alpha_2 = (0.5 * Lambda ** 2 * H_N_2a) - \
-                  (0.5 * Lambda ** 3 * C * H_N_3a) + \
-                  (0.25 * Lambda ** 4 * C ** 2 * H_N_4a)
-        alpha_1 = -(Lambda * H_N_a) + \
-                   (0.5 * Lambda ** 3 * C ** 2 * H_N_3a) - \
-                   (0.5 * Lambda ** 4 * C ** 3 * H_N_4a)
+        alpha_2 = (
+            (0.5 * Lambda ** 2 * H_N_2a)
+            - (0.5 * Lambda ** 3 * C * H_N_3a)
+            + (0.25 * Lambda ** 4 * C ** 2 * H_N_4a)
+        )
+        alpha_1 = (
+            -(Lambda * H_N_a)
+            + (0.5 * Lambda ** 3 * C ** 2 * H_N_3a)
+            - (0.5 * Lambda ** 4 * C ** 3 * H_N_4a)
+        )
         alpha_0 = C + (0.25 * Lambda ** 4 * C ** 4 * H_N_4a)
         # Calculate discriminant to verify if there are real solutions
         discr = alpha_1 ** 2 - 4 * alpha_2 * alpha_0
         if discr < 0:
-            raise ValueError('Could not find real values for the '
-                             'characteristic time. Try using a 3rd order '
-                             'expansion')
+            raise ValueError(
+                "Could not find real values for the "
+                "characteristic time. Try using a 3rd order "
+                "expansion"
+            )
         # Calculate roots of the 2nd order equation
         r1 = (-alpha_1 + math.sqrt(discr)) / (2 * alpha_2)
         r2 = (-alpha_1 - math.sqrt(discr)) / (2 * alpha_2)
@@ -514,32 +540,49 @@ def laoutaris_characteristic_time(alpha, population, cache_size, order=3):
         H_N_5a = H(N, 5 * alpha)
         H_N_6a = H(N, 6 * alpha)
         # Calculate coefficients of the 3rd order equation
-        alpha_3 = -(Lambda ** 3 / 6 * H_N_3a) + (Lambda ** 4 * C / 6 * H_N_4a) - \
-                   (Lambda ** 5 * C ** 2 / 12 * H_N_5a) + (Lambda ** 6 * C ** 3 / 36 * H_N_6a)
-        alpha_2 = (Lambda ** 2 / 2 * H_N_2a) - (Lambda ** 4 * C ** 2 / 4 * H_N_4a) + \
-                  (Lambda ** 5 * C ** 3 / 6 * H_N_5a) - (Lambda ** 6 * C ** 4 / 12 * H_N_6a)
-        alpha_1 = -Lambda * H_N_a + (Lambda ** 4 * C ** 3 / 6 * H_N_4a) - \
-                                    (Lambda ** 5 * C ** 4 / 12 * H_N_5a) + \
-                                    (Lambda ** 6 * C ** 5 / 12 * H_N_6a)
-        alpha_0 = C - (Lambda ** 4 * C ** 4 / 12 * H_N_4a) - \
-                      (Lambda ** 6 * C ** 6 / 36 * H_N_6a)
+        alpha_3 = (
+            -(Lambda ** 3 / 6 * H_N_3a)
+            + (Lambda ** 4 * C / 6 * H_N_4a)
+            - (Lambda ** 5 * C ** 2 / 12 * H_N_5a)
+            + (Lambda ** 6 * C ** 3 / 36 * H_N_6a)
+        )
+        alpha_2 = (
+            (Lambda ** 2 / 2 * H_N_2a)
+            - (Lambda ** 4 * C ** 2 / 4 * H_N_4a)
+            + (Lambda ** 5 * C ** 3 / 6 * H_N_5a)
+            - (Lambda ** 6 * C ** 4 / 12 * H_N_6a)
+        )
+        alpha_1 = (
+            -Lambda * H_N_a
+            + (Lambda ** 4 * C ** 3 / 6 * H_N_4a)
+            - (Lambda ** 5 * C ** 4 / 12 * H_N_5a)
+            + (Lambda ** 6 * C ** 5 / 12 * H_N_6a)
+        )
+        alpha_0 = (
+            C
+            - (Lambda ** 4 * C ** 4 / 12 * H_N_4a)
+            - (Lambda ** 6 * C ** 6 / 36 * H_N_6a)
+        )
         # Solve 3rd order equation
         r_x = solve_3rd_order_equation(alpha_3, alpha_2, alpha_1, alpha_0)
     else:
-        raise ValueError('Only 2nd and 3rd order solutions are supported')
+        raise ValueError("Only 2nd and 3rd order solutions are supported")
     # Find actual value of characteristic time (r) if exists
     # We select the minimum positive r greater than C
     r_c = [x for x in r_x if x > C]
     if r_c:
         return min(r_c)
     else:
-        raise ValueError('Cannot compute cache hit ratio using this method. '
-                         'Could not find positive values of characteristic time'
-                         ' greater than the cache size.')
+        raise ValueError(
+            "Cannot compute cache hit ratio using this method. "
+            "Could not find positive values of characteristic time"
+            " greater than the cache size."
+        )
 
 
-def laoutaris_per_content_cache_hit_ratio(alpha, population, cache_size,
-                                          order=3, target=None):
+def laoutaris_per_content_cache_hit_ratio(
+    alpha, population, cache_size, order=3, target=None
+):
     """Estimates the per-content cache hit ratio of an LRU cache under general
     power-law demand using the Laoutaris approximation.
 
@@ -630,8 +673,9 @@ def optimal_cache_hit_ratio(pdf, cache_size):
     return sum(sorted(pdf, reverse=True)[:cache_size])
 
 
-def numeric_per_content_cache_hit_ratio(pdf, cache, warmup=None, measure=None,
-                                        seed=None, target=None):
+def numeric_per_content_cache_hit_ratio(
+    pdf, cache, warmup=None, measure=None, seed=None, target=None
+):
     """Numerically compute the per-content cache hit ratio of a cache under IRM
     stationary demand with a given pdf.
 
@@ -728,8 +772,9 @@ def numeric_cache_hit_ratio(pdf, cache, warmup=None, measure=None, seed=None):
     return cache_hits / measure
 
 
-def numeric_cache_hit_ratio_2_layers(pdf, l1_cache, l2_cache,
-                                     warmup=None, measure=None, seed=None):
+def numeric_cache_hit_ratio_2_layers(
+    pdf, l1_cache, l2_cache, warmup=None, measure=None, seed=None
+):
     """Numerically compute the cache hit ratio of a two-layer cache under IRM
     stationary demand with a given pdf.
 
@@ -783,10 +828,10 @@ def numeric_cache_hit_ratio_2_layers(pdf, l1_cache, l2_cache,
                 l2_cache.put(content)
             l1_cache.put(content)
     return {
-        'l1_hits': l1_hits / measure,
-        'l2_hits': l2_hits / measure,
-        'total_hits': (l1_hits + l2_hits) / measure
-           }
+        "l1_hits": l1_hits / measure,
+        "l2_hits": l2_hits / measure,
+        "total_hits": (l1_hits + l2_hits) / measure,
+    }
 
 
 def trace_driven_cache_hit_ratio(workload, cache, warmup_ratio=0.25):
@@ -825,8 +870,9 @@ def trace_driven_cache_hit_ratio(workload, cache, warmup_ratio=0.25):
     return cache_hits / (n - n_warmup)
 
 
-def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
-                      req_rates, paths=None):
+def hashrouting_model(
+    topology, routing, hit_ratio, source_content_ratio, req_rates, paths=None
+):
     """Compute overall latency of hashrouting over an arbitrary topology
 
     Parameters
@@ -859,7 +905,7 @@ def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
            University College London, Dec. 2015. Available:
            http://discovery.ucl.ac.uk/1473436/
     """
-    if routing not in ('SYMM', 'MULTICAST'):
+    if routing not in ("SYMM", "MULTICAST"):
         raise ValueError("Routing {} not supported".format(routing))
     if math.fabs(sum(source_content_ratio.values()) - 1) > 0.0001:
         raise ValueError("The sum of source_content_ratio values must be 1")
@@ -870,7 +916,7 @@ def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
         latencies[u] = {}
         for v in paths[u]:
             links = path_links(paths[u][v])
-            latencies[u][v] = sum(topology.edges[i, j]['delay'] for i, j in links)
+            latencies[u][v] = sum(topology.edges[i, j]["delay"] for i, j in links)
     # Get all caching nodes
     caches = topology.cache_nodes()
     overall_req_rate = sum(req_rates.values())
@@ -879,34 +925,43 @@ def hashrouting_model(topology, routing, hit_ratio, source_content_ratio,
     # Calculate overall latency
 
     # This is the latency component between receivers and caches
-    if routing == 'SYMM':
-        latency = (1 / len(caches)) * \
-                  sum(rate * (latencies[recv][cache] + latencies[cache][recv])
-                      for recv, rate in req_ratios.items() for cache in caches)
+    if routing == "SYMM":
+        latency = (1 / len(caches)) * sum(
+            rate * (latencies[recv][cache] + latencies[cache][recv])
+            for recv, rate in req_ratios.items()
+            for cache in caches
+        )
         # This is the latency component between caches and sources
-        latency += ((1 - hit_ratio) / len(caches)) * \
-                   sum(ratio * (latencies[cache][source] + latencies[source][cache])
-                       for cache in caches
-                       for source, ratio in source_content_ratio.items())
-    elif routing == 'MULTICAST':
+        latency += ((1 - hit_ratio) / len(caches)) * sum(
+            ratio * (latencies[cache][source] + latencies[source][cache])
+            for cache in caches
+            for source, ratio in source_content_ratio.items()
+        )
+    elif routing == "MULTICAST":
         # Latency leg receiver-cache
-        latency = (1 / len(caches)) * \
-          sum(rate * (latencies[recv][cache])
-              for recv, rate in req_ratios.items() for cache in caches)
+        latency = (1 / len(caches)) * sum(
+            rate * (latencies[recv][cache])
+            for recv, rate in req_ratios.items()
+            for cache in caches
+        )
         # Latency leg cache-receiver (hit case)
-        latency += (hit_ratio / len(caches)) * \
-          sum(rate * (latencies[cache][recv])
-              for recv, rate in req_ratios.items() for cache in caches)
+        latency += (hit_ratio / len(caches)) * sum(
+            rate * (latencies[cache][recv])
+            for recv, rate in req_ratios.items()
+            for cache in caches
+        )
         # Latency leg caches-sources (miss case)
-        latency += ((1 - hit_ratio) / len(caches)) * \
-                    sum(ratio * (latencies[cache][source])
-                        for cache in caches
-                        for source, ratio in source_content_ratio.items())
+        latency += ((1 - hit_ratio) / len(caches)) * sum(
+            ratio * (latencies[cache][source])
+            for cache in caches
+            for source, ratio in source_content_ratio.items()
+        )
         # Latency leg sources-receivers (miss case)
-        latency += (1 - hit_ratio) * \
-                    sum(source_ratio * req_ratio * (latencies[source][receiver])
-                        for receiver, req_ratio in req_ratios.items()
-                        for source, source_ratio in source_content_ratio.items())
+        latency += (1 - hit_ratio) * sum(
+            source_ratio * req_ratio * (latencies[source][receiver])
+            for receiver, req_ratio in req_ratios.items()
+            for source, source_ratio in source_content_ratio.items()
+        )
     else:
         # Should never reach this block anyway
         raise ValueError("Routing {} not supported".format(routing))
@@ -948,7 +1003,9 @@ def hashrouting_model_mesh(n, m, h, delay_int, delay_ext):
         raise ValueError("m must be no greater than n")
     if h < 0 or h > 1:
         raise ValueError("h must be comprised between 0 and 1")
-    return 2*(((n-1)/n)*delay_int + (1-h)*(((n-m)/n)*delay_int + delay_ext))
+    return 2 * (
+        ((n - 1) / n) * delay_int + (1 - h) * (((n - m) / n) * delay_int + delay_ext)
+    )
 
 
 def hashrouting_model_ring(n, h, delay_int, delay_ext):
@@ -982,5 +1039,5 @@ def hashrouting_model_ring(n, h, delay_int, delay_ext):
     """
     if h < 0 or h > 1:
         raise ValueError("h must be comprised between 0 and 1")
-    avg_hop = (n**2 - 1)/(4*n) if n % 2 == 1 else n/4
-    return 2*(avg_hop*delay_int + (1-h)*(avg_hop*delay_int + delay_ext))
+    avg_hop = (n ** 2 - 1) / (4 * n) if n % 2 == 1 else n / 4
+    return 2 * (avg_hop * delay_int + (1 - h) * (avg_hop * delay_int + delay_ext))

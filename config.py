@@ -205,7 +205,7 @@ from icarus.util import Tree
 
 # Level of logging output
 # Available options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_LEVEL = 'INFO'
+LOG_LEVEL = "INFO"
 
 # If True, executes simulations in parallel using multiple processes
 # to take advantage of multicore CPUs
@@ -218,7 +218,7 @@ N_PROCESSES = cpu_count()
 # Format in which results are saved.
 # Result readers and writers are located in module ./icarus/results/readwrite.py
 # Currently only PICKLE is supported
-RESULTS_FORMAT = 'PICKLE'
+RESULTS_FORMAT = "PICKLE"
 
 # Number of times each experiment is replicated
 # This is necessary for extracting confidence interval of selected metrics
@@ -228,12 +228,11 @@ N_REPLICATIONS = 3
 # The implementation of data collectors are located in ./icarus/execution/collectors.py
 # Remove collectors not needed
 DATA_COLLECTORS = [
-           'CACHE_HIT_RATIO',  # Measure cache hit ratio
-           'LATENCY',  # Measure request and response latency (based on static link delays)
-           'LINK_LOAD',  # Measure link loads
-           'PATH_STRETCH',  # Measure path stretch
-                   ]
-
+    "CACHE_HIT_RATIO",  # Measure cache hit ratio
+    "LATENCY",  # Measure request and response latency (based on static link delays)
+    "LINK_LOAD",  # Measure link loads
+    "PATH_STRETCH",  # Measure path stretch
+]
 
 
 ########################## EXPERIMENTS CONFIGURATION ##########################
@@ -254,7 +253,7 @@ N_MEASURED_REQUESTS = 6 * 10 ** 5
 REQ_RATE = 1.0
 
 # Cache eviction policy
-CACHE_POLICY = 'LRU'
+CACHE_POLICY = "LRU"
 
 # Zipf alpha parameter, remove parameters not needed
 ALPHA = [0.6, 0.8, 1.0]
@@ -268,29 +267,29 @@ NETWORK_CACHE = [0.004, 0.002]
 # Topology implementations are located in ./icarus/scenarios/topology.py
 # Remove topologies not needed
 TOPOLOGIES = [
-        'GEANT',
-        'WIDE',
-        'GARR',
-        'TISCALI',
-              ]
+    "GEANT",
+    "WIDE",
+    "GARR",
+    "TISCALI",
+]
 
 # List of caching and routing strategies
 # The code is located in ./icarus/models/strategy/*.py
 # Remove strategies not needed
 STRATEGIES = [
-     'LCE',             # Leave Copy Everywhere
-     'NO_CACHE',        # No caching, shortest-path routing
-     'HR_SYMM',         # Symmetric hash-routing
-     'HR_ASYMM',        # Asymmetric hash-routing
-     'HR_MULTICAST',    # Multicast hash-routing
-     'HR_HYBRID_AM',    # Hybrid Asymm-Multicast hash-routing
-     'HR_HYBRID_SM',    # Hybrid Symm-Multicast hash-routing
-     'CL4M',            # Cache less for more
-     'PROB_CACHE',      # ProbCache
-     'LCD',             # Leave Copy Down
-     'RAND_CHOICE',     # Random choice: cache in one random cache on path
-     'RAND_BERNOULLI',  # Random Bernoulli: cache randomly in caches on path
-             ]
+    "LCE",  # Leave Copy Everywhere
+    "NO_CACHE",  # No caching, shortest-path routing
+    "HR_SYMM",  # Symmetric hash-routing
+    "HR_ASYMM",  # Asymmetric hash-routing
+    "HR_MULTICAST",  # Multicast hash-routing
+    "HR_HYBRID_AM",  # Hybrid Asymm-Multicast hash-routing
+    "HR_HYBRID_SM",  # Hybrid Symm-Multicast hash-routing
+    "CL4M",  # Cache less for more
+    "PROB_CACHE",  # ProbCache
+    "LCD",  # Leave Copy Down
+    "RAND_CHOICE",  # Random choice: cache in one random cache on path
+    "RAND_BERNOULLI",  # Random Bernoulli: cache randomly in caches on path
+]
 
 # Instantiate experiment queue
 EXPERIMENT_QUEUE = deque()
@@ -298,14 +297,16 @@ EXPERIMENT_QUEUE = deque()
 # Build a default experiment configuration which is going to be used by all
 # experiments of the campaign
 default = Tree()
-default['workload'] = {'name':       'STATIONARY',
-                       'n_contents': N_CONTENTS,
-                       'n_warmup':   N_WARMUP_REQUESTS,
-                       'n_measured': N_MEASURED_REQUESTS,
-                       'rate':       REQ_RATE}
-default['cache_placement']['name'] = 'UNIFORM'
-default['content_placement']['name'] = 'UNIFORM'
-default['cache_policy']['name'] = CACHE_POLICY
+default["workload"] = {
+    "name": "STATIONARY",
+    "n_contents": N_CONTENTS,
+    "n_warmup": N_WARMUP_REQUESTS,
+    "n_measured": N_MEASURED_REQUESTS,
+    "rate": REQ_RATE,
+}
+default["cache_placement"]["name"] = "UNIFORM"
+default["content_placement"]["name"] = "UNIFORM"
+default["cache_policy"]["name"] = CACHE_POLICY
 
 # Create experiments multiplexing all desired parameters
 for alpha in ALPHA:
@@ -313,10 +314,16 @@ for alpha in ALPHA:
         for topology in TOPOLOGIES:
             for network_cache in NETWORK_CACHE:
                 experiment = copy.deepcopy(default)
-                experiment['workload']['alpha'] = alpha
-                experiment['strategy']['name'] = strategy
-                experiment['topology']['name'] = topology
-                experiment['cache_placement']['network_cache'] = network_cache
-                experiment['desc'] = "Alpha: %s, strategy: %s, topology: %s, network cache: %s" \
-                                     % (str(alpha), strategy, topology, str(network_cache))
+                experiment["workload"]["alpha"] = alpha
+                experiment["strategy"]["name"] = strategy
+                experiment["topology"]["name"] = topology
+                experiment["cache_placement"]["network_cache"] = network_cache
+                experiment[
+                    "desc"
+                ] = "Alpha: %s, strategy: %s, topology: %s, network cache: %s" % (
+                    str(alpha),
+                    strategy,
+                    topology,
+                    str(network_cache),
+                )
                 EXPERIMENT_QUEUE.append(experiment)

@@ -17,11 +17,11 @@ import click
 import icarus
 
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
-read = icarus.registry.RESULTS_READER['PICKLE']
-write = icarus.registry.RESULTS_WRITER['PICKLE']
+read = icarus.registry.RESULTS_READER["PICKLE"]
+write = icarus.registry.RESULTS_WRITER["PICKLE"]
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -31,11 +31,16 @@ def main():
 
 
 @main.command(context_settings=CONTEXT_SETTINGS)
-@click.option('--results', '-r', required=True,
-              help='The file on which results will be saved')
-@click.option('--config-override', '-c', multiple=True,
-              help='Override specific key=value parameter of configuration file')
-@click.argument('config', nargs=1, required=True)
+@click.option(
+    "--results", "-r", required=True, help="The file on which results will be saved"
+)
+@click.option(
+    "--config-override",
+    "-c",
+    multiple=True,
+    help="Override specific key=value parameter of configuration file",
+)
+@click.argument("config", nargs=1, required=True)
 def run(results, config_override, config):
     """Run a set of simulations."""
     config_override = dict(c.split("=") for c in config_override) or None
@@ -48,17 +53,17 @@ def results():
     pass
 
 
-@results.command('merge', context_settings=CONTEXT_SETTINGS)
-@click.option('--output', '-o', nargs=1, required=True, help='The output file')
-@click.argument('inputs', nargs=-1, required=True)
+@results.command("merge", context_settings=CONTEXT_SETTINGS)
+@click.option("--output", "-o", nargs=1, required=True, help="The output file")
+@click.argument("inputs", nargs=-1, required=True)
 def merge_results(output, inputs):
     """Merge multiple results files into one."""
     write(sum((read(i) for i in inputs[1:]), read(inputs[0])), output)
 
 
-@results.command('print', context_settings=CONTEXT_SETTINGS)
-@click.option('--json', '-j', is_flag=True, help='Print results in JSON format')
-@click.argument('path')
+@results.command("print", context_settings=CONTEXT_SETTINGS)
+@click.option("--json", "-j", is_flag=True, help="Print results in JSON format")
+@click.argument("path")
 def print_results(json, path):
     """Print content of a results file."""
     rs = read(path)

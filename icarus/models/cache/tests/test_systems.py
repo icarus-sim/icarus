@@ -5,7 +5,6 @@ import icarus.models as cache
 
 
 class TestPathCache(object):
-
     def test_put_get(self):
         c = cache.PathCache([cache.LruCache(2) for _ in range(3)])
         assert len(c) == 3
@@ -66,10 +65,8 @@ class TestPathCache(object):
 
 
 class TestTreeCache(object):
-
     def test_put_get(self):
-        c = cache.TreeCache([cache.LruCache(2) for _ in range(2)],
-                            cache.LruCache(2))
+        c = cache.TreeCache([cache.LruCache(2) for _ in range(2)], cache.LruCache(2))
         assert not c.get(1)
         c.put(1)
         leaf_0, leaf_1, root = [(1 in i) for i in c.dump(serialized=False)]
@@ -79,14 +76,12 @@ class TestTreeCache(object):
         assert c.get(1)
 
     def test_no_read_through(self):
-        c = cache.TreeCache([cache.LruCache(2) for _ in range(2)],
-                            cache.LruCache(2))
+        c = cache.TreeCache([cache.LruCache(2) for _ in range(2)], cache.LruCache(2))
         with pytest.raises(ValueError):
             c.put(1)
 
 
 class TestArrayCache(object):
-
     def test_put_get(self):
         c = cache.ArrayCache([cache.LruCache(2) for _ in range(2)])
         assert not c.get(1)
@@ -115,9 +110,8 @@ class TestArrayCache(object):
 
 
 class TestShardedCache(object):
-
     def test_put_get_has(self):
-        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x: x % 3)
+        c = cache.ShardedCache(6, "LRU", 3, f_map=lambda x: x % 3)
         c.put(4)
         assert c.dump(serialized=False) == [[], [4], []]
         assert c.has(4)
@@ -137,7 +131,7 @@ class TestShardedCache(object):
         assert not c.get(4)
 
     def test_put_get_scan(self):
-        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x: x % 3)
+        c = cache.ShardedCache(6, "LRU", 3, f_map=lambda x: x % 3)
         assert c.put(0) == None
         assert c.dump(serialized=False) == [[0], [], []]
         assert c.put(1) == None
@@ -158,7 +152,7 @@ class TestShardedCache(object):
         assert c.dump(serialized=False) == [[6, 3], [7, 4], [8, 5]]
 
     def test_remove(self):
-        c = cache.ShardedCache(6, 'LRU', 3, f_map=lambda x: x % 3)
+        c = cache.ShardedCache(6, "LRU", 3, f_map=lambda x: x % 3)
         assert c.dump(serialized=False) == [[], [], []]
         c.put(0)
         assert c.dump(serialized=False) == [[0], [], []]

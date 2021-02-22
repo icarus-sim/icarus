@@ -11,13 +11,13 @@ import scipy.stats as ss
 
 
 __all__ = [
-       'DiscreteDist',
-       'TruncatedZipfDist',
-       'means_confidence_interval',
-       'proportions_confidence_interval',
-       'cdf',
-       'pdf',
-           ]
+    "DiscreteDist",
+    "TruncatedZipfDist",
+    "means_confidence_interval",
+    "proportions_confidence_interval",
+    "cdf",
+    "pdf",
+]
 
 
 class DiscreteDist(object):
@@ -39,7 +39,7 @@ class DiscreteDist(object):
             The seed to be used for random number generation
         """
         if np.abs(sum(pdf) - 1.0) > 0.001:
-            raise ValueError('The sum of pdf values must be equal to 1')
+            raise ValueError("The sum of pdf values must be equal to 1")
         random.seed(seed)
         self._pdf = np.asarray(pdf)
         self._cdf = np.cumsum(self._pdf)
@@ -82,8 +82,7 @@ class DiscreteDist(object):
         return self._cdf
 
     def rv(self):
-        """Get rand value from the distribution
-        """
+        """Get rand value from the distribution"""
         rv = random.random()
         # This operation performs binary search over the CDF to return the
         # random value. Worst case time complexity is O(log2(n))
@@ -109,9 +108,9 @@ class TruncatedZipfDist(DiscreteDist):
         """
         # Validate parameters
         if alpha <= 0:
-            raise ValueError('alpha must be positive')
+            raise ValueError("alpha must be positive")
         if n < 0:
-            raise ValueError('n must be positive')
+            raise ValueError("n must be positive")
         # This is the PDF i. e. the array that  contains the probability that
         # content i + 1 is picked
         pdf = np.arange(1.0, n + 1.0) ** -alpha
@@ -148,8 +147,9 @@ def means_confidence_interval(data, confidence=0.95):
         Available: http://heather.cs.ucdavis.edu/probstatbook
     """
     if confidence <= 0 or confidence >= 1:
-        raise ValueError('The confidence parameter must be greater than 0 and '
-                         'smaller than 1')
+        raise ValueError(
+            "The confidence parameter must be greater than 0 and " "smaller than 1"
+        )
     n = len(data)
     w = np.mean(data)
     s = np.std(data)
@@ -175,8 +175,9 @@ def proportions_confidence_interval(data, confidence):
         Available: http://heather.cs.ucdavis.edu/probstatbook
     """
     if confidence <= 0 or confidence >= 1:
-        raise ValueError('The confidence parameter must be greater than 0 and '
-                         'smaller than 1')
+        raise ValueError(
+            "The confidence parameter must be greater than 0 and " "smaller than 1"
+        )
     n = float(len(data))
     m = len((i for i in data if i is True))
     p = m / n
@@ -207,8 +208,8 @@ def cdf(data):
     freqs = np.zeros(len(sorted_unique_data))
     for i in range(len(freqs)):
         freqs[i] = freq_dict[sorted_unique_data[i]]
-#    freqs = np.array([freq_dict[sorted_unique_data[i]]
-#                       for i in range(len(sorted_unique_data))])
+    #    freqs = np.array([freq_dict[sorted_unique_data[i]]
+    #                       for i in range(len(sorted_unique_data))])
     cdf = np.array(np.cumsum(freqs))
     norm = cdf[-1]
     cdf = cdf / norm  # normalize

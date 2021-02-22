@@ -1,14 +1,14 @@
 from icarus.results import ResultSet
 
-class TestResultSet(object):
 
+class TestResultSet(object):
     @classmethod
     def setup_class(cls):
         cls.rs = ResultSet()
-        cls.cond_a = {'alpha': 1, 'beta': 2, 'gamma': 3}
-        cls.cond_b = {'alpha': -1, 'beta': 2, 'gamma': 3}
-        cls.cond_c = {'alpha': 1, 'beta': -2, 'gamma': 3}
-        cls.metric = {'m1': 1, 'm2': 2, 'm3': 3}
+        cls.cond_a = {"alpha": 1, "beta": 2, "gamma": 3}
+        cls.cond_b = {"alpha": -1, "beta": 2, "gamma": 3}
+        cls.cond_c = {"alpha": 1, "beta": -2, "gamma": 3}
+        cls.metric = {"m1": 1, "m2": 2, "m3": 3}
         cls.rs.add(cls.cond_a, cls.metric)
         cls.rs.add(cls.cond_b, cls.metric)
         cls.rs.add(cls.cond_c, cls.metric)
@@ -22,17 +22,17 @@ class TestResultSet(object):
         assert self.metric == metric
 
     def test_filter_match(self):
-        filtered_rs = self.rs.filter({'gamma': 3})
+        filtered_rs = self.rs.filter({"gamma": 3})
         assert 3 == len(filtered_rs)
-        filtered_rs = self.rs.filter({'beta': 2})
+        filtered_rs = self.rs.filter({"beta": 2})
         assert 2 == len(filtered_rs)
-        filtered_rs = self.rs.filter({'beta': -2})
+        filtered_rs = self.rs.filter({"beta": -2})
         assert 1 == len(filtered_rs)
-        filtered_rs = self.rs.filter({'alpha': 1, 'beta': 2})
+        filtered_rs = self.rs.filter({"alpha": 1, "beta": 2})
         assert 1 == len(filtered_rs)
-        filtered_rs = self.rs.filter({'gamma': 1})
+        filtered_rs = self.rs.filter({"gamma": 1})
         assert 0 == len(filtered_rs)
-        filtered_rs = self.rs.filter({'alpha': -1, 'beta': -2})
+        filtered_rs = self.rs.filter({"alpha": -1, "beta": -2})
         assert 0 == len(filtered_rs)
 
     def test_json(self):

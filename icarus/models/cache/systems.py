@@ -10,14 +10,14 @@ from .policies import Cache
 
 
 __all__ = [
-    'PathCache',
-    'TreeCache',
-    'ArrayCache',
-    'ShardedCache',
-           ]
+    "PathCache",
+    "TreeCache",
+    "ArrayCache",
+    "ShardedCache",
+]
 
 
-@register_cache_policy('PATH')
+@register_cache_policy("PATH")
 class PathCache(object):
     """Path of caches
 
@@ -84,10 +84,10 @@ class PathCache(object):
             c.put(k)
 
     def remove(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def position(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def dump(self, serialized=True):
         dump = [c.dump() for c in self._caches]
@@ -98,7 +98,7 @@ class PathCache(object):
             c.clear()
 
 
-@register_cache_policy('TREE')
+@register_cache_policy("TREE")
 class TreeCache(object):
     """Path of caches
 
@@ -141,7 +141,7 @@ class TreeCache(object):
         return self._len
 
     def has(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def get(self, k):
         self._leaf = random.choice(self._leaf_caches)
@@ -171,16 +171,18 @@ class TreeCache(object):
             The evicted object or *None* if no contents were evicted.
         """
         if self._leaf is None:
-            raise ValueError("You are trying to insert an item not requested before. "
-                             "Tree cache can be used in read-through mode only")
+            raise ValueError(
+                "You are trying to insert an item not requested before. "
+                "Tree cache can be used in read-through mode only"
+            )
         self._leaf.put(k)
         self._root_cache.put(k)
 
     def remove(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def position(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def dump(self, serialized=True):
         dump = [c.dump() for c in self._leaf_caches]
@@ -192,7 +194,7 @@ class TreeCache(object):
             c.clear()
 
 
-@register_cache_policy('ARRAY')
+@register_cache_policy("ARRAY")
 class ArrayCache(object):
     """Array of caches
 
@@ -242,7 +244,7 @@ class ArrayCache(object):
         return self._len
 
     def has(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def get(self, k):
         self._selected_cache = self.select_cache()
@@ -265,15 +267,17 @@ class ArrayCache(object):
             The evicted object or *None* if no contents were evicted.
         """
         if self._selected_cache is None:
-            raise ValueError("You are trying to insert an item not requested before. "
-                             "Array cache can be used in read-through mode only")
+            raise ValueError(
+                "You are trying to insert an item not requested before. "
+                "Array cache can be used in read-through mode only"
+            )
         self._selected_cache.put(k)
 
     def remove(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def position(self, k):
-        raise NotImplementedError('This method is not implemented')
+        raise NotImplementedError("This method is not implemented")
 
     def dump(self, serialized=True):
         dump = [c.dump() for c in self._caches]
@@ -284,7 +288,7 @@ class ArrayCache(object):
             c.clear()
 
 
-@register_cache_policy('SHARD')
+@register_cache_policy("SHARD")
 class ShardedCache(Cache):
     """Set of sharded caches.
 
@@ -294,8 +298,9 @@ class ShardedCache(Cache):
     node of the system.
     """
 
-    def __init__(self, maxlen, policy='LRU', nodes=4, f_map=None,
-                 policy_attr={}, **kwargs):
+    def __init__(
+        self, maxlen, policy="LRU", nodes=4, f_map=None, policy_attr={}, **kwargs
+    ):
         """Constructor
 
         Parameters
@@ -325,17 +330,19 @@ class ShardedCache(Cache):
         """
         maxlen = int(maxlen)
         if maxlen <= 0:
-            raise ValueError('maxlen must be positive')
+            raise ValueError("maxlen must be positive")
         if not isinstance(nodes, int) or nodes <= 0 or nodes > maxlen:
-            raise ValueError('nodes must be an integer and 0 < nodes <= maxlen')
+            raise ValueError("nodes must be an integer and 0 < nodes <= maxlen")
         # If maxlen is not a multiple of nodes, then some nodes have one slot
         # more than others
         self._node_maxlen = [maxlen // nodes for _ in range(nodes)]
         for i in range(maxlen % nodes):
             self._node_maxlen[i] += 1
         self._maxlen = maxlen
-        self._node = [CACHE_POLICY[policy](self._node_maxlen[i], **policy_attr)
-                      for i in range(nodes)]
+        self._node = [
+            CACHE_POLICY[policy](self._node_maxlen[i], **policy_attr)
+            for i in range(nodes)
+        ]
         self.f_map = f_map if f_map is not None else lambda k: hash(k) % nodes
 
     @inheritdoc(Cache)

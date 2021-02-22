@@ -13,7 +13,7 @@ from icarus.util import Tree, step_cdf
 from icarus.tools import means_confidence_interval
 
 
-__all__ = ['plot_lines', 'plot_bar_chart', 'plot_cdf']
+__all__ = ["plot_lines", "plot_bar_chart", "plot_cdf"]
 
 
 # These lines prevent insertion of Type 3 fonts in figures
@@ -24,10 +24,10 @@ __all__ = ['plot_lines', 'plot_bar_chart', 'plot_cdf']
 
 # If True text is interpreted as LaTeX, e.g. underscore are interpreted as
 # subscript. If False, text is interpreted literally
-plt.rcParams['text.usetex'] = False
+plt.rcParams["text.usetex"] = False
 
 # Aspect ratio of the output figures
-plt.rcParams['figure.figsize'] = 8, 5
+plt.rcParams["figure.figsize"] = 8, 5
 
 # Size of font in legends
 LEGEND_SIZE = 14
@@ -36,10 +36,24 @@ LEGEND_SIZE = 14
 PLOT_EMPTY_GRAPHS = False
 
 # Catalogue of possible bw shades (for bar charts)
-BW_COLOR_CATALOGUE = ['k', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9']
+BW_COLOR_CATALOGUE = ["k", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9"]
 
 # Catalogue of possible hatch styles (for bar charts)
-HATCH_CATALOGUE = [None, '/', '\\', '\\\\', '//', '+', 'x', '*', 'o', '.', '|', '-', 'O']
+HATCH_CATALOGUE = [
+    None,
+    "/",
+    "\\",
+    "\\\\",
+    "//",
+    "+",
+    "x",
+    "*",
+    "o",
+    ".",
+    "|",
+    "-",
+    "O",
+]
 
 
 def plot_lines(resultset, desc, filename, plotdir):
@@ -146,57 +160,68 @@ def plot_lines(resultset, desc, filename, plotdir):
     """
     fig = plt.figure()
     _, ax1 = plt.subplots()
-    if 'title' in desc:
-        plt.title(desc['title'])
-    if 'xlabel' in desc:
-        plt.xlabel(desc['xlabel'])
-    if 'ylabel' in desc:
-        plt.ylabel(desc['ylabel'])
-    if 'xscale' in desc:
-        plt.xscale(desc['xscale'])
-    if 'yscale' in desc:
-        plt.yscale(desc['yscale'])
-    if 'filter' not in desc or desc['filter'] is None:
-        desc['filter'] = {}
-    xvals = sorted(desc['xvals'])
-    if 'xticks' in desc:
-        ax1.set_xticks(desc['xticks'])
+    if "title" in desc:
+        plt.title(desc["title"])
+    if "xlabel" in desc:
+        plt.xlabel(desc["xlabel"])
+    if "ylabel" in desc:
+        plt.ylabel(desc["ylabel"])
+    if "xscale" in desc:
+        plt.xscale(desc["xscale"])
+    if "yscale" in desc:
+        plt.yscale(desc["yscale"])
+    if "filter" not in desc or desc["filter"] is None:
+        desc["filter"] = {}
+    xvals = sorted(desc["xvals"])
+    if "xticks" in desc:
+        ax1.set_xticks(desc["xticks"])
         ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax1.set_xticklabels([str(xtick) for xtick in desc['xticks']])
-    if 'yticks' in desc:
-        ax1.set_yticks(desc['yticks'])
+        ax1.set_xticklabels([str(xtick) for xtick in desc["xticks"]])
+    if "yticks" in desc:
+        ax1.set_yticks(desc["yticks"])
         ax1.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax1.set_yticklabels([str(ytick) for ytick in desc['yticks']])
-    ymetrics = desc['ymetrics']
-    ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
-    ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
+        ax1.set_yticklabels([str(ytick) for ytick in desc["yticks"]])
+    ymetrics = desc["ymetrics"]
+    ycondnames = desc["ycondnames"] if "ycondnames" in desc else None
+    ycondvals = desc["ycondvals"] if "ycondvals" in desc else None
     if ycondnames is not None and ycondvals is not None:
         if not len(ymetrics) == len(ycondnames) == len(ycondvals):
-            raise ValueError('ymetrics, ycondnames and ycondvals must have the same length')
+            raise ValueError(
+                "ymetrics, ycondnames and ycondvals must have the same length"
+            )
         # yvals is basically the list of values that differentiate each line
         # it is used for legends and styles mainly
         yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
     else:
         yvals = ymetrics
-    plot_args = desc.get('plot_args', {})
-    plot_empty = desc.get('plotempty', True)
+    plot_args = desc.get("plot_args", {})
+    plot_empty = desc.get("plotempty", True)
     empty = True
     for i in range(len(yvals)):
         means = np.zeros(len(xvals))
         err = np.zeros(len(xvals))
         for j in range(len(xvals)):
-            condition = Tree(desc['filter'])
-            condition.setval(desc['xparam'], xvals[j])
+            condition = Tree(desc["filter"])
+            condition.setval(desc["xparam"], xvals[j])
             if ycondnames is not None:
                 condition.setval(ycondnames[i], ycondvals[i])
-            data = [v.getval(ymetrics[i])
-                    for _, v in resultset.filter(condition)
-                    if v.getval(ymetrics[i]) is not None]
-            confidence = desc['confidence'] if 'confidence' in desc else 0.95
+            data = [
+                v.getval(ymetrics[i])
+                for _, v in resultset.filter(condition)
+                if v.getval(ymetrics[i]) is not None
+            ]
+            confidence = desc["confidence"] if "confidence" in desc else 0.95
             means[j], err[j] = means_confidence_interval(data, confidence)
-        yerr = None if 'errorbar' in desc and not desc['errorbar'] or all(err == 0) else err
-        fmt = desc['line_style'][yvals[i]] if 'line_style' in desc \
-              and yvals[i] in desc['line_style'] else '-'
+        yerr = (
+            None
+            if "errorbar" in desc and not desc["errorbar"] or all(err == 0)
+            else err
+        )
+        fmt = (
+            desc["line_style"][yvals[i]]
+            if "line_style" in desc and yvals[i] in desc["line_style"]
+            else "-"
+        )
         # This check is to prevent crashing when trying to plot arrays of nan
         # values with axes log scale
         if all(np.isnan(x) for x in xvals) or all(np.isnan(y) for y in means):
@@ -206,20 +231,20 @@ def plot_lines(resultset, desc, filename, plotdir):
             empty = False
     if empty and not plot_empty:
         return
-    x_min = desc['xmin'] if 'xmin' in desc else min(xvals)
-    x_max = desc['xmax'] if 'xmax' in desc else max(xvals)
+    x_min = desc["xmin"] if "xmin" in desc else min(xvals)
+    x_max = desc["xmax"] if "xmax" in desc else max(xvals)
     plt.xlim(x_min, x_max)
-    if 'ymin' in desc:
-        plt.ylim(ymin=desc['ymin'])
-    if 'ymax' in desc:
-        plt.ylim(ymax=desc['ymax'])
-    if 'legend' in desc:
-        legend = [desc['legend'][l] for l in yvals]
-        legend_args = desc['legend_args'] if 'legend_args' in desc else {}
-        if 'legend_loc' in desc:
-            legend_args['loc'] = desc['legend_loc']
-        plt.legend(legend, prop={'size': LEGEND_SIZE}, **legend_args)
-    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    if "ymin" in desc:
+        plt.ylim(ymin=desc["ymin"])
+    if "ymax" in desc:
+        plt.ylim(ymax=desc["ymax"])
+    if "legend" in desc:
+        legend = [desc["legend"][l] for l in yvals]
+        legend_args = desc["legend_args"] if "legend_args" in desc else {}
+        if "legend_loc" in desc:
+            legend_args["loc"] = desc["legend_loc"]
+        plt.legend(legend, prop={"size": LEGEND_SIZE}, **legend_args)
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches="tight")
     plt.close(fig)
 
 
@@ -333,88 +358,101 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     """
     fig = plt.figure()
     _, ax1 = plt.subplots()
-    plt.grid(b=True, which='major', color='k', axis='y', linestyle=':')
-    if 'title' in desc:
-        plt.title(desc['title'])
+    plt.grid(b=True, which="major", color="k", axis="y", linestyle=":")
+    if "title" in desc:
+        plt.title(desc["title"])
     # Set axis below bars
     ax1.set_axisbelow(True)
-    if 'xlabel' in desc:
-        plt.xlabel(desc['xlabel'])
-    if 'ylabel' in desc:
-        plt.ylabel(desc['ylabel'])
-    if 'filter' not in desc or desc['filter'] is None:
-        desc['filter'] = {}
-    plot_empty = desc.get('plotempty', True)
+    if "xlabel" in desc:
+        plt.xlabel(desc["xlabel"])
+    if "ylabel" in desc:
+        plt.ylabel(desc["ylabel"])
+    if "filter" not in desc or desc["filter"] is None:
+        desc["filter"] = {}
+    plot_empty = desc.get("plotempty", True)
 
-    ymetrics = desc['ymetrics']
-    ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
-    ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
+    ymetrics = desc["ymetrics"]
+    ycondnames = desc["ycondnames"] if "ycondnames" in desc else None
+    ycondvals = desc["ycondvals"] if "ycondvals" in desc else None
     if ycondnames is not None and ycondvals is not None:
         if not len(ymetrics) == len(ycondnames) == len(ycondvals):
-            raise ValueError('ymetrics, ycondnames and ycondvals must have the same length')
+            raise ValueError(
+                "ymetrics, ycondnames and ycondvals must have the same length"
+            )
         # yvals is basically the list of values that differentiate each bar
         # it is used for legends and styles mainly
         yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
     else:
         yvals = ymetrics
-    placement = desc['placement'] if 'placement' in desc else 'grouped'
-    if placement == 'grouped':
+    placement = desc["placement"] if "placement" in desc else "grouped"
+    if placement == "grouped":
         placement = [1 for _ in range(len(yvals))]
-    elif placement == 'stacked':
+    elif placement == "stacked":
         placement = [len(yvals)]
     else:
         if sum(placement) != len(yvals):
-            raise ValueError('Placement definition incorrect. '
-                             'The sum of values of the list must be equal to '
-                             'the number of y values')
-    xticks = desc['xticks'] if 'xticks' in desc else desc['xvals']
+            raise ValueError(
+                "Placement definition incorrect. "
+                "The sum of values of the list must be equal to "
+                "the number of y values"
+            )
+    xticks = desc["xticks"] if "xticks" in desc else desc["xvals"]
     empty = True
     # Spacing attributes
     # width of a group of bars
-    group_width = desc['group_width'] if 'group_width' in desc else 0.4
+    group_width = desc["group_width"] if "group_width" in desc else 0.4
     width = group_width / len(placement)  # width of a single bar
     separation = width / 2  # space between adjacent groups
     border = 0.6 * separation  # left and right borders
 
     elem = collections.defaultdict(int)  # bar objects (for legend)
     # Select colors and hatches
-    if 'bar_color' in desc and all(y in desc['bar_color'] for y in yvals):
-        color = desc['bar_color']
+    if "bar_color" in desc and all(y in desc["bar_color"] for y in yvals):
+        color = desc["bar_color"]
     elif len(yvals) <= len(BW_COLOR_CATALOGUE):
         color = dict((y, BW_COLOR_CATALOGUE[yvals.index(y)]) for y in yvals)
     else:
         color = collections.defaultdict(lambda: None)
-    if 'bar_hatch' in desc and desc['bar_hatch'] is None:
+    if "bar_hatch" in desc and desc["bar_hatch"] is None:
         hatch = collections.defaultdict(lambda: None)
-    elif 'bar_hatch' in desc and all(y in desc['bar_hatch'] for y in yvals):
-        hatch = desc['bar_hatch']
+    elif "bar_hatch" in desc and all(y in desc["bar_hatch"] for y in yvals):
+        hatch = desc["bar_hatch"]
     elif len(yvals) <= len(BW_COLOR_CATALOGUE):
         hatch = dict((y, HATCH_CATALOGUE[yvals.index(y)]) for y in yvals)
     else:
         hatch = collections.defaultdict(lambda: None)
     # Plot bars
     left = border  # left-most point of the bar about to draw
-    for i in range(len(desc['xvals'])):
+    for i in range(len(desc["xvals"])):
         l = 0
         for x in placement:
             bottom = 0  # Bottom point of a bar. It is alway 0 if stacked is False
             for y in range(x):
-                condition = Tree(desc['filter'])
-                condition.setval(desc['xparam'], desc['xvals'][i])
+                condition = Tree(desc["filter"])
+                condition.setval(desc["xparam"], desc["xvals"][i])
                 if ycondnames is not None:
                     condition.setval(ycondnames[l], ycondvals[l])
-                data = [v.getval(ymetrics[l])
-                        for _, v in resultset.filter(condition)
-                        if v.getval(ymetrics[l]) is not None]
-                confidence = desc['confidence'] if 'confidence' in desc else 0.95
+                data = [
+                    v.getval(ymetrics[l])
+                    for _, v in resultset.filter(condition)
+                    if v.getval(ymetrics[l]) is not None
+                ]
+                confidence = desc["confidence"] if "confidence" in desc else 0.95
                 meanval, err = means_confidence_interval(data, confidence)
-                yerr = None if 'errorbar' in desc and not desc['errorbar'] else err
+                yerr = None if "errorbar" in desc and not desc["errorbar"] else err
                 if not np.isnan(meanval):
                     empty = False
-                elem[yvals[l]] = plt.bar(left, meanval, width,
-                                         color=color[yvals[l]],
-                                         yerr=yerr, bottom=bottom, ecolor='k',
-                                         hatch=hatch[yvals[l]], label=yvals[l])
+                elem[yvals[l]] = plt.bar(
+                    left,
+                    meanval,
+                    width,
+                    color=color[yvals[l]],
+                    yerr=yerr,
+                    bottom=bottom,
+                    ecolor="k",
+                    hatch=hatch[yvals[l]],
+                    label=yvals[l],
+                )
                 bottom += meanval
                 l += 1
             left += width
@@ -422,22 +460,25 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     if empty and not plot_empty:
         return
     n_bars = len(placement)
-    plt.xticks(border + 0.5 * (n_bars * width) +
-               (separation + n_bars * width) * np.arange(len(xticks)),
-               xticks)
-    if 'legend' in desc:
-        legend = [desc['legend'][line] for line in yvals] if 'legend' in desc else yvals
-        legend_args = desc['legend_args'] if 'legend_args' in desc else {}
-        if 'legend_loc' in desc:
-            legend_args['loc'] = desc['legend_loc']
-        plt.legend([elem[x] for x in yvals], legend,
-                   prop={'size': LEGEND_SIZE},
-                   **legend_args)
+    plt.xticks(
+        border
+        + 0.5 * (n_bars * width)
+        + (separation + n_bars * width) * np.arange(len(xticks)),
+        xticks,
+    )
+    if "legend" in desc:
+        legend = [desc["legend"][line] for line in yvals] if "legend" in desc else yvals
+        legend_args = desc["legend_args"] if "legend_args" in desc else {}
+        if "legend_loc" in desc:
+            legend_args["loc"] = desc["legend_loc"]
+        plt.legend(
+            [elem[x] for x in yvals], legend, prop={"size": LEGEND_SIZE}, **legend_args
+        )
     xmin, _ = plt.xlim()
     plt.xlim(xmin, left - separation + border)
-    if 'ymax' in desc:
-        plt.ylim(ymax=desc['ymax'])
-    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    if "ymax" in desc:
+        plt.ylim(ymax=desc["ymax"])
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches="tight")
     plt.close(fig)
 
 
@@ -536,25 +577,27 @@ def plot_cdf(resultset, desc, filename, plotdir):
          If *True*, plot and save graph even if empty. Default is *True*
     """
     fig = plt.figure()
-    if 'title' in desc:
-        plt.title(desc['title'])
-    if 'xlabel' in desc:
-        plt.xlabel(desc['xlabel'])
-    plt.ylabel(desc['ylabel'] if 'ylabel' in desc else 'Cumulative probability')
-    if 'xscale' in desc:
-        plt.xscale(desc['xscale'])
-    if 'yscale' in desc:
-        plt.yscale(desc['yscale'])
-    if 'filter' not in desc or desc['filter'] is None:
-        desc['filter'] = {}
-    step = desc['step'] if 'step' in desc else True
-    plot_empty = desc.get('plotempty', True)
-    ymetrics = desc['ymetrics']
-    ycondnames = desc['ycondnames'] if 'ycondnames' in desc else None
-    ycondvals = desc['ycondvals'] if 'ycondvals' in desc else None
+    if "title" in desc:
+        plt.title(desc["title"])
+    if "xlabel" in desc:
+        plt.xlabel(desc["xlabel"])
+    plt.ylabel(desc["ylabel"] if "ylabel" in desc else "Cumulative probability")
+    if "xscale" in desc:
+        plt.xscale(desc["xscale"])
+    if "yscale" in desc:
+        plt.yscale(desc["yscale"])
+    if "filter" not in desc or desc["filter"] is None:
+        desc["filter"] = {}
+    step = desc["step"] if "step" in desc else True
+    plot_empty = desc.get("plotempty", True)
+    ymetrics = desc["ymetrics"]
+    ycondnames = desc["ycondnames"] if "ycondnames" in desc else None
+    ycondvals = desc["ycondvals"] if "ycondvals" in desc else None
     if ycondnames is not None and ycondvals is not None:
         if not len(ymetrics) == len(ycondnames) == len(ycondvals):
-            raise ValueError('ymetrics, ycondnames and ycondvals must have the same length')
+            raise ValueError(
+                "ymetrics, ycondnames and ycondvals must have the same length"
+            )
         # yvals is basically the list of values that differentiate each line
         # it is used for legends and styles mainly
         yvals = ycondvals if len(set(ymetrics)) == 1 else zip(ymetrics, ycondvals)
@@ -564,12 +607,14 @@ def plot_cdf(resultset, desc, filename, plotdir):
     x_max = -np.infty
     empty = True
     for i in range(len(yvals)):
-        condition = Tree(desc['filter'])
+        condition = Tree(desc["filter"])
         if ycondnames is not None:
             condition.setval(ycondnames[i], ycondvals[i])
-        data = [v.getval(ymetrics[i])
-                for _, v in resultset.filter(condition)
-                if v.getval(ymetrics[i]) is not None]
+        data = [
+            v.getval(ymetrics[i])
+            for _, v in resultset.filter(condition)
+            if v.getval(ymetrics[i]) is not None
+        ]
         # If there are more than 1 CDFs in the resultset, take the first one
         if data:
             x_cdf, y_cdf = data[0]
@@ -577,8 +622,11 @@ def plot_cdf(resultset, desc, filename, plotdir):
                 x_cdf, y_cdf = step_cdf(x_cdf, y_cdf)
         else:
             x_cdf, y_cdf = [], []
-        fmt = desc['line_style'][yvals[i]] if 'line_style' in desc \
-              and yvals[i] in desc['line_style'] else '-'
+        fmt = (
+            desc["line_style"][yvals[i]]
+            if "line_style" in desc and yvals[i] in desc["line_style"]
+            else "-"
+        )
         # This check is to prevent crashing when trying to plot arrays of nan
         # values with axes log scale
         if all(np.isnan(x) for x in x_cdf) or all(np.isnan(y) for y in y_cdf):
@@ -591,12 +639,12 @@ def plot_cdf(resultset, desc, filename, plotdir):
     if empty and not plot_empty:
         return
     plt.xlim(x_min, x_max)
-    if 'legend' in desc:
-        legend = [desc['legend'][l] for l in desc['yvals']]
-        legend_args = desc['legend_args'] if 'legend_args' in desc else {}
-        if 'legend_loc' in desc:
-            legend_args['loc'] = desc['legend_loc']
-        plt.legend(legend, prop={'size': LEGEND_SIZE}, **legend_args)
-    plt.legend(legend, prop={'size': LEGEND_SIZE}, loc=desc['legend_loc'])
-    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    if "legend" in desc:
+        legend = [desc["legend"][l] for l in desc["yvals"]]
+        legend_args = desc["legend_args"] if "legend_args" in desc else {}
+        if "legend_loc" in desc:
+            legend_args["loc"] = desc["legend_loc"]
+        plt.legend(legend, prop={"size": LEGEND_SIZE}, **legend_args)
+    plt.legend(legend, prop={"size": LEGEND_SIZE}, loc=desc["legend_loc"])
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches="tight")
     plt.close(fig)

@@ -10,12 +10,12 @@ from icarus.util import path_links
 
 
 __all__ = [
-    'pam',
-    'extract_cluster_level_topology',
-    'deploy_clusters',
-    'compute_clusters',
-    'compute_p_median',
-           ]
+    "pam",
+    "extract_cluster_level_topology",
+    "deploy_clusters",
+    "compute_clusters",
+    "compute_p_median",
+]
 
 
 def pam(distances, k, n_iter=10):
@@ -47,6 +47,7 @@ def pam(distances, k, n_iter=10):
     Implementation based on:
     https://github.com/salspaugh/machine_learning/blob/master/clustering/kmedoids.py
     """
+
     def assign_points_to_clusters(medoids, distances):
         """Return a 1-d array having for at each index the medoid the element
         belongs to.
@@ -60,8 +61,10 @@ def pam(distances, k, n_iter=10):
 
     def compute_new_medoid(cluster, distances):
         mask = np.ones(distances.shape)
-        mask[np.ix_(cluster, cluster)] = 0.
-        cluster_distances = np.ma.masked_array(data=distances, mask=mask, fill_value=10e9)
+        mask[np.ix_(cluster, cluster)] = 0.0
+        cluster_distances = np.ma.masked_array(
+            data=distances, mask=mask, fill_value=10e9
+        )
         costs = cluster_distances.sum(axis=1)
         return costs.argmin(axis=0, fill_value=np.inf)
 
@@ -70,7 +73,7 @@ def pam(distances, k, n_iter=10):
         if k > m:
             raise ValueError("k is greater than the number of points")
 
-        if hasattr(np.random, 'choice'):
+        if hasattr(np.random, "choice"):
             curr_medoids = np.random.choice(np.arange(m, dtype=int), k, replace=False)
         else:
             # This is only if I use NumPy < 1.7
@@ -90,7 +93,9 @@ def pam(distances, k, n_iter=10):
             # Update cluster medoids to be lowest cost point.
             for curr_medoid in curr_medoids:
                 cluster = np.where(clusters == curr_medoid)[0]
-                new_medoids[curr_medoids == curr_medoid] = compute_new_medoid(cluster, distances)
+                new_medoids[curr_medoids == curr_medoid] = compute_new_medoid(
+                    cluster, distances
+                )
 
             old_medoids[:] = curr_medoids[:]
             curr_medoids[:] = new_medoids[:]
@@ -132,11 +137,11 @@ def extract_cluster_level_topology(topology):
        cache
      * Each node must be labelled with cluster
     """
-    cluster_map = nx.get_node_attributes(topology, 'cluster')
+    cluster_map = nx.get_node_attributes(topology, "cluster")
     if len(cluster_map) < topology.number_of_nodes():
-        raise ValueError('There are nodes not labelled with cluster information')
+        raise ValueError("There are nodes not labelled with cluster information")
     if nx.number_connected_components(topology) > 1:
-        raise ValueError('There is more than one connected component')
+        raise ValueError("There is more than one connected component")
     cluster_topology = fnss.Topology()
     cluster_set = set(cluster_map.values())
     if len(cluster_set) == 1:
@@ -182,13 +187,13 @@ def deploy_clusters(topology, clusters, assign_src_rcv=True):
         clustered_nodes = clustered_nodes.union(c)
         n_clustered_nodes += len(c)
     if n_clustered_nodes != len(clustered_nodes):
-        raise ValueError('At least one node is listed in more than one cluster')
-    if clustered_nodes != topology.graph['icr_candidates']:
-        raise ValueError('Set of nodes in the cluster do not match ICR candidates')
-    topology.graph['clusters'] = clusters
+        raise ValueError("At least one node is listed in more than one cluster")
+    if clustered_nodes != topology.graph["icr_candidates"]:
+        raise ValueError("Set of nodes in the cluster do not match ICR candidates")
+    topology.graph["clusters"] = clusters
     for i in range(len(clusters)):
         for v in clusters[i]:
-            topology.node[v]['cluster'] = i
+            topology.node[v]["cluster"] = i
     if not assign_src_rcv:
         return
     src_rcv = topology.sources().union(topology.receivers())
@@ -197,10 +202,10 @@ def deploy_clusters(topology, clusters, assign_src_rcv=True):
         raise ValueError("There are at least one source or receiver with degree >= 1")
     for v in src_rcv:
         next_node = list(topology.adj[v].keys())[0]
-        topology.node[v]['cluster'] = topology.node[next_node]['cluster']
+        topology.node[v]["cluster"] = topology.node[next_node]["cluster"]
 
 
-def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
+def compute_clusters(topology, k, distance="delay", nbunch=None, n_iter=10):
     """Cluster nodes of a topologies as to minimize the intra-cluster latency.
 
     This function assumes that every link is labelled with latencies and
@@ -225,18 +230,22 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
     """
     topology = topology.to_undirected()
     if nx.number_connected_components(topology) > 1:
-        raise ValueError('The topology has more than one connected component')
+        raise ValueError("The topology has more than one connected component")
     if nbunch is not None:
         topology = topology.subgraph(nbunch)
-    topology = nx.convert_node_labels_to_integers(topology, label_attribute='label')
+    topology = nx.convert_node_labels_to_integers(topology, label_attribute="label")
 
     if distance is not None:
         for u, v in topology.edges():
             if distance not in topology.adj[u][v]:
-                raise ValueError('Edge (%s, %s) does not have a %s attribute'
-                                 % (str(topology.node[u]['label']),
-                                    str(topology.node[v]['label']),
-                                    distance))
+                raise ValueError(
+                    "Edge (%s, %s) does not have a %s attribute"
+                    % (
+                        str(topology.node[u]["label"]),
+                        str(topology.node[v]["label"]),
+                        distance,
+                    )
+                )
 
     n = topology.number_of_nodes()
     path = dict(nx.all_pairs_shortest_path(topology))
@@ -250,20 +259,25 @@ def compute_clusters(topology, k, distance='delay', nbunch=None, n_iter=10):
             # Extract all edges of a path
             edges = path_links(path[u][v])
             if distance is not None:
-                distances[u][v] = distances[v][u] = sum(topology.adj[u][v][distance]
-                                                        for u, v in edges)
+                distances[u][v] = distances[v][u] = sum(
+                    topology.adj[u][v][distance] for u, v in edges
+                )
             else:
                 distances[u][v] = distances[v][u] = len(edges)
     clusters = [set() for _ in range(k)]
     medoid_assignment = pam(distances, k=k, n_iter=n_iter)[0]
     if any(medoid_assignment >= n):
-        raise ValueError('Something is wrong with k-medoids algorithm. '
-                         'I got an assignment to a medoid that does not exist')
+        raise ValueError(
+            "Something is wrong with k-medoids algorithm. "
+            "I got an assignment to a medoid that does not exist"
+        )
     medoids = list(set(medoid_assignment))
     medoid_cluster_map = {medoids[i]: i for i in range(len(medoids))}
     # Concert assignments from medoid ID to cluster ID
     for v in range(n):
-        clusters[medoid_cluster_map[medoid_assignment[v]]].add(topology.node[v]['label'])
+        clusters[medoid_cluster_map[medoid_assignment[v]]].add(
+            topology.node[v]["label"]
+        )
     return clusters
 
 

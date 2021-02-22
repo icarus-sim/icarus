@@ -9,7 +9,6 @@ import icarus.tools.stats as stats
 
 
 class TestNumericCacheHitRatio(object):
-
     @classmethod
     def setup_class(cls):
         cls.n = 500
@@ -22,7 +21,9 @@ class TestNumericCacheHitRatio(object):
 
     def test_in_cache_lfu_cache(self):
         r = 0.1
-        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.InCacheLfuCache(r * self.n))
+        h = cacheperf.numeric_cache_hit_ratio(
+            self.pdf, cache.InCacheLfuCache(r * self.n)
+        )
         assert np.abs(h - r) < 0.01
 
     def test_fifo_cache(self):
@@ -32,12 +33,13 @@ class TestNumericCacheHitRatio(object):
 
     def test_rand_cache(self):
         r = 0.1
-        h = cacheperf.numeric_cache_hit_ratio(self.pdf, cache.RandEvictionCache(r * self.n))
+        h = cacheperf.numeric_cache_hit_ratio(
+            self.pdf, cache.RandEvictionCache(r * self.n)
+        )
         assert np.abs(h - r) < 0.01
 
 
 class TestLaoutarisPerContentCacheHitRatio(object):
-
     def test_3rd_order_positive_disc(self):
         H = cacheperf.laoutaris_per_content_cache_hit_ratio(0.8, 1000, 100, 3)
         prev_h = 1
@@ -112,7 +114,9 @@ class TestCheApproximation(object):
         assert t <= 72.3
 
     def test_che_characteristic_time_generalized(self):
-        t = cacheperf.che_characteristic_time_generalized(self.pdf, self.cache_size, "LRU")
+        t = cacheperf.che_characteristic_time_generalized(
+            self.pdf, self.cache_size, "LRU"
+        )
         assert t >= self.cache_size
         assert t >= 72.1
         assert t <= 72.3
@@ -142,7 +146,9 @@ class TestCheApproximation(object):
             prev_h = h
 
     def test_che_per_content_cache_hit_ratio_simplified(self):
-        H = cacheperf.che_per_content_cache_hit_ratio_simplified(self.pdf, self.cache_size)
+        H = cacheperf.che_per_content_cache_hit_ratio_simplified(
+            self.pdf, self.cache_size
+        )
         prev_h = 1
         for h in H:
             assert h >= 0
@@ -151,7 +157,9 @@ class TestCheApproximation(object):
             prev_h = h
 
     def test_che_per_content_cache_hit_ratio_generalized(self):
-        H = cacheperf.che_per_content_cache_hit_ratio_generalized(self.pdf, self.cache_size, "LRU")
+        H = cacheperf.che_per_content_cache_hit_ratio_generalized(
+            self.pdf, self.cache_size, "LRU"
+        )
         prev_h = 1
         for h in H:
             assert h >= 0
@@ -161,7 +169,6 @@ class TestCheApproximation(object):
 
 
 class TestLaoutarisCacheHitRatio(object):
-
     def test_3rd_order_positive_disc(self):
         h = cacheperf.laoutaris_cache_hit_ratio(0.8, 1000, 100, 3)
         assert h >= 0
@@ -172,13 +179,12 @@ class TestLaoutarisCacheHitRatio(object):
 
 
 class TestOptimalCacheHitRatio(object):
-
     def test_unsorted_pdf(self):
         h = cacheperf.optimal_cache_hit_ratio([0.1, 0.5, 0.4], 2)
-        assert round(abs(0.9-h), 7) == 0
+        assert round(abs(0.9 - h), 7) == 0
+
 
 class TestHashrouting(object):
-
     def test_arbitrary(self):
         topologies = [
             1221,
@@ -198,29 +204,31 @@ class TestHashrouting(object):
             3257: 102.65934570425449,
             1755: 94.2634958382883,
             6461: 168.74678558156853,
-            3967: 132.65163549797435
+            3967: 132.65163549797435,
         }
 
         for asn in topologies:
             # Set up topology
             topo = scenarios.topology_rocketfuel_latency(asn, source_ratio=0.1)
-            scenarios.uniform_cache_placement(topo, n_contents*network_cache)
+            scenarios.uniform_cache_placement(topo, n_contents * network_cache)
             sources = topo.sources()
             receivers = topo.receivers()
-            req_rates = {v: 1/len(receivers) for v in receivers}
-            source_content_ratio = {v: 1/len(sources) for v in sources}
+            req_rates = {v: 1 / len(receivers) for v in receivers}
+            source_content_ratio = {v: 1 / len(sources) for v in sources}
             # Run experiment and validate results
-            latency = cacheperf.hashrouting_model(topo, 'SYMM', hit_ratio, source_content_ratio, req_rates)
-            assert round(abs(results[asn]-latency), 7) == 0
+            latency = cacheperf.hashrouting_model(
+                topo, "SYMM", hit_ratio, source_content_ratio, req_rates
+            )
+            assert round(abs(results[asn] - latency), 7) == 0
 
     def test_mesh(self):
         l = cacheperf.hashrouting_model_mesh(10, 5, 0.1, 1, 1.5)
-        assert round(abs(5.4-l), 7) == 0
+        assert round(abs(5.4 - l), 7) == 0
 
     def test_ring(self):
         l = cacheperf.hashrouting_model_ring(2, 0.1, 2, 3)
-        assert round(abs(9.2-l), 7) == 0
+        assert round(abs(9.2 - l), 7) == 0
         l = cacheperf.hashrouting_model_ring(5, 0.1, 2, 3)
-        assert round(abs(14.52-l), 7) == 0
+        assert round(abs(14.52 - l), 7) == 0
         l = cacheperf.hashrouting_model_ring(8, 0.1, 2, 3)
-        assert round(abs(20.6-l), 7) == 0
+        assert round(abs(20.6 - l), 7) == 0

@@ -8,12 +8,10 @@ from icarus.util import inheritdoc, path_links
 
 from .base import Strategy
 
-__all__ = [
-       'NearestReplicaRouting'
-           ]
+__all__ = ["NearestReplicaRouting"]
 
 
-@register_strategy('NRR')
+@register_strategy("NRR")
 class NearestReplicaRouting(Strategy):
     """Ideal Nearest Replica Routing (NRR) strategy.
 
@@ -26,8 +24,9 @@ class NearestReplicaRouting(Strategy):
     metacaching policies. LCE and LCD are currently supported.
     """
 
-    def __init__(self, view, controller, metacaching, implementation='ideal',
-                 radius=4, **kwargs):
+    def __init__(
+        self, view, controller, metacaching, implementation="ideal", radius=4, **kwargs
+    ):
         """Constructor
 
         Parameters
@@ -47,15 +46,16 @@ class NearestReplicaRouting(Strategy):
             used by ideal routing.
         """
         super(NearestReplicaRouting, self).__init__(view, controller)
-        if metacaching not in ('LCE', 'LCD'):
+        if metacaching not in ("LCE", "LCD"):
             raise ValueError("Metacaching policy %s not supported" % metacaching)
-        if implementation not in ('ideal', 'approx_1', 'approx_2'):
+        if implementation not in ("ideal", "approx_1", "approx_2"):
             raise ValueError("Implementation %s not supported" % implementation)
         self.metacaching = metacaching
         self.implementation = implementation
         self.radius = radius
-        self.distance = dict(nx.all_pairs_dijkstra_path_length(self.view.topology(),
-                                                               weight='delay'))
+        self.distance = dict(
+            nx.all_pairs_dijkstra_path_length(self.view.topology(), weight="delay")
+        )
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -64,31 +64,34 @@ class NearestReplicaRouting(Strategy):
         nearest_replica = min(locations, key=lambda x: self.distance[receiver][x])
         # Route request to nearest replica
         self.controller.start_session(time, receiver, content, log)
-        if self.implementation == 'ideal':
+        if self.implementation == "ideal":
             self.controller.forward_request_path(receiver, nearest_replica)
-        elif self.implementation == 'approx_1':
+        elif self.implementation == "approx_1":
             # Floods actual request packets
-            paths = {loc: len(self.view.shortest_path(receiver, loc)[:self.radius])
-                     for loc in locations}
+            paths = {
+                loc: len(self.view.shortest_path(receiver, loc)[: self.radius])
+                for loc in locations
+            }
             # TODO: Continue
             raise NotImplementedError("Not implemented")
-        elif self.implementation == 'approx_2':
+        elif self.implementation == "approx_2":
             # Floods meta-request packets
             # TODO: Continue
             raise NotImplementedError("Not implemented")
         else:
             # Should never reach this block anyway
-            raise ValueError("Implementation %s not supported"
-                             % str(self.implementation))
+            raise ValueError(
+                "Implementation %s not supported" % str(self.implementation)
+            )
         self.controller.get_content(nearest_replica)
         # Now we need to return packet and we have options
         path = list(reversed(self.view.shortest_path(receiver, nearest_replica)))
-        if self.metacaching == 'LCE':
+        if self.metacaching == "LCE":
             for u, v in path_links(path):
                 self.controller.forward_content_hop(u, v)
                 if self.view.has_cache(v) and not self.view.cache_lookup(v, content):
                     self.controller.put_content(v)
-        elif self.metacaching == 'LCD':
+        elif self.metacaching == "LCD":
             copied = False
             for u, v in path_links(path):
                 self.controller.forward_content_hop(u, v)
@@ -96,6 +99,5 @@ class NearestReplicaRouting(Strategy):
                     self.controller.put_content(v)
                     copied = True
         else:
-            raise ValueError('Metacaching policy %s not supported'
-                             % self.metacaching)
+            raise ValueError("Metacaching policy %s not supported" % self.metacaching)
         self.controller.end_session()

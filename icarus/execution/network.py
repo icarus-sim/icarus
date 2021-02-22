@@ -20,13 +20,9 @@ import fnss
 from icarus.registry import CACHE_POLICY
 from icarus.util import iround, path_links
 
-__all__ = [
-    'NetworkModel',
-    'NetworkView',
-    'NetworkController'
-          ]
+__all__ = ["NetworkModel", "NetworkView", "NetworkController"]
 
-logger = logging.getLogger('orchestration')
+logger = logging.getLogger("orchestration")
 
 
 def symmetrify_paths(shortest_paths):
@@ -73,8 +69,9 @@ class NetworkView(object):
             The network model instance
         """
         if not isinstance(model, NetworkModel):
-            raise ValueError('The model argument must be an instance of '
-                             'NetworkModel')
+            raise ValueError(
+                "The model argument must be an instance of " "NetworkModel"
+            )
         self.model = model
 
     def content_locations(self, k):
@@ -156,8 +153,8 @@ class NetworkView(object):
             Cluster to which the node belongs, None if the topology is not
             clustered or the node does not belong to any cluster
         """
-        if 'cluster' in self.model.topology.node[v]:
-            return self.model.topology.node[v]['cluster']
+        if "cluster" in self.model.topology.node[v]:
+            return self.model.topology.node[v]["cluster"]
         else:
             return None
 
@@ -228,8 +225,11 @@ class NetworkView(object):
             with caches. Otherwise it is a dict mapping nodes with a cache
             and their size.
         """
-        return {v: c.maxlen for v, c in self.model.cache.items()} if size \
-                else list(self.model.cache.keys())
+        return (
+            {v: c.maxlen for v, c in self.model.cache.items()}
+            if size
+            else list(self.model.cache.keys())
+        )
 
     def has_cache(self, node):
         """Check if a node has a content cache.
@@ -342,12 +342,17 @@ class NetworkModel(object):
         """
         # Filter inputs
         if not isinstance(topology, fnss.Topology):
-            raise ValueError('The topology argument must be an instance of '
-                             'fnss.Topology or any of its subclasses.')
+            raise ValueError(
+                "The topology argument must be an instance of "
+                "fnss.Topology or any of its subclasses."
+            )
 
         # Shortest paths of the network
-        self.shortest_path = dict(shortest_path) if shortest_path is not None \
-                             else symmetrify_paths(dict(nx.all_pairs_dijkstra_path(topology)))
+        self.shortest_path = (
+            dict(shortest_path)
+            if shortest_path is not None
+            else symmetrify_paths(dict(nx.all_pairs_dijkstra_path(topology)))
+        )
 
         # Network topology
         self.topology = topology
@@ -359,7 +364,7 @@ class NetworkModel(object):
         self.source_node = {}
 
         # Dictionary of link types (internal/external)
-        self.link_type = nx.get_edge_attributes(topology, 'type')
+        self.link_type = nx.get_edge_attributes(topology, "type")
         self.link_delay = fnss.get_delays(topology)
         # Instead of this manual assignment, I could have converted the
         # topology to directed before extracting type and link delay but that
@@ -374,26 +379,30 @@ class NetworkModel(object):
         cache_size = {}
         for node in topology.nodes():
             stack_name, stack_props = fnss.get_stack(topology, node)
-            if stack_name == 'router':
-                if 'cache_size' in stack_props:
-                    cache_size[node] = stack_props['cache_size']
-            elif stack_name == 'source':
-                contents = stack_props['contents']
+            if stack_name == "router":
+                if "cache_size" in stack_props:
+                    cache_size[node] = stack_props["cache_size"]
+            elif stack_name == "source":
+                contents = stack_props["contents"]
                 self.source_node[node] = contents
                 for content in contents:
                     self.content_source[content] = node
         if any(c < 1 for c in cache_size.values()):
-            logger.warn('Some content caches have size equal to 0. '
-                        'I am setting them to 1 and run the experiment anyway')
+            logger.warn(
+                "Some content caches have size equal to 0. "
+                "I am setting them to 1 and run the experiment anyway"
+            )
             for node in cache_size:
                 if cache_size[node] < 1:
                     cache_size[node] = 1
 
-        policy_name = cache_policy['name']
-        policy_args = {k: v for k, v in cache_policy.items() if k != 'name'}
+        policy_name = cache_policy["name"]
+        policy_args = {k: v for k, v in cache_policy.items() if k != "name"}
         # The actual cache objects storing the content
-        self.cache = {node: CACHE_POLICY[policy_name](cache_size[node], **policy_args)
-                          for node in cache_size}
+        self.cache = {
+            node: CACHE_POLICY[policy_name](cache_size[node], **policy_args)
+            for node in cache_size
+        }
 
         # This is for a local un-coordinated cache (currently used only by
         # Hashrouting with edge cache)
@@ -462,11 +471,10 @@ class NetworkController(object):
             *True* if this session needs to be reported to the collector,
             *False* otherwise
         """
-        self.session = dict(timestamp=timestamp,
-                            receiver=receiver,
-                            content=content,
-                            log=log)
-        if self.collector is not None and self.session['log']:
+        self.session = dict(
+            timestamp=timestamp, receiver=receiver, content=content, log=log
+        )
+        if self.collector is not None and self.session["log"]:
             self.collector.start_session(timestamp, receiver, content)
 
     def forward_request_path(self, s, t, path=None, main_path=True):
@@ -526,7 +534,7 @@ class NetworkController(object):
             lead to hit a content. It is normally used to calculate latency
             correctly in multicast cases. Default value is *True*
         """
-        if self.collector is not None and self.session['log']:
+        if self.collector is not None and self.session["log"]:
             self.collector.request_hop(u, v, main_path)
 
     def forward_content_hop(self, u, v, main_path=True):
@@ -544,7 +552,7 @@ class NetworkController(object):
             calculate latency correctly in multicast cases. Default value is
             *True*
         """
-        if self.collector is not None and self.session['log']:
+        if self.collector is not None and self.session["log"]:
             self.collector.content_hop(u, v, main_path)
 
     def put_content(self, node):
@@ -566,7 +574,7 @@ class NetworkController(object):
             The evicted object or *None* if no contents were evicted.
         """
         if node in self.model.cache:
-            return self.model.cache[node].put(self.session['content'])
+            return self.model.cache[node].put(self.session["content"])
 
     def get_content(self, node):
         """Get a content from a server or a cache.
@@ -582,17 +590,17 @@ class NetworkController(object):
             True if the content is available, False otherwise
         """
         if node in self.model.cache:
-            cache_hit = self.model.cache[node].get(self.session['content'])
+            cache_hit = self.model.cache[node].get(self.session["content"])
             if cache_hit:
-                if self.session['log']:
+                if self.session["log"]:
                     self.collector.cache_hit(node)
             else:
-                if self.session['log']:
+                if self.session["log"]:
                     self.collector.cache_miss(node)
             return cache_hit
         name, props = fnss.get_stack(self.model.topology, node)
-        if name == 'source' and self.session['content'] in props['contents']:
-            if self.collector is not None and self.session['log']:
+        if name == "source" and self.session["content"] in props["contents"]:
+            if self.collector is not None and self.session["log"]:
                 self.collector.server_hit(node)
             return True
         else:
@@ -612,7 +620,7 @@ class NetworkController(object):
             *True* if the entry was in the cache, *False* if it was not.
         """
         if node in self.model.cache:
-            return self.model.cache[node].remove(self.session['content'])
+            return self.model.cache[node].remove(self.session["content"])
 
     def end_session(self, success=True):
         """Close a session
@@ -622,7 +630,7 @@ class NetworkController(object):
         success : bool, optional
             *True* if the session was completed successfully, *False* otherwise
         """
-        if self.collector is not None and self.session['log']:
+        if self.collector is not None and self.session["log"]:
             self.collector.end_session(success)
         self.session = None
 
@@ -820,12 +828,12 @@ class NetworkController(object):
         """
         if node not in self.model.local_cache:
             return False
-        cache_hit = self.model.local_cache[node].get(self.session['content'])
+        cache_hit = self.model.local_cache[node].get(self.session["content"])
         if cache_hit:
-            if self.session['log']:
+            if self.session["log"]:
                 self.collector.cache_hit(node)
         else:
-            if self.session['log']:
+            if self.session["log"]:
                 self.collector.cache_miss(node)
         return cache_hit
 
@@ -841,4 +849,4 @@ class NetworkController(object):
             The node to query
         """
         if node in self.model.local_cache:
-            return self.model.local_cache[node].put(self.session['content'])
+            return self.model.local_cache[node].put(self.session["content"])

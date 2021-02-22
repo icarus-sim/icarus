@@ -16,16 +16,16 @@ from scipy.stats import chisquare
 
 
 __all__ = [
-       'frequencies',
-       'one_timers',
-       'trace_stats',
-       'zipf_fit',
-       'parse_url_list',
-       'parse_wikibench',
-       'parse_squid',
-       'parse_youtube_umass',
-       'parse_common_log_format'
-           ]
+    "frequencies",
+    "one_timers",
+    "trace_stats",
+    "zipf_fit",
+    "parse_url_list",
+    "parse_wikibench",
+    "parse_squid",
+    "parse_youtube_umass",
+    "parse_common_log_format",
+]
 
 
 def frequencies(data):
@@ -94,15 +94,16 @@ def trace_stats(data):
     n_reqs = len(data)
     n_contents = len(freqs)
     n_onetimers = len(freqs[freqs == 1])
-    return dict(n_contents=n_contents,
-                n_reqs=n_reqs,
-                n_onetimers=n_onetimers,
-                alpha=alpha,
-                p=p,
-                onetimers_contents_ratio=n_onetimers / n_contents,
-                onetimers_reqs_ratio=n_onetimers / n_reqs,
-                mean_reqs_per_content=n_reqs / n_contents
-                )
+    return dict(
+        n_contents=n_contents,
+        n_reqs=n_reqs,
+        n_onetimers=n_onetimers,
+        alpha=alpha,
+        p=p,
+        onetimers_contents_ratio=n_onetimers / n_contents,
+        onetimers_reqs_ratio=n_onetimers / n_reqs,
+        mean_reqs_per_content=n_reqs / n_contents,
+    )
 
 
 def zipf_fit(obs_freqs, need_sorting=False):
@@ -132,9 +133,11 @@ def zipf_fit(obs_freqs, need_sorting=False):
     try:
         from scipy.optimize import minimize_scalar
     except ImportError:
-        raise ImportError("Cannot import scipy.optimize minimize_scalar. "
-                          "You either don't have scipy install or you have a "
-                          "version too old (required 0.12 onwards)")
+        raise ImportError(
+            "Cannot import scipy.optimize minimize_scalar. "
+            "You either don't have scipy install or you have a "
+            "version too old (required 0.12 onwards)"
+        )
     obs_freqs = np.asarray(obs_freqs)
     if need_sorting:
         # Sort in descending order
@@ -142,11 +145,16 @@ def zipf_fit(obs_freqs, need_sorting=False):
     n = len(obs_freqs)
 
     def log_likelihood(alpha):
-        return np.sum(obs_freqs * (alpha * np.log(np.arange(1.0, n + 1)) +
-                      math.log(sum(1.0 / np.arange(1.0, n + 1) ** alpha))))
+        return np.sum(
+            obs_freqs
+            * (
+                alpha * np.log(np.arange(1.0, n + 1))
+                + math.log(sum(1.0 / np.arange(1.0, n + 1) ** alpha))
+            )
+        )
 
     # Find optimal alpha
-    alpha = minimize_scalar(log_likelihood)['x']
+    alpha = minimize_scalar(log_likelihood)["x"]
     # Calculate goodness of fit
     if alpha <= 0:
         # Silently report a zero probability of a fit
@@ -194,11 +202,7 @@ def parse_wikibench(path):
     with open(path) as f:
         for line in f:
             entry = line.split(" ")
-            yield dict(
-                counter=int(entry[0]),
-                timestamp=entry[1],
-                url=entry[2]
-                      )
+            yield dict(counter=int(entry[0]), timestamp=entry[1], url=entry[2])
     return
 
 
@@ -238,9 +242,9 @@ def parse_squid(path):
             bytes_len = int(entry[4])
             req_method = entry[5]
             url = entry[6]
-            client_ident = entry[7] if entry[7] != '-' else None
+            client_ident = entry[7] if entry[7] != "-" else None
             hierarchy_data, hostname = entry[8].split("/")
-            content_type = entry[9] if entry[9] != '-' else None
+            content_type = entry[9] if entry[9] != "-" else None
             yield dict(
                 time=timestamp,
                 duration=duration,
@@ -248,12 +252,13 @@ def parse_squid(path):
                 log_tag=log_tag,
                 http_code=http_code,
                 bytes_len=bytes_len,
-                req_method=req_method, url=url,
+                req_method=req_method,
+                url=url,
                 client_ident=client_ident,
                 hierarchy_data=hierarchy_data,
                 hostname=hostname,
-                content_type=content_type
-                      )
+                content_type=content_type,
+            )
     return
 
 
@@ -307,7 +312,7 @@ def parse_youtube_umass(path):
                 request=request,
                 video_id=video_id,
                 content_server_addr=content_server_addr,
-                      )
+            )
     return
 
 
@@ -341,14 +346,16 @@ def parse_common_log_format(path):
             status = int(entry[5])
             n_bytes = int(entry[6])
             # Convert timestamp into float
-            t = time.mktime(dateutil.parser.parse(date.replace(":", " ", 0)).timetuple())
+            t = time.mktime(
+                dateutil.parser.parse(date.replace(":", " ", 0)).timetuple()
+            )
             event = dict(
                 client_addr=client_addr,
                 user_ident=user_ident,
                 auth_user=auth_user,
                 request=request,
                 status=status,
-                bytes=n_bytes
-                        )
+                bytes=n_bytes,
+            )
             yield t, event
     return

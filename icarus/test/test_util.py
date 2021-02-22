@@ -10,7 +10,6 @@ import icarus.util as util
 
 
 class TestUtil(object):
-
     def test_timestr(self):
         assert "1m 30s" == util.timestr(90, True)
         assert "1m" == util.timestr(90, False)
@@ -41,7 +40,6 @@ class TestUtil(object):
 
 
 class TestSettings(object):
-
     def test_get_set(self):
         s = util.Settings()
         s["key_a"] = "val_a"

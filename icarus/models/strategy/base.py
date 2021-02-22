@@ -5,10 +5,7 @@ import abc
 from icarus.registry import register_strategy
 from icarus.util import inheritdoc
 
-__all__ = [
-        'Strategy',
-        'NoCache'
-          ]
+__all__ = ["Strategy", "NoCache"]
 
 
 class Strategy(object):
@@ -51,11 +48,12 @@ class Strategy(object):
             Indicates whether the event must be registered by the data
             collectors attached to the network.
         """
-        raise NotImplementedError('The selected strategy must implement '
-                                  'a process_event method')
+        raise NotImplementedError(
+            "The selected strategy must implement " "a process_event method"
+        )
 
 
-@register_strategy('NO_CACHE')
+@register_strategy("NO_CACHE")
 class NoCache(Strategy):
     """Strategy without any caching
 

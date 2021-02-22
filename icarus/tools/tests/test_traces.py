@@ -13,15 +13,14 @@ except ImportError:
 
 
 class TestZipfFit(object):
-
     @pytest.mark.skipif(not minimize_scalar, reason="scipy not installed")
     def test_expected_fit(self):
         """Test that the Zipf fit function correctly estimates the alpha
         parameter of a known Zipf distribution"""
-        alpha_tolerance = 0.02              # Tolerated alpha estimation error
-        p_min = 0.99                        # Min p
-        n = 1000                            # Number of Zipf distribution items
-        alpha = np.arange(0.2, 5.0, 0.1)    # Tested range of Zipf's alpha
+        alpha_tolerance = 0.02  # Tolerated alpha estimation error
+        p_min = 0.99  # Min p
+        n = 1000  # Number of Zipf distribution items
+        alpha = np.arange(0.2, 5.0, 0.1)  # Tested range of Zipf's alpha
         for a in alpha:
             z = TruncatedZipfDist(a, n)
             est_a, p = traces.zipf_fit(z.pdf)
@@ -32,10 +31,10 @@ class TestZipfFit(object):
     def test_expected_fit_not_sorted(self):
         """Test that the Zipf fit function correctly estimates the alpha
         parameter of a known Zipf distribution"""
-        alpha_tolerance = 0.02              # Tolerated alpha estimation error
-        p_min = 0.99                        # Min p
-        n = 1000                            # Number of Zipf distribution items
-        alpha = np.arange(0.2, 5.0, 0.1)    # Tested range of Zipf's alpha
+        alpha_tolerance = 0.02  # Tolerated alpha estimation error
+        p_min = 0.99  # Min p
+        n = 1000  # Number of Zipf distribution items
+        alpha = np.arange(0.2, 5.0, 0.1)  # Tested range of Zipf's alpha
         for a in alpha:
             pdf = TruncatedZipfDist(a, n).pdf
             np.random.shuffle(pdf)

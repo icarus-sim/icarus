@@ -9,17 +9,18 @@ import networkx as nx
 
 
 __all__ = [
-       'draw_stack_deployment',
-       'draw_network_load',
-          ]
+    "draw_stack_deployment",
+    "draw_network_load",
+]
 
 
 # Colormap for node stacks
-COLORMAP = {'source':    'blue',
-            'receiver':  'green',
-            'router':    'white',
-            'cache':     'red',
-            }
+COLORMAP = {
+    "source": "blue",
+    "receiver": "green",
+    "router": "white",
+    "cache": "red",
+}
 
 
 def stack_map(topology):
@@ -38,14 +39,14 @@ def stack_map(topology):
     """
     stack = {}
     for v, (name, props) in topology.stacks().items():
-        if name == 'router':
+        if name == "router":
             cache = False
-            if 'cache_size' in props and props['cache_size'] > 0:
+            if "cache_size" in props and props["cache_size"] > 0:
                 cache = True
             elif cache:
-                name = 'cache'
+                name = "cache"
             else:
-                name = 'router'
+                name = "router"
         stack[v] = name
     return stack
 
@@ -66,7 +67,7 @@ def draw_stack_deployment(topology, filename, plotdir):
     node_color = [COLORMAP[stack[v]] for v in topology.nodes_iter()]
     plt.figure()
     nx.draw_graphviz(topology, node_color=node_color, with_labels=False)
-    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches="tight")
 
 
 def draw_network_load(topology, result, filename, plotdir):
@@ -93,19 +94,25 @@ def draw_network_load(topology, result, filename, plotdir):
     node_color = [COLORMAP[stack[v]] for v in topology.nodes_iter()]
     node_min = 50
     node_max = 600
-    hits = result['CACHE_HIT_RATIO']['PER_NODE_CACHE_HIT_RATIO'].copy()
-    hits.update(result['CACHE_HIT_RATIO']['PER_NODE_SERVER_HIT_RATIO'])
+    hits = result["CACHE_HIT_RATIO"]["PER_NODE_CACHE_HIT_RATIO"].copy()
+    hits.update(result["CACHE_HIT_RATIO"]["PER_NODE_SERVER_HIT_RATIO"])
     hits = np.array([hits[v] if v in hits else 0 for v in topology.nodes_iter()])
     min_hits = np.min(hits)
     max_hits = np.max(hits)
     hits = node_min + (node_max - node_min) * (hits - min_hits) / (max_hits - min_hits)
-    link_load = result['LINK_LOAD']['PER_LINK_INTERNAL'].copy()
-    link_load.update(result['LINK_LOAD']['PER_LINK_EXTERNAL'])
+    link_load = result["LINK_LOAD"]["PER_LINK_INTERNAL"].copy()
+    link_load.update(result["LINK_LOAD"]["PER_LINK_EXTERNAL"])
     link_load = [link_load[e] if e in link_load else 0 for e in topology.edges()]
     plt.figure()
-    nx.draw_graphviz(topology, node_color=node_color, node_size=hits,
-                     width=2.0,
-                     edge_color=link_load,
-                     edge_cmap=mpl.colors.LinearSegmentedColormap.from_list('bluered', ['blue', 'red']),
-                     with_labels=False)
-    plt.savefig(os.path.join(plotdir, filename), bbox_inches='tight')
+    nx.draw_graphviz(
+        topology,
+        node_color=node_color,
+        node_size=hits,
+        width=2.0,
+        edge_color=link_load,
+        edge_cmap=mpl.colors.LinearSegmentedColormap.from_list(
+            "bluered", ["blue", "red"]
+        ),
+        with_labels=False,
+    )
+    plt.savefig(os.path.join(plotdir, filename), bbox_inches="tight")
