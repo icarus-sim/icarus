@@ -289,7 +289,7 @@ def che_p_in_func(pdf, policy, **policy_args):
         The cache replacement policy ('LRU', 'q-LRU', 'FIFO', 'RANDOM')
     """
     if policy == "LRU":
-        p_in = lambda p, t: 1 - np.exp(-p * t)
+        def p_in(p, t): return 1 - np.exp(-p * t)
     elif policy == "q-LRU":
         if "q" not in policy_args:
             raise ValueError("q parameter not specified")
@@ -300,7 +300,7 @@ def che_p_in_func(pdf, policy, **policy_args):
             / (np.exp(-p * t) + q * (1 - np.exp(-p * t)))
         )
     elif policy in ("FIFO", "RANDOM"):
-        p_in = lambda p, t: p * t / (1 + p * t)
+        def p_in(p, t): return p * t / (1 + p * t)
     else:
         raise ValueError("policy {} not recognized".format(policy))
     return p_in

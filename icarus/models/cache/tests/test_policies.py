@@ -909,7 +909,7 @@ class TestKeyValCache:
 class TestTtlCache:
     def test_put_dump(self):
         curr_time = 1
-        f_time = lambda: curr_time
+        def f_time(): return curr_time
         c = cache.ttl_cache(cache.FifoCache(4), f_time)
         c.put(1, ttl=2)
         c.put(2, ttl=5)
@@ -930,7 +930,7 @@ class TestTtlCache:
 
     def test_get(self):
         curr_time = 1
-        f_time = lambda: curr_time
+        def f_time(): return curr_time
         c = cache.ttl_cache(cache.FifoCache(3), f_time)
         c.put(1, ttl=2)
         assert c.get(1)
@@ -948,7 +948,7 @@ class TestTtlCache:
 
     def test_eviction(self):
         curr_time = 0
-        f_time = lambda: curr_time
+        def f_time(): return curr_time
         c = cache.ttl_cache(cache.FifoCache(3), f_time)
         assert c.put(1, ttl=4) is None
         assert c.put(2, ttl=6) is None
@@ -975,7 +975,7 @@ class TestTtlCache:
 
     def test_inf_ttl(self):
         curr_time = 1
-        f_time = lambda: curr_time
+        def f_time(): return curr_time
         c = cache.ttl_cache(cache.FifoCache(5), f_time)
         c.put(1)
         c.put(2)
@@ -1008,7 +1008,7 @@ class TestTtlCache:
 
     def test_clear(self):
         curr_time = 1
-        f_time = lambda: curr_time
+        def f_time(): return curr_time
         c = cache.ttl_cache(cache.FifoCache(3), f_time)
         c.put(1, ttl=4)
         c.put(2, ttl=5)
