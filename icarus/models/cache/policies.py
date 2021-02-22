@@ -3,7 +3,6 @@
 This module contains the implementations of all the cache replacement policies
 provided by Icarus.
 """
-from __future__ import division
 
 import abc
 import copy
@@ -35,7 +34,7 @@ __all__ = [
 ]
 
 
-class LinkedSet(object):
+class LinkedSet:
     """A doubly-linked set, i.e., a set whose entries are ordered and stored
     as a doubly-linked list.
 
@@ -47,7 +46,7 @@ class LinkedSet(object):
     before a given item.
     """
 
-    class _Node(object):
+    class _Node:
         """Class implementing a node of the linked list"""
 
         def __init__(self, val, up=None, down=None):
@@ -457,7 +456,7 @@ class LinkedSet(object):
         self._map.clear()
 
 
-class Cache(object):
+class Cache:
     """Base implementation of a cache object"""
 
     @abc.abstractmethod

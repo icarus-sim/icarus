@@ -34,7 +34,7 @@ __all__ = [
 
 
 @register_workload("STATIONARY")
-class StationaryWorkload(object):
+class StationaryWorkload:
     """This function generates events on the fly, i.e. instead of creating an
     event schedule to be kept in memory, returns an iterator that generates
     events when needed.
@@ -138,7 +138,7 @@ class StationaryWorkload(object):
 
 
 @register_workload("GLOBETRAFF")
-class GlobetraffWorkload(object):
+class GlobetraffWorkload:
     """Parse requests from GlobeTraff workload generator
 
     All requests are mapped to receivers uniformly unless a positive *beta*
@@ -180,7 +180,7 @@ class GlobetraffWorkload(object):
             v for v in topology.nodes() if topology.node[v]["stack"][0] == "receiver"
         ]
         self.n_contents = 0
-        with open(contents_file, "r") as f:
+        with open(contents_file) as f:
             reader = csv.reader(f, delimiter="\t")
             for content, popularity, size, app_type in reader:
                 self.n_contents = max(self.n_contents, content)
@@ -198,7 +198,7 @@ class GlobetraffWorkload(object):
             self.receiver_dist = TruncatedZipfDist(beta, len(self.receivers))
 
     def __iter__(self):
-        with open(self.request_file, "r") as f:
+        with open(self.request_file) as f:
             reader = csv.reader(f, delimiter="\t")
             for timestamp, content, size in reader:
                 if self.beta == 0:
@@ -211,7 +211,7 @@ class GlobetraffWorkload(object):
 
 
 @register_workload("TRACE_DRIVEN")
-class TraceDrivenWorkload(object):
+class TraceDrivenWorkload:
     """Parse requests from a generic request trace.
 
     This workload requires two text files:
@@ -287,7 +287,7 @@ class TraceDrivenWorkload(object):
             v for v in topology.nodes() if topology.node[v]["stack"][0] == "receiver"
         ]
         self.contents = []
-        with open(contents_file, "r", buffering=self.buffering) as f:
+        with open(contents_file, buffering=self.buffering) as f:
             for content in f:
                 self.contents.append(content)
         self.beta = beta
@@ -303,7 +303,7 @@ class TraceDrivenWorkload(object):
     def __iter__(self):
         req_counter = 0
         t_event = 0.0
-        with open(self.reqs_file, "r", buffering=self.buffering) as f:
+        with open(self.reqs_file, buffering=self.buffering) as f:
             for content in f:
                 t_event += random.expovariate(self.rate)
                 if self.beta == 0:
@@ -320,7 +320,7 @@ class TraceDrivenWorkload(object):
 
 
 @register_workload("YCSB")
-class YCSBWorkload(object):
+class YCSBWorkload:
     """Yahoo! Cloud Serving Benchmark (YCSB)
 
     The YCSB is a set of reference workloads used to benchmark databases and,

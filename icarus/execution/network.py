@@ -51,7 +51,7 @@ def symmetrify_paths(shortest_paths):
     return shortest_paths
 
 
-class NetworkView(object):
+class NetworkView:
     """Network view
 
     This class provides an interface that strategies and data collectors can
@@ -89,7 +89,7 @@ class NetworkView(object):
         nodes : set
             A set of all nodes currently storing the given content
         """
-        loc = set(v for v in self.model.cache if self.model.cache[v].has(k))
+        loc = {v for v in self.model.cache if self.model.cache[v].has(k)}
         source = self.content_source(k)
         if source:
             loc.add(source)
@@ -319,7 +319,7 @@ class NetworkView(object):
             return self.model.cache[node].dump()
 
 
-class NetworkModel(object):
+class NetworkModel:
     """Models the internal state of the network.
 
     This object should never be edited by strategies directly, but only through
@@ -421,7 +421,7 @@ class NetworkModel(object):
         self.removed_local_caches = {}
 
 
-class NetworkController(object):
+class NetworkController:
     """Network controller
 
     This class is in charge of executing operations on the network model on

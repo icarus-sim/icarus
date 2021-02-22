@@ -1,4 +1,3 @@
-from __future__ import division
 import collections
 
 import numpy as np
@@ -7,7 +6,7 @@ import pytest
 import icarus.models as cache
 
 
-class TestLinkedSet(object):
+class TestLinkedSet:
     def link_consistency(self, linked_set):
         """
         Checks that links of a linked set are consistent iterating from top
@@ -219,7 +218,7 @@ class TestLinkedSet(object):
         assert cache.LinkedSet(iterable=[1, 0, None]) is not None
 
 
-class TestCache(object):
+class TestCache:
     def test_do(self):
         c = cache.FifoCache(2)
         assert len(c) == 0
@@ -246,7 +245,7 @@ class TestCache(object):
         assert c.dump() == []
 
 
-class TestMinCache(object):
+class TestMinCache:
     def test_get_put(self):
         trace = [1, 2, 3, 4, 4, 2, 1]
         c = cache.BeladyMinCache(2, trace)
@@ -280,7 +279,7 @@ class TestMinCache(object):
             assert set(range(min(i + 1, size))) == set(c.dump())
 
 
-class TestLruCache(object):
+class TestLruCache:
     def test_lru(self):
         c = cache.LruCache(4)
         c.put(0)
@@ -335,7 +334,7 @@ class TestLruCache(object):
         assert c.position(4) == 3
 
 
-class TestSlruCache(object):
+class TestSlruCache:
     def test_alloc(self):
         c = cache.SegmentedLruCache(100, 3, [0.4, 0.21, 0.39])
         assert list(c._segment_maxlen) == [40, 21, 39]
@@ -467,7 +466,7 @@ class TestSlruCache(object):
         assert c.dump() == [1, 2, 3, 4]
 
 
-class TestFifoCache(object):
+class TestFifoCache:
     def test_fifo(self):
         c = cache.FifoCache(4)
         assert len(c) == 0
@@ -509,7 +508,7 @@ class TestFifoCache(object):
         assert c.dump() == [4, 3, 1]
 
 
-class TestClimbCache(object):
+class TestClimbCache:
     def test_climb(self):
         c = cache.ClimbCache(4)
         c.put(1)
@@ -565,7 +564,7 @@ class TestClimbCache(object):
         assert c.position(4) == 3
 
 
-class TestRandCache(object):
+class TestRandCache:
     def test_rand(self):
         c = cache.RandEvictionCache(4)
         assert len(c) == 0
@@ -609,7 +608,7 @@ class TestRandCache(object):
             assert c.has(v)
 
 
-class TestInCacheLfuCache(object):
+class TestInCacheLfuCache:
     def test_lfu(self):
         c = cache.InCacheLfuCache(4)
         assert len(c) == 0
@@ -639,7 +638,7 @@ class TestInCacheLfuCache(object):
         assert c.dump() == []
 
 
-class TestPerfectLfuCache(object):
+class TestPerfectLfuCache:
     def test_lfu(self):
         c = cache.PerfectLfuCache(3)
         assert len(c) == 0
@@ -691,7 +690,7 @@ class TestPerfectLfuCache(object):
         assert c.dump() == []
 
 
-class TestInsertAfterKHits(object):
+class TestInsertAfterKHits:
     def test_put_get_no_memory(self):
         c = cache.LruCache(2)
         c = cache.insert_after_k_hits_cache(c, k=3, memory=None)
@@ -799,7 +798,7 @@ class TestInsertAfterKHits(object):
         assert len(c.clear.__doc__) > 0
 
 
-class TestRandInsert(object):
+class TestRandInsert:
     def test_rand_insert(self):
         n = 10000
         r = 10
@@ -862,7 +861,7 @@ class TestRandInsert(object):
         assert len(c.clear.__doc__) > 0
 
 
-class TestKeyValCache(object):
+class TestKeyValCache:
     def test_key_val_cache(self):
         c = cache.keyval_cache(cache.FifoCache(3))
         c.put(1, 11)
@@ -907,7 +906,7 @@ class TestKeyValCache(object):
             c.put(k, v)
 
 
-class TestTtlCache(object):
+class TestTtlCache:
     def test_put_dump(self):
         curr_time = 1
         f_time = lambda: curr_time

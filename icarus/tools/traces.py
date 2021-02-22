@@ -1,5 +1,4 @@
 """Functions for importing and analyzing traffic traces"""
-from __future__ import division
 
 import collections
 import math
@@ -180,8 +179,7 @@ def parse_url_list(path):
         attributes of an entry of the trace
     """
     with open(path) as f:
-        for line in f:
-            yield line
+        yield from f
     return
 
 

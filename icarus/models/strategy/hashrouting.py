@@ -1,5 +1,4 @@
 """Implementations of all hash-routing strategies"""
-from __future__ import division
 
 import networkx as nx
 
@@ -28,7 +27,7 @@ class BaseHashrouting(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(BaseHashrouting, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.cache_nodes = view.cache_nodes()
         self.n_cache_nodes = len(self.cache_nodes)
         # Allocate results of hash function to caching nodes
@@ -113,7 +112,7 @@ class Hashrouting(BaseHashrouting):
         routing : str (SYMM | ASYMM | MULTICAST)
             Content routing option
         """
-        super(Hashrouting, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.routing = routing
 
     @inheritdoc(Strategy)
@@ -216,7 +215,7 @@ class HashroutingEdge(BaseHashrouting):
         """
         if edge_cache_ratio < 0 or edge_cache_ratio > 1:
             raise ValueError("edge_cache_ratio must be between 0 and 1")
-        super(HashroutingEdge, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.routing = routing
         self.controller.reserve_local_cache(edge_cache_ratio)
         self.proxy = {
@@ -336,7 +335,7 @@ class HashroutingOnPath(BaseHashrouting):
         """
         if on_path_cache_ratio < 0 or on_path_cache_ratio > 1:
             raise ValueError("on_path_cache_ratio must be between 0 and 1")
-        super(HashroutingOnPath, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.routing = routing
         self.controller.reserve_local_cache(on_path_cache_ratio)
 
@@ -459,7 +458,7 @@ class HashroutingClustered(BaseHashrouting):
         inter_routing : str
             Inter-cluster content routing scheme. Only supported LCE
         """
-        super(HashroutingClustered, self).__init__(view, controller)
+        super().__init__(view, controller)
         if intra_routing not in ("SYMM", "ASYMM", "MULTICAST"):
             raise ValueError(
                 "Intra-cluster routing policy %s not supported" % intra_routing
@@ -522,11 +521,11 @@ class HashroutingClustered(BaseHashrouting):
             elif self.intra_routing == "ASYMM":
                 self.controller.forward_content_path(start, receiver)
                 path = self.view.shortest_path(start, receiver)
-                traversed_clusters = set(self.view.cluster(v) for v in path)
-                authoritative_caches = set(
+                traversed_clusters = {self.view.cluster(v) for v in path}
+                authoritative_caches = {
                     self.authoritative_cache(content, cluster)
                     for cluster in traversed_clusters
-                )
+                }
                 traversed_caches = authoritative_caches.intersection(set(path))
                 for v in traversed_caches:
                     self.controller.put_content(v)
@@ -556,11 +555,11 @@ class HashroutingClustered(BaseHashrouting):
                 self.controller.forward_content_path(start, cache)
                 self.controller.forward_content_path(cache, receiver)
                 path = self.view.shortest_path(start, receiver)
-                traversed_clusters = set(self.view.cluster(v) for v in path)
-                authoritative_caches = set(
+                traversed_clusters = {self.view.cluster(v) for v in path}
+                authoritative_caches = {
                     self.authoritative_cache(content, cluster)
                     for cluster in traversed_clusters
-                )
+                }
                 traversed_caches = authoritative_caches.intersection(set(path))
                 for v in traversed_caches:
                     self.controller.put_content(v)
@@ -569,11 +568,11 @@ class HashroutingClustered(BaseHashrouting):
             elif self.intra_routing == "ASYMM":
                 self.controller.forward_content_path(start, receiver)
                 path = self.view.shortest_path(start, receiver)
-                traversed_clusters = set(self.view.cluster(v) for v in path)
-                authoritative_caches = set(
+                traversed_clusters = {self.view.cluster(v) for v in path}
+                authoritative_caches = {
                     self.authoritative_cache(content, cluster)
                     for cluster in traversed_clusters
-                )
+                }
                 traversed_caches = authoritative_caches.intersection(set(path))
                 for v in traversed_caches:
                     self.controller.put_content(v)
@@ -616,7 +615,7 @@ class HashroutingSymmetric(Hashrouting):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(HashroutingSymmetric, self).__init__(view, controller, "SYMM", **kwargs)
+        super().__init__(view, controller, "SYMM", **kwargs)
 
 
 @register_strategy("HR_ASYMM")
@@ -641,7 +640,7 @@ class HashroutingAsymmetric(Hashrouting):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(HashroutingAsymmetric, self).__init__(view, controller, "ASYMM", **kwargs)
+        super().__init__(view, controller, "ASYMM", **kwargs)
 
 
 @register_strategy("HR_MULTICAST")
@@ -667,9 +666,7 @@ class HashroutingMulticast(Hashrouting):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(HashroutingMulticast, self).__init__(
-            view, controller, "MULTICAST", **kwargs
-        )
+        super().__init__(view, controller, "MULTICAST", **kwargs)
 
 
 @register_strategy("HR_HYBRID_AM")
@@ -708,7 +705,7 @@ class HashroutingHybridAM(BaseHashrouting):
             path stretch required to deliver a content is above max_stretch
             asymmetric delivery is used, otherwise multicast delivery is used.
         """
-        super(HashroutingHybridAM, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.max_stretch = nx.diameter(view.topology()) * max_stretch
 
     @inheritdoc(Strategy)
@@ -781,7 +778,7 @@ class HashroutingHybridSM(BaseHashrouting):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(HashroutingHybridSM, self).__init__(view, controller)
+        super().__init__(view, controller)
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):

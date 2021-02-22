@@ -90,7 +90,7 @@ def weighted_content_placement(topology, contents, source_weights, seed=None):
     """
     random.seed(seed)
     norm_factor = float(sum(source_weights.values()))
-    source_pdf = dict((k, v / norm_factor) for k, v in source_weights.items())
+    source_pdf = {k: v / norm_factor for k, v in source_weights.items()}
     content_placement = collections.defaultdict(set)
     for c in contents:
         content_placement[random_from_pdf(source_pdf)].add(c)

@@ -12,7 +12,7 @@ except ImportError:
     minimize_scalar = None
 
 
-class TestZipfFit(object):
+class TestZipfFit:
     @pytest.mark.skipif(not minimize_scalar, reason="scipy not installed")
     def test_expected_fit(self):
         """Test that the Zipf fit function correctly estimates the alpha

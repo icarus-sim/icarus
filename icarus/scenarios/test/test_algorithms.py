@@ -5,7 +5,7 @@ import networkx as nx
 import icarus.scenarios as algorithms
 
 
-class TestClustering(object):
+class TestClustering:
     def test_algorithms(self):
         t = algorithms.IcnTopology(fnss.line_topology(6))
         t.graph["icr_candidates"] = set(t.nodes())
@@ -43,7 +43,7 @@ class TestClustering(object):
         assert 1 == ct.number_of_nodes()
 
 
-class TestPMedian(object):
+class TestPMedian:
     def test_p_median(self):
         # Test topology:
         #

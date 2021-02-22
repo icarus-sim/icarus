@@ -1,5 +1,4 @@
 """Functions for visualizing results on graphs of topologies"""
-from __future__ import division
 import os
 
 import numpy as np

@@ -1,9 +1,7 @@
-from __future__ import division
-
 import icarus.execution as collectors
 
 
-class TestLinkLoadCollector(object):
+class TestLinkLoadCollector:
     def test_internal_external_custom_size(self):
 
         req_size = 500
@@ -126,7 +124,7 @@ class TestLinkLoadCollector(object):
         assert 0 == len(ext_load)
 
 
-class TestLatencyCollector(object):
+class TestLatencyCollector:
     def test_base(self):
 
         link_delay = {(1, 2): 2, (2, 3): 10, (2, 1): 4, (3, 2): 20}
@@ -178,7 +176,7 @@ class TestLatencyCollector(object):
         assert (10 + 20 + 2 * (2 + 4)) / 2 == res["MEAN"]
 
 
-class TestCacheHitRatioCollector(object):
+class TestCacheHitRatioCollector:
     def test_base(self):
 
         view = type("MockNetworkView", (), {})()

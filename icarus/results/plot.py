@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Plot results read from a result set
 """
-from __future__ import division
 import os
 import collections
 
@@ -410,7 +409,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     if "bar_color" in desc and all(y in desc["bar_color"] for y in yvals):
         color = desc["bar_color"]
     elif len(yvals) <= len(BW_COLOR_CATALOGUE):
-        color = dict((y, BW_COLOR_CATALOGUE[yvals.index(y)]) for y in yvals)
+        color = {y: BW_COLOR_CATALOGUE[yvals.index(y)] for y in yvals}
     else:
         color = collections.defaultdict(lambda: None)
     if "bar_hatch" in desc and desc["bar_hatch"] is None:
@@ -418,7 +417,7 @@ def plot_bar_chart(resultset, desc, filename, plotdir):
     elif "bar_hatch" in desc and all(y in desc["bar_hatch"] for y in yvals):
         hatch = desc["bar_hatch"]
     elif len(yvals) <= len(BW_COLOR_CATALOGUE):
-        hatch = dict((y, HATCH_CATALOGUE[yvals.index(y)]) for y in yvals)
+        hatch = {y: HATCH_CATALOGUE[yvals.index(y)] for y in yvals}
     else:
         hatch = collections.defaultdict(lambda: None)
     # Plot bars

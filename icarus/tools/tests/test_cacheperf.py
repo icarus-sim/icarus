@@ -1,5 +1,3 @@
-from __future__ import division
-
 import numpy as np
 
 import icarus.tools.cacheperf as cacheperf
@@ -8,7 +6,7 @@ import icarus.scenarios as scenarios
 import icarus.tools.stats as stats
 
 
-class TestNumericCacheHitRatio(object):
+class TestNumericCacheHitRatio:
     @classmethod
     def setup_class(cls):
         cls.n = 500
@@ -39,7 +37,7 @@ class TestNumericCacheHitRatio(object):
         assert np.abs(h - r) < 0.01
 
 
-class TestLaoutarisPerContentCacheHitRatio(object):
+class TestLaoutarisPerContentCacheHitRatio:
     def test_3rd_order_positive_disc(self):
         H = cacheperf.laoutaris_per_content_cache_hit_ratio(0.8, 1000, 100, 3)
         prev_h = 1
@@ -59,7 +57,7 @@ class TestLaoutarisPerContentCacheHitRatio(object):
             prev_h = h
 
 
-class TestFaginApproximation(object):
+class TestFaginApproximation:
 
     # Numerically evaluated cache hit ratio for alpha=0.8, n=100 and c=40 is ~ 0.64
     # Fagin characteristic time is ~ 71.89
@@ -90,7 +88,7 @@ class TestFaginApproximation(object):
             prev_h = h
 
 
-class TestCheApproximation(object):
+class TestCheApproximation:
 
     # Numerically evaluated cache hit ratio for alpha=0.8, n=100 and c=40 is ~ 0.64
 
@@ -168,7 +166,7 @@ class TestCheApproximation(object):
             prev_h = h
 
 
-class TestLaoutarisCacheHitRatio(object):
+class TestLaoutarisCacheHitRatio:
     def test_3rd_order_positive_disc(self):
         h = cacheperf.laoutaris_cache_hit_ratio(0.8, 1000, 100, 3)
         assert h >= 0
@@ -178,13 +176,13 @@ class TestLaoutarisCacheHitRatio(object):
         assert h >= 0
 
 
-class TestOptimalCacheHitRatio(object):
+class TestOptimalCacheHitRatio:
     def test_unsorted_pdf(self):
         h = cacheperf.optimal_cache_hit_ratio([0.1, 0.5, 0.4], 2)
         assert round(abs(0.9 - h), 7) == 0
 
 
-class TestHashrouting(object):
+class TestHashrouting:
     def test_arbitrary(self):
         topologies = [
             1221,

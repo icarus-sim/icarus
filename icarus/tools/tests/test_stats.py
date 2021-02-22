@@ -6,14 +6,14 @@ import icarus.tools as stats
 import pytest
 
 
-class TestMeansConfidenceInterval(object):
+class TestMeansConfidenceInterval:
     def test_all_equal(self):
         mean, err = stats.means_confidence_interval([1, 1, 1, 1, 1], 0.95)
         assert 1 == mean
         assert 0 == err
 
 
-class TestDiscreteDist(object):
+class TestDiscreteDist:
     def test_pdf_incorrect_sum(self):
         with pytest.raises(ValueError):
             stats.DiscreteDist(np.array([0.2, 0.3]))
@@ -24,13 +24,13 @@ class TestDiscreteDist(object):
         assert all(pdf_1[i] == pdf_2[i] for i in range(len(pdf_1)))
 
 
-class TestTruncatedZipfDist(object):
+class TestTruncatedZipfDist:
     def test_pdf_sum(self):
         p = stats.TruncatedZipfDist(alpha=0.6, n=1000).pdf
         assert round(abs(np.sum(p) - 1.0), 7) == 0
 
 
-class TestCdf(object):
+class TestCdf:
     def test_cdf_known_input(self):
         data = [-25, -25, 0.5, 1.1, 1.1, 1.1, 1.4, 1.4, 1.4, 1.4]
         # CDF(-25) = 0.2

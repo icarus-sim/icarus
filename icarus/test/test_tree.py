@@ -10,7 +10,7 @@ except ImportError:
 from icarus.util import Tree
 
 
-class TestTree(object):
+class TestTree:
     def test_init_from_tree(self):
         t = Tree({"a": 1, "b": 2})
         tree = Tree(t)

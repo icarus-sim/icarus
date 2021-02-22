@@ -1,5 +1,4 @@
 """Implementations of all off-path strategies"""
-from __future__ import division
 
 import networkx as nx
 
@@ -45,7 +44,7 @@ class NearestReplicaRouting(Strategy):
             Radius used by nodes to discover the location of a content. Not
             used by ideal routing.
         """
-        super(NearestReplicaRouting, self).__init__(view, controller)
+        super().__init__(view, controller)
         if metacaching not in ("LCE", "LCD"):
             raise ValueError("Metacaching policy %s not supported" % metacaching)
         if implementation not in ("ideal", "approx_1", "approx_2"):

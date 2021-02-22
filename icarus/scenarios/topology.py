@@ -11,7 +11,6 @@ A valid ICN topology must have the following attributes:
    deployed directly at topology creation, instead they are deployed by a
    cache placement algorithm.
 """
-from __future__ import division
 
 from os import path
 
@@ -81,11 +80,11 @@ class IcnTopology(fnss.Topology):
         sources : set
             Set of source nodes
         """
-        return set(
+        return {
             v
             for v in self
             if "stack" in self.node[v] and self.node[v]["stack"][0] == "source"
-        )
+        }
 
     def receivers(self):
         """Return a set of receiver nodes
@@ -95,11 +94,11 @@ class IcnTopology(fnss.Topology):
         receivers : set
             Set of receiver nodes
         """
-        return set(
+        return {
             v
             for v in self
             if "stack" in self.node[v] and self.node[v]["stack"][0] == "receiver"
-        )
+        }
 
 
 def largest_connected_component_subgraph(topology):

@@ -18,7 +18,7 @@ __all__ = [
 
 
 @register_cache_policy("PATH")
-class PathCache(object):
+class PathCache:
     """Path of caches
 
     This is not a single-node cache implementation but rather it implements
@@ -99,7 +99,7 @@ class PathCache(object):
 
 
 @register_cache_policy("TREE")
-class TreeCache(object):
+class TreeCache:
     """Path of caches
 
     This is not a single-node cache implementation but rather it implements
@@ -195,7 +195,7 @@ class TreeCache(object):
 
 
 @register_cache_policy("ARRAY")
-class ArrayCache(object):
+class ArrayCache:
     """Array of caches
 
     This is not a single-node cache implementation but rather it implements

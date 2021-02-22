@@ -9,7 +9,6 @@ latency, path stretch and link load.
 To create a new data collector, it is sufficient to create a new class
 inheriting from the `DataCollector` class and override all required methods.
 """
-from __future__ import division
 import collections
 
 from icarus.registry import register_data_collector
@@ -28,7 +27,7 @@ __all__ = [
 ]
 
 
-class DataCollector(object):
+class DataCollector:
     """Object collecting notifications about simulation events and measuring
     relevant metrics.
     """

@@ -308,7 +308,7 @@ def compute_p_median(distances, p, n_iter=20):
         for j, u in enumerate(nodes):
             distances_matrix[i][j] = distances[u][v]
     mappings, medians, cost = pam(distances_matrix, p, n_iter=n_iter)
-    facilities = set(nodes_map[v] for v in medians)
+    facilities = {nodes_map[v] for v in medians}
     allocation = {}
     for i, j in enumerate(mappings):
         allocation[nodes_map[i]] = nodes_map[j]

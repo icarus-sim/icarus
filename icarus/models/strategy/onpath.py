@@ -1,5 +1,4 @@
 """Implementations of all on-path strategies"""
-from __future__ import division
 import random
 
 import networkx as nx
@@ -42,7 +41,7 @@ class Partition(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller):
-        super(Partition, self).__init__(view, controller)
+        super().__init__(view, controller)
         if "cache_assignment" not in self.view.topology().graph:
             raise ValueError(
                 "The topology does not have cache assignment "
@@ -82,7 +81,7 @@ class Edge(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller):
-        super(Edge, self).__init__(view, controller)
+        super().__init__(view, controller)
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -127,7 +126,7 @@ class LeaveCopyEverywhere(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(LeaveCopyEverywhere, self).__init__(view, controller)
+        super().__init__(view, controller)
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -172,7 +171,7 @@ class LeaveCopyDown(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(LeaveCopyDown, self).__init__(view, controller)
+        super().__init__(view, controller)
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):
@@ -230,7 +229,7 @@ class ProbCache(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, t_tw=10):
-        super(ProbCache, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.t_tw = t_tw
         self.cache_size = view.cache_nodes(size=True)
 
@@ -294,13 +293,13 @@ class CacheLessForMore(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, use_ego_betw=False, **kwargs):
-        super(CacheLessForMore, self).__init__(view, controller)
+        super().__init__(view, controller)
         topology = view.topology()
         if use_ego_betw:
-            self.betw = dict(
-                (v, nx.betweenness_centrality(nx.ego_graph(topology, v))[v])
+            self.betw = {
+                v: nx.betweenness_centrality(nx.ego_graph(topology, v))[v]
                 for v in topology.nodes()
-            )
+            }
         else:
             self.betw = nx.betweenness_centrality(topology)
 
@@ -351,7 +350,7 @@ class RandomBernoulli(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, p=0.2, **kwargs):
-        super(RandomBernoulli, self).__init__(view, controller)
+        super().__init__(view, controller)
         self.p = p
 
     @inheritdoc(Strategy)
@@ -391,7 +390,7 @@ class RandomChoice(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(RandomChoice, self).__init__(view, controller)
+        super().__init__(view, controller)
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):

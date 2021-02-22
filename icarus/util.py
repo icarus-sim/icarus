@@ -1,6 +1,5 @@
 """Utility functions
 """
-from __future__ import division
 import time
 import logging
 import collections
@@ -57,7 +56,7 @@ class Tree(collections.defaultdict):
                 if not isinstance(data[k], Tree) and isinstance(data[k], dict):
                     data[k] = Tree(data[k])
         # Add processed data to the tree
-        super(Tree, self).__init__(Tree, data)
+        super().__init__(Tree, data)
         if attr:
             self.update(attr)
 
@@ -75,7 +74,7 @@ class Tree(collections.defaultdict):
     def __setitem__(self, k, v):
         if not isinstance(v, Tree) and isinstance(v, dict):
             v = Tree(v)
-        super(Tree, self).__setitem__(k, v)
+        super().__setitem__(k, v)
 
     def __reduce__(self):
         # This code is needed to fix an issue occurring while pickling.
@@ -114,7 +113,7 @@ class Tree(collections.defaultdict):
         """
         if not isinstance(e, Tree):
             e = Tree(e)
-        super(Tree, self).update(e)
+        super().update(e)
 
     def paths(self):
         """Return a dictionary mapping all paths to final (non-tree) values
@@ -213,7 +212,7 @@ class Tree(collections.defaultdict):
         return all(self.getval(path) == val for path, val in condition.paths().items())
 
 
-class Settings(object):
+class Settings:
     """Object storing all settings"""
 
     def __init__(self):
@@ -399,7 +398,7 @@ class Settings(object):
         self.__conf[name] = value
 
 
-class AnyValue(object):
+class AnyValue:
     """Pseudo-value that returns True when compared to any other object.
 
     This object can be used for example to store parameters in resultsets.
@@ -446,7 +445,7 @@ class AnyValue(object):
         return False
 
 
-class SequenceNumber(object):
+class SequenceNumber:
     """This class models an increasing sequence number.
 
     It is used to assign a sequence number for an experiment in a thread-safe

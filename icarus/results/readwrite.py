@@ -15,7 +15,7 @@ from icarus.registry import register_results_reader, register_results_writer
 __all__ = ["ResultSet", "write_results_pickle", "read_results_pickle"]
 
 
-class ResultSet(object):
+class ResultSet:
     """This class can be used to store results from different experiments,
     accessed and filtered.
 

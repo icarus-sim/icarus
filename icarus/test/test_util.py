@@ -9,7 +9,7 @@ import fnss
 import icarus.util as util
 
 
-class TestUtil(object):
+class TestUtil:
     def test_timestr(self):
         assert "1m 30s" == util.timestr(90, True)
         assert "1m" == util.timestr(90, False)
@@ -39,7 +39,7 @@ class TestUtil(object):
         assert util.apportionment(99, [0.2, 0.7, 0.1]) == [20, 69, 10]
 
 
-class TestSettings(object):
+class TestSettings:
     def test_get_set(self):
         s = util.Settings()
         s["key_a"] = "val_a"

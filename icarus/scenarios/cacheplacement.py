@@ -4,7 +4,6 @@ This module provides algorithms for performing cache placement, i.e., given
 a cumulative cache size and a topology where each possible node candidate is
 labelled, these functions deploy caching space to the nodes of the topology.
 """
-from __future__ import division
 import random
 import networkx as nx
 
@@ -347,7 +346,7 @@ def clustered_hashrouting_cache_placement(
     elif n_clusters == 1:
         clusters = [set(icr_candidates)]
     elif n_clusters == len(icr_candidates):
-        clusters = [set([v]) for v in icr_candidates]
+        clusters = [{v} for v in icr_candidates]
     else:
         clusters = compute_clusters(
             topology, n_clusters, distance=distance, nbunch=icr_candidates, n_iter=100

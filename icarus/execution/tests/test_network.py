@@ -1,5 +1,3 @@
-from __future__ import division
-
 import networkx as nx
 import fnss
 
@@ -9,7 +7,7 @@ from icarus.execution.collectors import DummyCollector
 import icarus.execution.network as network
 
 
-class TestSymmetrifyPaths(object):
+class TestSymmetrifyPaths:
     def test_symmetric_paths(self):
         path = {
             1: {1: [1], 2: [1, 2], 3: [1, 3], 4: [1, 2, 4]},
@@ -22,7 +20,7 @@ class TestSymmetrifyPaths(object):
         assert list(path[2][3]) == list(reversed(path[3][2]))
 
 
-class TestNetworkMVC(object):
+class TestNetworkMVC:
     @classmethod
     def build_topology(cls):
         # Topology sketch

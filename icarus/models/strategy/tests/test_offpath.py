@@ -11,7 +11,7 @@ from icarus.execution import (
 )
 
 
-class TestNrr(object):
+class TestNrr:
     """Test suite for Nearest Replica Routing strategies"""
 
     @classmethod

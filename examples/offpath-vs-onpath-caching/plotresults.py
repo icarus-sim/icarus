@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Plot results read from a result set
 """
-from __future__ import division
 import os
 import argparse
 import logging
@@ -98,9 +97,9 @@ def plot_cache_hits_vs_alpha(
     if "NO_CACHE" in strategies:
         strategies.remove("NO_CACHE")
     desc = {}
-    desc["title"] = "Cache hit ratio: T=%s C=%s" % (topology, cache_size)
+    desc["title"] = "Cache hit ratio: T={} C={}".format(topology, cache_size)
     desc["ylabel"] = "Cache hit ratio"
-    desc["xlabel"] = u"Content distribution \u03b1"
+    desc["xlabel"] = "Content distribution \u03b1"
     desc["xparam"] = ("workload", "alpha")
     desc["xvals"] = alpha_range
     desc["filter"] = {
@@ -118,7 +117,7 @@ def plot_cache_hits_vs_alpha(
     plot_lines(
         resultset,
         desc,
-        "CACHE_HIT_RATIO_T=%s@C=%s.pdf" % (topology, cache_size),
+        "CACHE_HIT_RATIO_T={}@C={}.pdf".format(topology, cache_size),
         plotdir,
     )
 
@@ -129,8 +128,8 @@ def plot_cache_hits_vs_cache_size(
     desc = {}
     if "NO_CACHE" in strategies:
         strategies.remove("NO_CACHE")
-    desc["title"] = "Cache hit ratio: T=%s A=%s" % (topology, alpha)
-    desc["xlabel"] = u"Cache to population ratio"
+    desc["title"] = "Cache hit ratio: T={} A={}".format(topology, alpha)
+    desc["xlabel"] = "Cache to population ratio"
     desc["ylabel"] = "Cache hit ratio"
     desc["xscale"] = "log"
     desc["xparam"] = ("cache_placement", "network_cache")
@@ -148,7 +147,10 @@ def plot_cache_hits_vs_cache_size(
     desc["legend"] = STRATEGY_LEGEND
     desc["plotempty"] = PLOT_EMPTY_GRAPHS
     plot_lines(
-        resultset, desc, "CACHE_HIT_RATIO_T=%s@A=%s.pdf" % (topology, alpha), plotdir
+        resultset,
+        desc,
+        "CACHE_HIT_RATIO_T={}@A={}.pdf".format(topology, alpha),
+        plotdir,
     )
 
 
@@ -156,8 +158,8 @@ def plot_link_load_vs_alpha(
     resultset, topology, cache_size, alpha_range, strategies, plotdir
 ):
     desc = {}
-    desc["title"] = "Internal link load: T=%s C=%s" % (topology, cache_size)
-    desc["xlabel"] = u"Content distribution \u03b1"
+    desc["title"] = "Internal link load: T={} C={}".format(topology, cache_size)
+    desc["xlabel"] = "Content distribution \u03b1"
     desc["ylabel"] = "Internal link load"
     desc["xparam"] = ("workload", "alpha")
     desc["xvals"] = alpha_range
@@ -176,7 +178,7 @@ def plot_link_load_vs_alpha(
     plot_lines(
         resultset,
         desc,
-        "LINK_LOAD_INTERNAL_T=%s@C=%s.pdf" % (topology, cache_size),
+        "LINK_LOAD_INTERNAL_T={}@C={}.pdf".format(topology, cache_size),
         plotdir,
     )
 
@@ -185,7 +187,7 @@ def plot_link_load_vs_cache_size(
     resultset, topology, alpha, cache_size_range, strategies, plotdir
 ):
     desc = {}
-    desc["title"] = "Internal link load: T=%s A=%s" % (topology, alpha)
+    desc["title"] = "Internal link load: T={} A={}".format(topology, alpha)
     desc["xlabel"] = "Cache to population ratio"
     desc["ylabel"] = "Internal link load"
     desc["xscale"] = "log"
@@ -204,7 +206,10 @@ def plot_link_load_vs_cache_size(
     desc["legend"] = STRATEGY_LEGEND
     desc["plotempty"] = PLOT_EMPTY_GRAPHS
     plot_lines(
-        resultset, desc, "LINK_LOAD_INTERNAL_T=%s@A=%s.pdf" % (topology, alpha), plotdir
+        resultset,
+        desc,
+        "LINK_LOAD_INTERNAL_T={}@A={}.pdf".format(topology, alpha),
+        plotdir,
     )
 
 
@@ -212,8 +217,8 @@ def plot_latency_vs_alpha(
     resultset, topology, cache_size, alpha_range, strategies, plotdir
 ):
     desc = {}
-    desc["title"] = "Latency: T=%s C=%s" % (topology, cache_size)
-    desc["xlabel"] = u"Content distribution \u03b1"
+    desc["title"] = "Latency: T={} C={}".format(topology, cache_size)
+    desc["xlabel"] = "Content distribution \u03b1"
     desc["ylabel"] = "Latency (ms)"
     desc["xparam"] = ("workload", "alpha")
     desc["xvals"] = alpha_range
@@ -230,7 +235,7 @@ def plot_latency_vs_alpha(
     desc["legend"] = STRATEGY_LEGEND
     desc["plotempty"] = PLOT_EMPTY_GRAPHS
     plot_lines(
-        resultset, desc, "LATENCY_T=%s@C=%s.pdf" % (topology, cache_size), plotdir
+        resultset, desc, "LATENCY_T={}@C={}.pdf".format(topology, cache_size), plotdir
     )
 
 
@@ -238,7 +243,7 @@ def plot_latency_vs_cache_size(
     resultset, topology, alpha, cache_size_range, strategies, plotdir
 ):
     desc = {}
-    desc["title"] = "Latency: T=%s A=%s" % (topology, alpha)
+    desc["title"] = "Latency: T={} A={}".format(topology, alpha)
     desc["xlabel"] = "Cache to population ratio"
     desc["ylabel"] = "Latency"
     desc["xscale"] = "log"
@@ -257,7 +262,9 @@ def plot_latency_vs_cache_size(
     desc["line_style"] = STRATEGY_STYLE
     desc["legend"] = STRATEGY_LEGEND
     desc["plotempty"] = PLOT_EMPTY_GRAPHS
-    plot_lines(resultset, desc, "LATENCY_T=%s@A=%s.pdf" % (topology, alpha), plotdir)
+    plot_lines(
+        resultset, desc, "LATENCY_T={}@A={}.pdf".format(topology, alpha), plotdir
+    )
 
 
 def plot_cache_hits_vs_topology(
@@ -273,7 +280,7 @@ def plot_cache_hits_vs_topology(
     if "NO_CACHE" in strategies:
         strategies.remove("NO_CACHE")
     desc = {}
-    desc["title"] = "Cache hit ratio: A=%s C=%s" % (alpha, cache_size)
+    desc["title"] = "Cache hit ratio: A={} C={}".format(alpha, cache_size)
     desc["ylabel"] = "Cache hit ratio"
     desc["xparam"] = ("topology", "name")
     desc["xvals"] = topology_range
@@ -291,7 +298,10 @@ def plot_cache_hits_vs_topology(
     desc["legend"] = STRATEGY_LEGEND
     desc["plotempty"] = PLOT_EMPTY_GRAPHS
     plot_bar_chart(
-        resultset, desc, "CACHE_HIT_RATIO_A=%s_C=%s.pdf" % (alpha, cache_size), plotdir
+        resultset,
+        desc,
+        "CACHE_HIT_RATIO_A={}_C={}.pdf".format(alpha, cache_size),
+        plotdir,
     )
 
 
@@ -306,7 +316,7 @@ def plot_link_load_vs_topology(
     topologies considered
     """
     desc = {}
-    desc["title"] = "Internal link load: A=%s C=%s" % (alpha, cache_size)
+    desc["title"] = "Internal link load: A={} C={}".format(alpha, cache_size)
     desc["ylabel"] = "Internal link load"
     desc["xparam"] = ("topology", "name")
     desc["xvals"] = topology_range
@@ -326,7 +336,7 @@ def plot_link_load_vs_topology(
     plot_bar_chart(
         resultset,
         desc,
-        "LINK_LOAD_INTERNAL_A=%s_C=%s.pdf" % (alpha, cache_size),
+        "LINK_LOAD_INTERNAL_A={}_C={}.pdf".format(alpha, cache_size),
         plotdir,
     )
 

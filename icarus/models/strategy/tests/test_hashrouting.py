@@ -11,7 +11,7 @@ from icarus.execution import (
 )
 
 
-class TestHashroutingEdge(object):
+class TestHashroutingEdge:
     @classmethod
     def topology(cls):
         #
@@ -257,7 +257,7 @@ class TestHashroutingEdge(object):
         assert 1 == summary["serving_node"]
 
 
-class TestHashroutingOnPath(object):
+class TestHashroutingOnPath:
     @classmethod
     def topology(cls):
         #
@@ -506,7 +506,7 @@ class TestHashroutingOnPath(object):
         assert 1 == summary["serving_node"]
 
 
-class TestHashroutingClustered(object):
+class TestHashroutingClustered:
     @classmethod
     def clustered_topology(cls):
         """Return topology for testing off-path caching strategies"""
@@ -856,7 +856,7 @@ class TestHashroutingClustered(object):
         assert "SRC" == summary["serving_node"]
 
 
-class TestHashrouting(object):
+class TestHashrouting:
     @classmethod
     def topology(cls):
         """Return topology for testing off-path caching strategies"""

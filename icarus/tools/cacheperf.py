@@ -1,7 +1,6 @@
 """Functions for modelling and evaluating the performance of cache
 replacement policies.
 """
-from __future__ import division
 
 import math
 

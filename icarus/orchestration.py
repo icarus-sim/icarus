@@ -3,7 +3,6 @@
 The orchestrator is responsible for scheduling experiments specified in the
 user-provided settings.
 """
-from __future__ import division
 import time
 import collections
 import multiprocessing as mp
@@ -33,7 +32,7 @@ __all__ = ["Orchestrator", "run_scenario"]
 logger = logging.getLogger("orchestration")
 
 
-class Orchestrator(object):
+class Orchestrator:
     """Orchestrator.
 
     It is responsible for orchestrating the execution of all experiments and

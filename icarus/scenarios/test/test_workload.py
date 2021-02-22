@@ -1,7 +1,7 @@
 import icarus.scenarios as workload
 
 
-class TestYCBS(object):
+class TestYCBS:
     def test_a(self):
         n_items = 5
         event = list(workload.YCSBWorkload("A", n_items, 1, 2))

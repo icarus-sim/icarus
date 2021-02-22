@@ -5,7 +5,7 @@ import networkx as nx
 import icarus.scenarios as cacheplacement
 
 
-class TestRandomCachePlacement(object):
+class TestRandomCachePlacement:
     def setup_method(self):
         self.topo = fnss.line_topology(6)
         fnss.add_stack(self.topo, 0, "receiver")
@@ -46,7 +46,7 @@ class TestRandomCachePlacement(object):
         self.verify_random_assignment(self.topo, 100, 4)
 
 
-class TestDegreeCentralityCachePlacement(object):
+class TestDegreeCentralityCachePlacement:
     def setup_method(self):
         #
         # 0 -- 1 -- 2 -- 3 -- 4
@@ -75,7 +75,7 @@ class TestDegreeCentralityCachePlacement(object):
         assert self.topo.node[5]["stack"][1]["cache_size"] == 1
 
 
-class TestBetweennessCentralityCachePlacement(object):
+class TestBetweennessCentralityCachePlacement:
     def setup_method(self):
         #
         # 0 -- 1 -- 2 -- 3 -- 4 -- 5
@@ -102,7 +102,7 @@ class TestBetweennessCentralityCachePlacement(object):
         assert self.topo.node[4]["stack"][1]["cache_size"] == 2
 
 
-class TestOptimalHashroutingCachePlacement(object):
+class TestOptimalHashroutingCachePlacement:
     def setup_method(self):
         #
         #       -- s1 --
@@ -166,7 +166,7 @@ class TestOptimalHashroutingCachePlacement(object):
         assert self.topo.node["c3"]["stack"][1]["cache_size"] == 10
 
 
-class TestOptimalMedianCachePlacement(object):
+class TestOptimalMedianCachePlacement:
     def setup_method(self):
         #
         #   s1    s2
@@ -253,7 +253,7 @@ class TestOptimalMedianCachePlacement(object):
         } == self.topo.graph["cache_assignment"]
 
 
-class TestClusteredHashroutingCachePlacement(object):
+class TestClusteredHashroutingCachePlacement:
     def setup_method(self):
         topo = cacheplacement.IcnTopology(fnss.line_topology(7))
         receivers = [0]

@@ -1,10 +1,8 @@
-from __future__ import division
-
 import pytest
 import icarus.models as cache
 
 
-class TestPathCache(object):
+class TestPathCache:
     def test_put_get(self):
         c = cache.PathCache([cache.LruCache(2) for _ in range(3)])
         assert len(c) == 3
@@ -64,7 +62,7 @@ class TestPathCache(object):
         assert c.has(3)
 
 
-class TestTreeCache(object):
+class TestTreeCache:
     def test_put_get(self):
         c = cache.TreeCache([cache.LruCache(2) for _ in range(2)], cache.LruCache(2))
         assert not c.get(1)
@@ -81,7 +79,7 @@ class TestTreeCache(object):
             c.put(1)
 
 
-class TestArrayCache(object):
+class TestArrayCache:
     def test_put_get(self):
         c = cache.ArrayCache([cache.LruCache(2) for _ in range(2)])
         assert not c.get(1)
@@ -109,7 +107,7 @@ class TestArrayCache(object):
             cache.ArrayCache(array, weights=[0.8, 0.1, 0.1])
 
 
-class TestShardedCache(object):
+class TestShardedCache:
     def test_put_get_has(self):
         c = cache.ShardedCache(6, "LRU", 3, f_map=lambda x: x % 3)
         c.put(4)

@@ -1,6 +1,5 @@
 """Provides statistical utilities functions used by the simulator
 """
-from __future__ import division
 
 import math
 import random
@@ -20,7 +19,7 @@ __all__ = [
 ]
 
 
-class DiscreteDist(object):
+class DiscreteDist:
     """Implements a discrete distribution with finite population.
 
     The support must be a finite discrete set of contiguous integers
@@ -116,7 +115,7 @@ class TruncatedZipfDist(DiscreteDist):
         pdf = np.arange(1.0, n + 1.0) ** -alpha
         pdf /= np.sum(pdf)
         self._alpha = alpha
-        super(TruncatedZipfDist, self).__init__(pdf, seed)
+        super().__init__(pdf, seed)
 
     @property
     def alpha(self):
@@ -179,7 +178,7 @@ def proportions_confidence_interval(data, confidence):
             "The confidence parameter must be greater than 0 and " "smaller than 1"
         )
     n = float(len(data))
-    m = len((i for i in data if i is True))
+    m = len(i for i in data if i is True)
     p = m / n
     err = ss.norm.interval(confidence)[1]
     return p, err * math.sqrt(p * (1 - p) / n)

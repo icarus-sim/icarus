@@ -11,7 +11,7 @@ from icarus.execution import (
 )
 
 
-class TestOnPath(object):
+class TestOnPath:
     @classmethod
     def on_path_topology(cls):
         """Return topology for testing on-path caching strategies"""
@@ -69,8 +69,8 @@ class TestOnPath(object):
         assert 3 in loc
         assert 4 in loc
         summary = self.collector.session_summary()
-        exp_req_hops = set(((5, 2),))
-        exp_cont_hops = set(((2, 5),))
+        exp_req_hops = {(5, 2)}
+        exp_cont_hops = {(2, 5)}
         req_hops = summary["request_hops"]
         cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
@@ -123,8 +123,8 @@ class TestOnPath(object):
         assert len(loc) == 1
         assert 4 in loc
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2)))
-        exp_cont_hops = set(((2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2)}
+        exp_cont_hops = {(2, 1), (1, 0)}
         req_hops = summary["request_hops"]
         cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
@@ -218,8 +218,8 @@ class TestOnPath(object):
         assert 3 in loc
         assert 4 in loc
         summary = self.collector.session_summary()
-        exp_req_hops = set(((0, 1), (1, 2), (2, 3)))
-        exp_cont_hops = set(((3, 2), (2, 1), (1, 0)))
+        exp_req_hops = {(0, 1), (1, 2), (2, 3)}
+        exp_cont_hops = {(3, 2), (2, 1), (1, 0)}
         req_hops = summary["request_hops"]
         cont_hops = summary["content_hops"]
         assert exp_req_hops == set(req_hops)
@@ -376,7 +376,7 @@ class TestOnPath(object):
         assert 1 == summary["serving_node"]
 
 
-class TestPartition(object):
+class TestPartition:
     @classmethod
     def partition_topology(cls):
         #

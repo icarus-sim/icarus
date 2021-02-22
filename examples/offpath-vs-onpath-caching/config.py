@@ -124,7 +124,7 @@ for alpha in ALPHA:
                 experiment["cache_placement"]["network_cache"] = network_cache
                 experiment[
                     "desc"
-                ] = "Alpha: %s, strategy: %s, topology: %s, network cache: %s" % (
+                ] = "Alpha: {}, strategy: {}, topology: {}, network cache: {}".format(
                     str(alpha),
                     strategy,
                     topology,

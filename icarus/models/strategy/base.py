@@ -1,5 +1,4 @@
 """Implementations of base strategies"""
-from __future__ import division
 import abc
 
 from icarus.registry import register_strategy
@@ -8,7 +7,7 @@ from icarus.util import inheritdoc
 __all__ = ["Strategy", "NoCache"]
 
 
-class Strategy(object):
+class Strategy:
     """Base strategy imported by all other strategy classes"""
 
     __metaclass__ = abc.ABCMeta
@@ -64,7 +63,7 @@ class NoCache(Strategy):
 
     @inheritdoc(Strategy)
     def __init__(self, view, controller, **kwargs):
-        super(NoCache, self).__init__(view, controller)
+        super().__init__(view, controller)
 
     @inheritdoc(Strategy)
     def process_event(self, time, receiver, content, log):

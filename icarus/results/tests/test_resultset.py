@@ -1,7 +1,7 @@
 from icarus.results import ResultSet
 
 
-class TestResultSet(object):
+class TestResultSet:
     @classmethod
     def setup_class(cls):
         cls.rs = ResultSet()

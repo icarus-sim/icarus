@@ -51,8 +51,6 @@ if __name__ == "__main__":
             "License :: OSI Approved :: BSD License",
             "Natural Language :: English",
             "Operating System :: OS Independent",
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
@@ -63,7 +61,7 @@ if __name__ == "__main__":
         entry_points={"console_scripts": {"{0} = {0}.main:main".format("icarus")}},
         description=release.description_short,
         long_description=release.description_long,
-        python_requires=">=2.7.9, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
+        python_requires=">=3.5.0",
         install_requires=requires,
         keywords=[
             "caching",
