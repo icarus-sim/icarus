@@ -130,11 +130,11 @@ class TestShardedCache:
 
     def test_put_get_scan(self):
         c = cache.ShardedCache(6, "LRU", 3, f_map=lambda x: x % 3)
-        assert c.put(0) == None
+        assert c.put(0) is None
         assert c.dump(serialized=False) == [[0], [], []]
-        assert c.put(1) == None
+        assert c.put(1) is None
         assert c.dump(serialized=False) == [[0], [1], []]
-        assert c.put(2) == None
+        assert c.put(2) is None
         assert c.dump(serialized=False) == [[0], [1], [2]]
         c.put(3)
         assert c.dump(serialized=False) == [[3, 0], [1], [2]]

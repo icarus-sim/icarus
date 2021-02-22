@@ -145,7 +145,7 @@ class TestLinkedSet:
         assert evicted == 3
         assert list(c) == []
         evicted = c.pop_top()
-        assert evicted == None
+        assert evicted is None
         assert list(c) == []
 
     def test_pop_bottom(self):
@@ -162,7 +162,7 @@ class TestLinkedSet:
         assert evicted == 1
         assert list(c) == []
         evicted = c.pop_bottom()
-        assert evicted == None
+        assert evicted is None
         assert list(c) == []
 
     def test_insert_above(self):
@@ -292,7 +292,7 @@ class TestLruCache:
         assert len(c) == 4
         assert c.dump() == [4, 3, 2, 0]
         assert c.put(5) == 0
-        assert c.put(5) == None
+        assert c.put(5) is None
         assert len(c) == 4
         assert c.dump() == [5, 4, 3, 2]
         c.get(2)
@@ -522,13 +522,13 @@ class TestClimbCache:
         assert c.dump() == [1, 2, 3, 5]
         assert c.put(4) == 5
         assert c.dump() == [1, 2, 3, 4]
-        assert c.put(4) == None
+        assert c.put(4) is None
         assert c.dump() == [1, 2, 4, 3]
-        assert c.put(4) == None
+        assert c.put(4) is None
         assert c.dump() == [1, 4, 2, 3]
-        assert c.put(4) == None
+        assert c.put(4) is None
         assert c.dump() == [4, 1, 2, 3]
-        assert c.put(4) == None
+        assert c.put(4) is None
         assert c.dump() == [4, 1, 2, 3]
         assert c.put(5) == 3
         assert c.dump() == [4, 1, 2, 5]
