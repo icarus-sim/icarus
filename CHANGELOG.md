@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.8.1
+
+* Fix issue #21
+* Fix references and linting issues
+
 ## 0.8.0
 
 * Migrate all tests from unittest to pytest
