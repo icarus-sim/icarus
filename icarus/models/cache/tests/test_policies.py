@@ -637,6 +637,14 @@ class TestInCacheLfuCache:
         assert len(c) == 0
         assert c.dump() == []
 
+    def test_remove(self):
+        c = cache.InCacheLfuCache(3)
+        c.put(3)
+        assert len(c) == 1
+        assert c.remove(3)
+        assert len(c) == 0
+        assert not c.remove(3)
+
 
 class TestPerfectLfuCache:
     def test_lfu(self):
@@ -688,6 +696,14 @@ class TestPerfectLfuCache:
         c.clear()
         assert len(c) == 0
         assert c.dump() == []
+
+    def test_remove(self):
+        c = cache.PerfectLfuCache(3)
+        c.put(3)
+        assert len(c) == 1
+        assert c.remove(3)
+        assert len(c) == 0
+        assert not c.remove(3)
 
 
 class TestInsertAfterKHits:

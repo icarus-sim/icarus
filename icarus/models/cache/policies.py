@@ -1256,7 +1256,7 @@ class PerfectLfuCache(Cache):
     @inheritdoc(Cache)
     def remove(self, k, *args, **kwargs):
         if k in self._cache:
-            self._cache.pop(k)
+            self._cache.remove(k)
             return True
         else:
             return False
