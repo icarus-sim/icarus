@@ -95,6 +95,7 @@ def plot_cache_hits_vs_alpha(
     resultset, topology, cache_size, alpha_range, strategies, plotdir
 ):
     if "NO_CACHE" in strategies:
+        strategies = strategies.copy()
         strategies.remove("NO_CACHE")
     desc = {}
     desc["title"] = "Cache hit ratio: T={} C={}".format(topology, cache_size)
@@ -127,6 +128,7 @@ def plot_cache_hits_vs_cache_size(
 ):
     desc = {}
     if "NO_CACHE" in strategies:
+        strategies = strategies.copy()
         strategies.remove("NO_CACHE")
     desc["title"] = "Cache hit ratio: T={} A={}".format(topology, alpha)
     desc["xlabel"] = "Cache to population ratio"
@@ -278,6 +280,7 @@ def plot_cache_hits_vs_topology(
     topologies considered
     """
     if "NO_CACHE" in strategies:
+        strategies = strategies.copy()
         strategies.remove("NO_CACHE")
     desc = {}
     desc["title"] = "Cache hit ratio: A={} C={}".format(alpha, cache_size)
